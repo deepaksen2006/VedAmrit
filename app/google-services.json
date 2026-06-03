@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "801449166194",
+    "project_id": "vedaahaar",
+    "storage_bucket": "vedaahaar.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:801449166194:android:6266bafb347044c7ea89eb",
+        "android_client_info": {
+          "package_name": "com.example.vedaahar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABdFbKQNbffWTsVmtpyaqVM027hLI-fVU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

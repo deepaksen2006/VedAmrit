@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vedahaar Health Reminder Showcase</title>
+    <style>
+      :root {
+        --cream: #fbf4e8;
+        --cream-soft: #fffaf1;
+        --linen: #f3eadc;
+        --sage: #547c3d;
+        --sage-dark: #173c28;
+        --sage-soft: #dcebd6;
+        --mint: #bce8d1;
+        --gold: #e8bd64;
+        --ink: #102a1c;
+        --muted: #6f7e62;
+        --border: rgba(84, 124, 61, 0.2);
+        --shadow: 0 48px 130px rgba(44, 67, 36, 0.22);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 14% 20%, rgba(188, 232, 209, 0.5), transparent 24%),
+          radial-gradient(circle at 85% 18%, rgba(232, 189, 100, 0.28), transparent 28%),
+          linear-gradient(135deg, #efe1cc 0%, #f8f1e7 45%, #e7efe4 100%);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        color: var(--ink);
+      }
+
+      .artboard {
+        position: relative;
+        width: 3840px;
+        height: 2160px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 8% 8%, rgba(255, 255, 255, 0.9), transparent 18%),
+          radial-gradient(circle at 78% 12%, rgba(164, 203, 151, 0.45), transparent 20%),
+          radial-gradient(circle at 73% 86%, rgba(245, 202, 112, 0.28), transparent 26%),
+          linear-gradient(145deg, #f6ead9 0%, #fbf7ee 46%, #e9f1e4 100%);
+      }
+
+      .grain {
+        position: absolute;
+        inset: 0;
+        opacity: 0.16;
+        background-image:
+          linear-gradient(rgba(23, 60, 40, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(23, 60, 40, 0.04) 1px, transparent 1px);
+        background-size: 72px 72px;
+        mask-image: radial-gradient(circle at 50% 46%, black 0 58%, transparent 82%);
+      }
+
+      .showcase {
+        position: absolute;
+        inset: 168px 210px;
+        border-radius: 88px;
+        background:
+          linear-gradient(142deg, rgba(255, 251, 243, 0.94), rgba(251, 244, 232, 0.84)),
+          rgba(255, 255, 255, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.86);
+        box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+        overflow: hidden;
+      }
+
+      .showcase::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(110deg, rgba(255, 255, 255, 0.65), transparent 44%),
+          radial-gradient(circle at 88% 10%, rgba(188, 232, 209, 0.42), transparent 22%);
+        pointer-events: none;
+      }
+
+      .header {
+        position: absolute;
+        left: 170px;
+        top: 145px;
+        width: 1040px;
+        z-index: 3;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 46px;
+        color: var(--sage);
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: 9px;
+        text-transform: uppercase;
+      }
+
+      .mark {
+        display: grid;
+        place-items: center;
+        width: 92px;
+        height: 92px;
+        border-radius: 30px;
+        background: linear-gradient(145deg, #dff0dc, #f8f1e6);
+        border: 1px solid rgba(84, 124, 61, 0.16);
+        box-shadow: 0 18px 45px rgba(84, 124, 61, 0.14);
+      }
+
+      .mark svg {
+        width: 38px;
+        height: 38px;
+        fill: var(--sage-dark);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 128px;
+        line-height: 0.94;
+        letter-spacing: 0;
+        font-weight: 850;
+        color: var(--sage-dark);
+      }
+
+      .subtitle {
+        max-width: 980px;
+        margin-top: 38px;
+        color: #5f7155;
+        font-size: 43px;
+        line-height: 1.42;
+        font-weight: 500;
+      }
+
+      .feature-pill {
+        position: absolute;
+        left: 170px;
+        bottom: 155px;
+        z-index: 3;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        padding: 28px 34px 28px 28px;
+        border-radius: 38px;
+        background: rgba(255, 252, 246, 0.72);
+        border: 1px solid rgba(84, 124, 61, 0.15);
+        box-shadow: 0 26px 70px rgba(44, 67, 36, 0.12);
+        backdrop-filter: blur(18px);
+      }
+
+      .base-card {
+        width: 410px;
+        border-radius: 24px;
+        box-shadow: 0 18px 50px rgba(49, 75, 42, 0.12);
+      }
+
+      .pill-copy {
+        width: 460px;
+        font-size: 28px;
+        line-height: 1.35;
+        color: #63775a;
+      }
+
+      .pill-copy strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--sage-dark);
+        font-size: 34px;
+      }
+
+      .stage {
+        position: absolute;
+        right: 145px;
+        top: 200px;
+        width: 2020px;
+        height: 1570px;
+        z-index: 2;
+      }
+
+      .halo {
+        position: absolute;
+        inset: 230px 90px 140px 70px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(188, 232, 209, 0.58), transparent 66%);
+        filter: blur(20px);
+      }
+
+      .mockup {
+        position: absolute;
+        overflow: hidden;
+        border-radius: 48px;
+        background: rgba(255, 253, 248, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.95);
+        box-shadow:
+          0 48px 120px rgba(35, 54, 30, 0.22),
+          0 12px 30px rgba(84, 124, 61, 0.12),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      }
+
+      .mockup::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        box-shadow: inset 0 0 0 1px rgba(84, 124, 61, 0.1);
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      .mockup img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .dashboard {
+        left: 205px;
+        top: 108px;
+        width: 1425px;
+        height: 1080px;
+        transform: rotate(-2.2deg);
+      }
+
+      .form {
+        right: 12px;
+        bottom: 40px;
+        width: 950px;
+        height: 905px;
+        transform: rotate(3.5deg);
+        z-index: 3;
+      }
+
+      .mockup-label {
+        position: absolute;
+        z-index: 4;
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 24px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.76);
+        border: 1px solid rgba(84, 124, 61, 0.16);
+        box-shadow: 0 18px 45px rgba(42, 65, 34, 0.12);
+        backdrop-filter: blur(18px);
+        color: var(--sage-dark);
+        font-size: 25px;
+        font-weight: 750;
+      }
+
+      .mockup-label::before {
+        content: "";
+        width: 16px;
+        height: 16px;
+        border-radius: 999px;
+        background: var(--sage);
+        box-shadow: 0 0 0 8px rgba(84, 124, 61, 0.13);
+      }
+
+      .label-dashboard {
+        left: 90px;
+        top: 42px;
+      }
+
+      .label-form {
+        right: 75px;
+        bottom: 978px;
+      }
+
+      .glass-card {
+        position: absolute;
+        z-index: 4;
+        border-radius: 34px;
+        background: rgba(255, 255, 255, 0.58);
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        box-shadow: 0 26px 70px rgba(43, 65, 36, 0.12);
+        backdrop-filter: blur(20px);
+      }
+
+      .metric {
+        left: 10px;
+        bottom: 180px;
+        width: 360px;
+        padding: 30px;
+      }
+
+      .metric span {
+        display: block;
+        color: var(--muted);
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: 5px;
+        text-transform: uppercase;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 18px;
+        color: var(--sage-dark);
+        font-size: 62px;
+        line-height: 1;
+      }
+
+      .mini-toggle {
+        right: 18px;
+        top: 24px;
+        width: 355px;
+        padding: 24px 26px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--sage-dark);
+        font-size: 25px;
+        font-weight: 750;
+      }
+
+      .switch {
+        width: 78px;
+        height: 42px;
+        border-radius: 999px;
+        padding: 5px;
+        background: linear-gradient(90deg, var(--sage), #8caf75);
+      }
+
+      .switch::after {
+        content: "";
+        display: block;
+        width: 32px;
+        height: 32px;
+        margin-left: 35px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(35, 54, 30, 0.2);
+      }
+
+      .orb {
+        position: absolute;
+        z-index: 1;
+        border-radius: 999px;
+        filter: blur(1px);
+      }
+
+      .orb-a {
+        width: 250px;
+        height: 250px;
+        left: 104px;
+        top: 650px;
+        background: radial-gradient(circle at 34% 30%, #fff, #cde6c3 48%, rgba(205, 230, 195, 0));
+        opacity: 0.66;
+      }
+
+      .orb-b {
+        width: 185px;
+        height: 185px;
+        right: 310px;
+        bottom: 88px;
+        background: radial-gradient(circle at 34% 30%, #fff, #e8bd64 50%, rgba(232, 189, 100, 0));
+        opacity: 0.34;
+      }
+
+      .caption {
+        position: absolute;
+        left: 170px;
+        top: 870px;
+        width: 830px;
+        z-index: 3;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 22px;
+      }
+
+      .chip {
+        min-height: 142px;
+        padding: 28px;
+        border-radius: 30px;
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(84, 124, 61, 0.14);
+        box-shadow: 0 18px 50px rgba(44, 67, 36, 0.1);
+        backdrop-filter: blur(14px);
+      }
+
+      .chip strong {
+        display: block;
+        font-size: 29px;
+        color: var(--sage-dark);
+      }
+
+      .chip span {
+        display: block;
+        margin-top: 9px;
+        font-size: 21px;
+        line-height: 1.25;
+        color: #728165;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="artboard" aria-label="Vedahaar Health Reminder premium feature showcase">
+      <div class="grain"></div>
+      <section class="showcase">
+        <div class="orb orb-a"></div>
+        <div class="orb orb-b"></div>
+
+        <header class="header">
+          <div class="eyebrow">
+            <span class="mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3.15l2.15 5.06 5.47.47-4.15 3.58 1.24 5.35L12 14.77 7.29 17.6l1.24-5.35-4.15-3.58 5.47-.47L12 3.15z" />
+              </svg>
+            </span>
+            Vedahaar Feature
+          </div>
+          <h1>Health Reminder</h1>
+          <p class="subtitle">Manage diet, yoga, medicine, and exercise reminders.</p>
+        </header>
+
+        <div class="caption" aria-hidden="true">
+          <div class="chip">
+            <strong>Care rhythm</strong>
+            <span>Diet, medicine, yoga, and exercise reminders in one calm workflow.</span>
+          </div>
+          <div class="chip">
+            <strong>Smart alerts</strong>
+            <span>Notification and alarm controls feel simple, visible, and trustworthy.</span>
+          </div>
+          <div class="chip">
+            <strong>Daily clarity</strong>
+            <span>Dashboard statistics keep Ayurvedic routines easy to scan.</span>
+          </div>
+        </div>
+
+        <aside class="feature-pill" aria-hidden="true">
+          <img class="base-card" src="assets/feature-card-base.png" alt="" />
+          <p class="pill-copy">
+            <strong>Feature card foundation</strong>
+            Soft cream surfaces, sage accents, and a clean wellness-first interface language.
+          </p>
+        </aside>
+
+        <div class="stage">
+          <div class="halo"></div>
+          <div class="mockup-label label-dashboard">Reminder overview</div>
+          <figure class="mockup dashboard">
+            <img src="assets/dashboard-overview.png" alt="Vedahaar health reminder dashboard overview screen" />
+          </figure>
+
+          <div class="mockup-label label-form">Create reminder</div>
+          <figure class="mockup form">
+            <img src="assets/create-reminder.png" alt="Vedahaar create new health reminder form screen" />
+          </figure>
+
+          <div class="glass-card metric" aria-hidden="true">
+            <span>Notifications</span>
+            <strong>On</strong>
+          </div>
+          <div class="glass-card mini-toggle" aria-hidden="true">
+            Alarm sound
+            <span class="switch"></span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
