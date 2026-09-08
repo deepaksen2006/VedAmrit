@@ -477,18 +477,7 @@ fun WelcomeScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Image(
-                painter = painterResource(id = R.drawable.bottom_leaves),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(38.dp),
-                contentScale = ContentScale.FillWidth
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(18.dp))
         }
     }
 }
