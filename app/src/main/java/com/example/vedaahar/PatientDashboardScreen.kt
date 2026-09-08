@@ -85,6 +85,7 @@ import com.example.vedaahar.dosha.DoshaResultStore
 import com.example.vedaahar.dosha.SavedDoshaAssessment
 import com.example.vedaahar.doctor.data.DoctorRepository
 import com.example.vedaahar.doctor.ui.PatientVerifiedDoctorsSection
+import com.example.vedaahar.document.ui.UploadMedicalDocumentSection
 
 private val DashboardGold = Color(0xFFE8C97B)
 private val DashboardWarmCard = Color(0xFFFFFBF4)
@@ -241,6 +242,7 @@ private fun HomeTabContent(
 ) {
     LuxuryEditorialHeader(patientFullName = patientFullName)
     GreetingSection(currentDoshaResult = currentDoshaResult, patientFullName = patientFullName)
+    UploadMedicalDocumentSection()
     PremiumFeatureMosaic(
         currentDoshaResult = currentDoshaResult,
         onRetakeDoshaClick = onRetakeDoshaClick,
