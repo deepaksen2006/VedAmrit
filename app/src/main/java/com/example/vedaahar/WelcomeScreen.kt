@@ -4,12 +4,11 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,8 +21,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -31,7 +30,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,19 +55,20 @@ import androidx.compose.ui.unit.sp
 import com.example.vedaahar.ui.theme.MutedCharcoal
 import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SoftOliveGreen
+import com.example.vedaahar.ui.theme.VedAmritCtaGreen
 import com.example.vedaahar.ui.theme.VedAmritGreen
 import com.example.vedaahar.ui.theme.WarmIvory
 
-private data class FeatureItemData(
+private data class ValuePropData(
     val icon: ImageVector,
-    val title: String,
-    val description: String
+    val title: String
 )
 
-private val DoshaAnalysisIcon: ImageVector = ImageVector.Builder(
-    name = "DoshaAnalysisIcon",
-    defaultWidth = 24.dp,
-    defaultHeight = 24.dp,
+// Value Proposition Icons matching reference
+private val PersonalizedGuidanceIcon: ImageVector = ImageVector.Builder(
+    name = "PersonalizedGuidanceIcon",
+    defaultWidth = 28.dp,
+    defaultHeight = 28.dp,
     viewportWidth = 24f,
     viewportHeight = 24f
 ).apply {
@@ -80,23 +79,41 @@ private val DoshaAnalysisIcon: ImageVector = ImageVector.Builder(
         strokeLineCap = StrokeCap.Round,
         strokeLineJoin = StrokeJoin.Round
     ) {
-        moveTo(5.5f, 13.2f)
-        curveTo(5.5f, 8.2f, 10.5f, 4.8f, 18.5f, 5.5f)
-        curveTo(18.8f, 13.3f, 14.4f, 18.6f, 9.4f, 18.6f)
-        curveTo(6.9f, 18.6f, 5.5f, 16.4f, 5.5f, 13.2f)
-        moveTo(8.5f, 16.2f)
-        lineTo(15.8f, 8.8f)
-        moveTo(9.8f, 12.4f)
-        lineTo(9.8f, 15.3f)
-        moveTo(12.4f, 9.8f)
-        lineTo(15.3f, 9.8f)
+        moveTo(6f, 19f)
+        curveTo(9f, 17f, 14f, 12f, 17f, 6f)
+    }
+    path(
+        fill = SolidColor(Color.Transparent),
+        stroke = SolidColor(Color.Black),
+        strokeLineWidth = 1.8f,
+        strokeLineCap = StrokeCap.Round,
+        strokeLineJoin = StrokeJoin.Round
+    ) {
+        moveTo(17f, 6f)
+        curveTo(17f, 12f, 12.5f, 13.5f, 9.5f, 13f)
+        curveTo(11f, 8.5f, 14f, 6f, 17f, 6f)
+        close()
+        moveTo(17f, 6f)
+        lineTo(12f, 10.5f)
+    }
+    path(
+        fill = SolidColor(Color.Transparent),
+        stroke = SolidColor(Color.Black),
+        strokeLineWidth = 1.8f,
+        strokeLineCap = StrokeCap.Round,
+        strokeLineJoin = StrokeJoin.Round
+    ) {
+        moveTo(11.5f, 13.5f)
+        curveTo(10f, 17.5f, 6.5f, 18.5f, 4.5f, 17.5f)
+        curveTo(5.5f, 14.5f, 8.5f, 13f, 11.5f, 13.5f)
+        close()
     }
 }.build()
 
-private val DietPlansIcon: ImageVector = ImageVector.Builder(
-    name = "DietPlansIcon",
-    defaultWidth = 24.dp,
-    defaultHeight = 24.dp,
+private val AiInsightsIcon: ImageVector = ImageVector.Builder(
+    name = "AiInsightsIcon",
+    defaultWidth = 28.dp,
+    defaultHeight = 28.dp,
     viewportWidth = 24f,
     viewportHeight = 24f
 ).apply {
@@ -107,51 +124,32 @@ private val DietPlansIcon: ImageVector = ImageVector.Builder(
         strokeLineCap = StrokeCap.Round,
         strokeLineJoin = StrokeJoin.Round
     ) {
-        moveTo(7f, 4.8f)
-        lineTo(7f, 10.2f)
-        moveTo(10f, 4.8f)
-        lineTo(10f, 10.2f)
-        moveTo(13f, 4.8f)
-        lineTo(13f, 10.2f)
-        moveTo(7f, 10.2f)
-        curveTo(7f, 12.2f, 8.4f, 13.6f, 10f, 13.6f)
-        curveTo(11.6f, 13.6f, 13f, 12.2f, 13f, 10.2f)
-        moveTo(10f, 13.6f)
-        lineTo(10f, 19.2f)
-        moveTo(17f, 4.8f)
-        lineTo(17f, 19.2f)
-        moveTo(17f, 4.8f)
-        curveTo(15.2f, 6.7f, 15f, 9.6f, 17f, 12f)
+        moveTo(14f, 3f)
+        lineTo(6.5f, 3f)
+        curveTo(5.4f, 3f, 4.5f, 3.9f, 4.5f, 5f)
+        lineTo(4.5f, 19f)
+        curveTo(4.5f, 20.1f, 5.4f, 21f, 6.5f, 21f)
+        lineTo(17.5f, 21f)
+        curveTo(18.6f, 21f, 19.5f, 20.1f, 19.5f, 19f)
+        lineTo(19.5f, 8.5f)
+        lineTo(14f, 3f)
+        close()
+        moveTo(14f, 3f)
+        lineTo(14f, 8.5f)
+        lineTo(19.5f, 8.5f)
+        moveTo(8f, 12f)
+        lineTo(16f, 12f)
+        moveTo(8f, 15f)
+        lineTo(14f, 15f)
+        moveTo(8f, 18f)
+        lineTo(12f, 18f)
     }
 }.build()
 
-private val HealthTrackerIcon: ImageVector = ImageVector.Builder(
-    name = "HealthTrackerIcon",
-    defaultWidth = 24.dp,
-    defaultHeight = 24.dp,
-    viewportWidth = 24f,
-    viewportHeight = 24f
-).apply {
-    path(
-        fill = SolidColor(Color.Transparent),
-        stroke = SolidColor(Color.Black),
-        strokeLineWidth = 1.9f,
-        strokeLineCap = StrokeCap.Round,
-        strokeLineJoin = StrokeJoin.Round
-    ) {
-        moveTo(4f, 12f)
-        lineTo(8f, 12f)
-        lineTo(10.2f, 7f)
-        lineTo(13.4f, 17f)
-        lineTo(15.8f, 12f)
-        lineTo(20f, 12f)
-    }
-}.build()
-
-private val ConsultDoctorIcon: ImageVector = ImageVector.Builder(
-    name = "ConsultDoctorIcon",
-    defaultWidth = 24.dp,
-    defaultHeight = 24.dp,
+private val HolisticWellnessIcon: ImageVector = ImageVector.Builder(
+    name = "HolisticWellnessIcon",
+    defaultWidth = 28.dp,
+    defaultHeight = 28.dp,
     viewportWidth = 24f,
     viewportHeight = 24f
 ).apply {
@@ -162,20 +160,59 @@ private val ConsultDoctorIcon: ImageVector = ImageVector.Builder(
         strokeLineCap = StrokeCap.Round,
         strokeLineJoin = StrokeJoin.Round
     ) {
-        moveTo(6f, 5f)
-        lineTo(6f, 9.2f)
-        curveTo(6f, 12.2f, 8.1f, 14.2f, 10.8f, 14.2f)
-        curveTo(13.5f, 14.2f, 15.6f, 12.2f, 15.6f, 9.2f)
-        lineTo(15.6f, 5f)
-        moveTo(10.8f, 14.2f)
-        lineTo(10.8f, 15.4f)
-        curveTo(10.8f, 18.2f, 13f, 20f, 15.8f, 20f)
-        curveTo(18.4f, 20f, 20f, 18.4f, 20f, 16.3f)
-        moveTo(18.3f, 16.3f)
-        curveTo(18.3f, 15.4f, 19f, 14.7f, 20f, 14.7f)
-        curveTo(21f, 14.7f, 21.7f, 15.4f, 21.7f, 16.3f)
-        curveTo(21.7f, 17.3f, 21f, 18f, 20f, 18f)
-        curveTo(19f, 18f, 18.3f, 17.3f, 18.3f, 16.3f)
+        moveTo(4f, 13f)
+        lineTo(20f, 13f)
+        curveTo(20f, 18f, 16.5f, 20f, 12f, 20f)
+        curveTo(7.5f, 20f, 4f, 18f, 4f, 13f)
+        close()
+        moveTo(8.5f, 20f)
+        lineTo(15.5f, 20f)
+        moveTo(12f, 13f)
+        curveTo(10f, 9.5f, 7f, 8.5f, 5f, 9f)
+        curveTo(6f, 11.5f, 9f, 12.5f, 12f, 13f)
+        moveTo(12f, 13f)
+        curveTo(14f, 9f, 17.5f, 8f, 19.5f, 8.5f)
+        curveTo(18.5f, 11.5f, 15f, 12.5f, 12f, 13f)
+    }
+}.build()
+
+private val TrustedCareIcon: ImageVector = ImageVector.Builder(
+    name = "TrustedCareIcon",
+    defaultWidth = 28.dp,
+    defaultHeight = 28.dp,
+    viewportWidth = 24f,
+    viewportHeight = 24f
+).apply {
+    path(
+        fill = SolidColor(Color.Transparent),
+        stroke = SolidColor(Color.Black),
+        strokeLineWidth = 1.8f,
+        strokeLineCap = StrokeCap.Round,
+        strokeLineJoin = StrokeJoin.Round
+    ) {
+        moveTo(10f, 9f)
+        curveTo(11.4f, 9f, 12.5f, 7.9f, 12.5f, 6.5f)
+        curveTo(12.5f, 5.1f, 11.4f, 4f, 10f, 4f)
+        curveTo(8.6f, 4f, 7.5f, 5.1f, 7.5f, 6.5f)
+        curveTo(7.5f, 7.9f, 8.6f, 9f, 10f, 9f)
+        close()
+        moveTo(4.5f, 17f)
+        curveTo(4.5f, 14f, 7f, 12f, 10f, 12f)
+        curveTo(11.8f, 12f, 13.5f, 12.8f, 14.5f, 14f)
+        moveTo(15.5f, 7.5f)
+        curveTo(16.6f, 7.5f, 17.5f, 6.6f, 17.5f, 5.5f)
+        curveTo(17.5f, 4.4f, 16.6f, 3.5f, 15.5f, 3.5f)
+        curveTo(14.7f, 3.5f, 14f, 4f, 13.7f, 4.7f)
+        moveTo(18f, 13.5f)
+        curveTo(15.5f, 13.5f, 13.5f, 15.5f, 13.5f, 18f)
+        curveTo(13.5f, 20.5f, 15.5f, 22.5f, 18f, 22.5f)
+        curveTo(20.5f, 22.5f, 22.5f, 20.5f, 22.5f, 18f)
+        curveTo(22.5f, 15.5f, 20.5f, 13.5f, 18f, 13.5f)
+        close()
+        moveTo(18f, 15.5f)
+        lineTo(18f, 20.5f)
+        moveTo(15.5f, 18f)
+        lineTo(20.5f, 18f)
     }
 }.build()
 
@@ -197,78 +234,34 @@ fun WelcomeScreen(
                 .verticalScroll(scrollState)
                 .statusBarsPadding()
                 .navigationBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 20.dp),
+                .padding(horizontal = 22.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // 1. BRANDING / LOGO (prominent, top-center, no card, no bordered container)
+            // 1. BRAND / LOGO (prominent top-center, natural aspect ratio, no container card)
             Box(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.vedamrit_logo),
                     contentDescription = "VedAmrit logo",
                     modifier = Modifier
-                        .fillMaxWidth(0.72f)
-                        .sizeIn(maxWidth = 260.dp, maxHeight = 260.dp)
-                        .aspectRatio(1f),
+                        .fillMaxWidth(0.66f)
+                        .sizeIn(maxWidth = 230.dp, maxHeight = 230.dp)
+                        .aspectRatio(1024f / 956f),
                     contentScale = ContentScale.Fit
                 )
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // 2. HERO SECTION
-            // Kicker
             Text(
                 text = "AYURVEDA + AI",
                 color = SoftOliveGreen,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 2.4.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Main Heading
-            Text(
-                text = "Personalized\nAyurvedic Care\nPowered by AI",
-                color = VedAmritGreen,
-                fontSize = 32.sp,
-                lineHeight = 40.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.SansSerif,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 3. DESCRIPTION
-            Text(
-                text = "A calm, intelligent wellness companion\nthat helps you understand your body,\nimprove daily habits, and access holistic\ncare with confidence.",
-                color = MutedCharcoal,
-                fontSize = 15.sp,
-                lineHeight = 24.sp,
-                fontWeight = FontWeight.Normal,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 4.dp)
-            )
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // 4. FEATURES SECTION
-            Text(
-                text = "FEATURES",
-                color = SoftOliveGreen,
-                fontSize = 12.sp,
+                fontSize = 11.5.sp,
                 fontWeight = FontWeight.SemiBold,
                 letterSpacing = 2.4.sp,
                 textAlign = TextAlign.Center,
@@ -278,79 +271,83 @@ fun WelcomeScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             Text(
-                text = "Everyday care, designed to feel simple",
+                text = "Personalized\nAyurvedic Care\nPowered by AI",
                 color = VedAmritGreen,
-                fontSize = 22.sp,
-                lineHeight = 28.sp,
+                fontSize = 29.sp,
+                lineHeight = 36.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.SansSerif,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            // Feature List (clean, minimal, calm aesthetic)
-            val features = listOf(
-                FeatureItemData(
-                    icon = DoshaAnalysisIcon,
-                    title = "Dosha Analysis",
-                    description = "Understand your Ayurvedic constitution with guided, personalized insights."
-                ),
-                FeatureItemData(
-                    icon = DietPlansIcon,
-                    title = "Diet Plans",
-                    description = "Receive balanced meal suggestions aligned with your body type and goals."
-                ),
-                FeatureItemData(
-                    icon = HealthTrackerIcon,
-                    title = "Health Tracker",
-                    description = "Monitor routines, wellness scores, and gradual lifestyle improvements over time."
-                ),
-                FeatureItemData(
-                    icon = ConsultDoctorIcon,
-                    title = "Consult Doctor",
-                    description = "Connect with Ayurvedic experts for deeper guidance when you need support."
-                )
+            Text(
+                text = "A calm, intelligent wellness companion that helps you understand your body, improve daily habits, and access holistic care with confidence.",
+                color = MutedCharcoal,
+                fontSize = 14.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight.Normal,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 6.dp)
             )
 
-            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                val isWide = maxWidth >= 600.dp
-                if (isWide) {
+            Spacer(modifier = Modifier.height(28.dp))
+
+            // 3. VALUE PROPOSITION CARDS (2 x 2 Grid)
+            val valueProps = listOf(
+                ValuePropData(PersonalizedGuidanceIcon, "Personalized\nGuidance"),
+                ValuePropData(AiInsightsIcon, "AI-Powered\nInsights"),
+                ValuePropData(HolisticWellnessIcon, "Holistic\nWellness"),
+                ValuePropData(TrustedCareIcon, "Trusted\nAyurvedic Care")
+            )
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                valueProps.chunked(2).forEach { rowItems ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        features.forEach { item ->
-                            CleanFeatureCard(item = item, modifier = Modifier.weight(1f))
-                        }
-                    }
-                } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        features.chunked(2).forEach { rowItems ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                rowItems.forEach { item ->
-                                    CleanFeatureCard(item = item, modifier = Modifier.weight(1f))
-                                }
-                                if (rowItems.size < 2) {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                }
-                            }
+                        rowItems.forEach { item ->
+                            ValuePropCard(item = item, modifier = Modifier.weight(1f))
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(36.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
-            // 5. CALL TO ACTION BUTTONS
-            val createAccountSource = remember { MutableInteractionSource() }
-            val isCreatePressed by createAccountSource.collectIsPressedAsState()
-            val createScale by animateFloatAsState(
-                targetValue = if (isCreatePressed) 0.98f else 1f,
+            // 4. AYURVEDIC VISUAL (Mortar & Pestle, Botanical elements & Brand Statement)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ayurvedic_visual),
+                    contentDescription = "Ancient Wisdom, Modern Intelligence, A Healthier You",
+                    modifier = Modifier
+                        .fillMaxWidth(0.92f)
+                        .sizeIn(maxWidth = 340.dp, maxHeight = 240.dp)
+                        .aspectRatio(670f / 487f),
+                    contentScale = ContentScale.Fit
+                )
+            }
+
+            Spacer(modifier = Modifier.height(26.dp))
+
+            // 5. PRIMARY CTA ("Get Started →") & PATIENT/DOCTOR FLOWS
+            val ctaSource = remember { MutableInteractionSource() }
+            val isCtaPressed by ctaSource.collectIsPressedAsState()
+            val ctaScale by animateFloatAsState(
+                targetValue = if (isCtaPressed) 0.98f else 1f,
                 animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
                 label = "cta-scale"
             )
@@ -358,8 +355,7 @@ fun WelcomeScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                    .padding(horizontal = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Button(
@@ -367,93 +363,115 @@ fun WelcomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(54.dp)
-                        .scale(createScale),
-                    interactionSource = createAccountSource,
+                        .scale(ctaScale),
+                    interactionSource = ctaSource,
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = VedAmritGreen,
+                        containerColor = VedAmritCtaGreen,
                         contentColor = PureWhite
-                    )
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
                 ) {
-                    Text(
-                        text = "Create Patient Account",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PureWhite
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Get Started",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PureWhite
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "→",
+                            fontSize = 19.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PureWhite
+                        )
+                    }
                 }
 
-                OutlinedButton(
-                    onClick = onJoinAsDoctor,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(50),
-                    border = BorderStroke(1.2.dp, VedAmritGreen.copy(alpha = 0.65f)),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.Transparent,
-                        contentColor = VedAmritGreen
-                    )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
+                        text = "Are you a practitioner?",
+                        color = MutedCharcoal,
+                        fontSize = 13.sp
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
                         text = "Join as Doctor",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = VedAmritGreen
+                        color = VedAmritGreen,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable(onClick = onJoinAsDoctor)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 6. FOOTER / BRAND MESSAGE
+            Text(
+                text = "Heal Naturally  |  Live Better  |  With VedAmrit",
+                color = MutedCharcoal.copy(alpha = 0.85f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Image(
+                painter = painterResource(id = R.drawable.bottom_leaves),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(38.dp),
+                contentScale = ContentScale.FillWidth
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
 
 @Composable
-private fun CleanFeatureCard(item: FeatureItemData, modifier: Modifier = Modifier) {
+private fun ValuePropCard(item: ValuePropData, modifier: Modifier = Modifier) {
     Card(
-        modifier = modifier,
+        modifier = modifier.height(106.dp),
         shape = RoundedCornerShape(18.dp),
-        border = BorderStroke(1.dp, Color(0xFFE8E4D9)),
-        colors = CardDefaults.cardColors(containerColor = PureWhite),
+        border = BorderStroke(1.dp, Color(0xFFE8E0D2).copy(alpha = 0.85f)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDF8)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 16.dp)
+                .fillMaxSize()
+                .padding(horizontal = 10.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(color = Color(0xFFF0F5EE), shape = CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = item.icon,
-                    contentDescription = item.title,
-                    tint = VedAmritGreen,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+            Icon(
+                imageVector = item.icon,
+                contentDescription = item.title,
+                tint = VedAmritGreen,
+                modifier = Modifier.size(28.dp)
+            )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = item.title,
                 color = VedAmritGreen,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = item.description,
-                color = MutedCharcoal,
-                fontSize = 12.sp,
-                lineHeight = 18.sp,
-                fontWeight = FontWeight.Normal
+                fontSize = 13.sp,
+                lineHeight = 16.5.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
             )
         }
     }

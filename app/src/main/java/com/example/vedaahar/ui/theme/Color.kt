@@ -13,8 +13,9 @@ val SoftBlueGray = Color(0xFF4F5962)
 val PureWhite = Color(0xFFFFFFFF)
 
 // VedAmrit Brand Palette
-val WarmIvory = Color(0xFFFAF7F0)
-val VedAmritGreen = Color(0xFF142E1F)
+val WarmIvory = Color(0xFFFBF7EC)
+val VedAmritGreen = Color(0xFF0F3826)
+val VedAmritCtaGreen = Color(0xFF0C4A31)
 val MutedCharcoal = Color(0xFF5A665E)
 val SoftOliveGreen = Color(0xFF3F6A48)
 val AntiqueGold = Color(0xFFC5A866)
