@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -23,10 +24,9 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -64,7 +64,7 @@ private data class ValuePropData(
     val title: String
 )
 
-// Value Proposition Icons matching reference
+// 1. Value Proposition Icons
 private val PersonalizedGuidanceIcon: ImageVector = ImageVector.Builder(
     name = "PersonalizedGuidanceIcon",
     defaultWidth = 28.dp,
@@ -216,10 +216,92 @@ private val TrustedCareIcon: ImageVector = ImageVector.Builder(
     }
 }.build()
 
+// 2. Authentication CTA Icons
+private val PatientProfileOutlineIcon: ImageVector = ImageVector.Builder(
+    name = "PatientProfileOutlineIcon",
+    defaultWidth = 24.dp,
+    defaultHeight = 24.dp,
+    viewportWidth = 24f,
+    viewportHeight = 24f
+).apply {
+    path(
+        fill = SolidColor(Color.Transparent),
+        stroke = SolidColor(Color.Black),
+        strokeLineWidth = 1.9f,
+        strokeLineCap = StrokeCap.Round,
+        strokeLineJoin = StrokeJoin.Round
+    ) {
+        moveTo(12f, 12f)
+        curveTo(14.2f, 12f, 16f, 10.2f, 16f, 8f)
+        curveTo(16f, 5.8f, 14.2f, 4f, 12f, 4f)
+        curveTo(9.8f, 4f, 8f, 5.8f, 8f, 8f)
+        curveTo(8f, 10.2f, 9.8f, 12f, 12f, 12f)
+        close()
+        moveTo(5.5f, 20f)
+        curveTo(5.5f, 16.5f, 8.4f, 14f, 12f, 14f)
+        curveTo(15.6f, 14f, 18.5f, 16.5f, 18.5f, 20f)
+    }
+}.build()
+
+private val DoctorStethoscopeIcon: ImageVector = ImageVector.Builder(
+    name = "DoctorStethoscopeIcon",
+    defaultWidth = 24.dp,
+    defaultHeight = 24.dp,
+    viewportWidth = 24f,
+    viewportHeight = 24f
+).apply {
+    path(
+        fill = SolidColor(Color.Transparent),
+        stroke = SolidColor(Color.Black),
+        strokeLineWidth = 1.9f,
+        strokeLineCap = StrokeCap.Round,
+        strokeLineJoin = StrokeJoin.Round
+    ) {
+        moveTo(6f, 4f)
+        lineTo(6f, 9.5f)
+        curveTo(6f, 12.5f, 8.5f, 14.5f, 11.5f, 14.5f)
+        curveTo(14.5f, 14.5f, 17f, 12.5f, 17f, 9.5f)
+        lineTo(17f, 4f)
+        moveTo(11.5f, 14.5f)
+        lineTo(11.5f, 16.5f)
+        curveTo(11.5f, 19f, 13.5f, 20.5f, 16f, 20.5f)
+        curveTo(18.5f, 20.5f, 20.5f, 18.8f, 20.5f, 16.5f)
+        moveTo(19f, 16.5f)
+        curveTo(19f, 15.7f, 19.7f, 15f, 20.5f, 15f)
+        curveTo(21.3f, 15f, 22f, 15.7f, 22f, 16.5f)
+        curveTo(22f, 17.3f, 21.3f, 18f, 20.5f, 18f)
+        curveTo(19.7f, 18f, 19f, 17.3f, 19f, 16.5f)
+        close()
+    }
+}.build()
+
+private val ArrowForwardIcon: ImageVector = ImageVector.Builder(
+    name = "ArrowForwardIcon",
+    defaultWidth = 20.dp,
+    defaultHeight = 20.dp,
+    viewportWidth = 24f,
+    viewportHeight = 24f
+).apply {
+    path(
+        fill = SolidColor(Color.Transparent),
+        stroke = SolidColor(Color.Black),
+        strokeLineWidth = 2.2f,
+        strokeLineCap = StrokeCap.Round,
+        strokeLineJoin = StrokeJoin.Round
+    ) {
+        moveTo(5f, 12f)
+        lineTo(19f, 12f)
+        moveTo(13f, 6f)
+        lineTo(19f, 12f)
+        lineTo(13f, 18f)
+    }
+}.build()
+
 @Composable
 fun WelcomeScreen(
     modifier: Modifier = Modifier,
     onStartAssessment: () -> Unit = {},
+    onJoinAsPatient: () -> Unit = onStartAssessment,
     onJoinAsDoctor: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
@@ -239,7 +321,7 @@ fun WelcomeScreen(
         ) {
             Spacer(modifier = Modifier.height(10.dp))
 
-            // 1. BRAND / LOGO (prominent top-center, natural aspect ratio, no container card)
+            // 1. BRAND / LOGO
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
@@ -321,9 +403,25 @@ fun WelcomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
-            // 4. AYURVEDIC VISUAL (Mortar & Pestle, Botanical elements & Brand Statement)
+            // 4. EVERYDAY CARE SECTION
+            Text(
+                text = "Everyday care, designed to feel\nsimple",
+                color = VedAmritGreen,
+                fontSize = 22.sp,
+                lineHeight = 28.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.SansSerif,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Ayurvedic Illustration (Directly from uploaded asset, aspect ratio preserved)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -334,85 +432,40 @@ fun WelcomeScreen(
                     painter = painterResource(id = R.drawable.ayurvedic_visual),
                     contentDescription = "Ancient Wisdom, Modern Intelligence, A Healthier You",
                     modifier = Modifier
-                        .fillMaxWidth(0.92f)
-                        .sizeIn(maxWidth = 340.dp, maxHeight = 240.dp)
-                        .aspectRatio(670f / 487f),
+                        .fillMaxWidth(0.94f)
+                        .sizeIn(maxWidth = 360.dp, maxHeight = 230.dp)
+                        .aspectRatio(1024f / 602f),
                     contentScale = ContentScale.Fit
                 )
             }
 
-            Spacer(modifier = Modifier.height(26.dp))
+            Spacer(modifier = Modifier.height(22.dp))
 
-            // 5. PRIMARY CTA ("Get Started →") & PATIENT/DOCTOR FLOWS
-            val ctaSource = remember { MutableInteractionSource() }
-            val isCtaPressed by ctaSource.collectIsPressedAsState()
-            val ctaScale by animateFloatAsState(
-                targetValue = if (isCtaPressed) 0.98f else 1f,
-                animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
-                label = "cta-scale"
-            )
-
+            // 5. AUTHENTICATION CTAs (Stacked Large Cards)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(horizontal = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Button(
-                    onClick = onStartAssessment,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp)
-                        .scale(ctaScale),
-                    interactionSource = ctaSource,
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = VedAmritCtaGreen,
-                        contentColor = PureWhite
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "Get Started",
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PureWhite
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "→",
-                            fontSize = 19.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PureWhite
-                        )
-                    }
-                }
+                AuthCtaCard(
+                    title = "Join as a Patient",
+                    subtitle = "Start your wellness journey",
+                    icon = PatientProfileOutlineIcon,
+                    isPrimary = true,
+                    onClick = onJoinAsPatient
+                )
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Are you a practitioner?",
-                        color = MutedCharcoal,
-                        fontSize = 13.sp
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Join as Doctor",
-                        color = VedAmritGreen,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable(onClick = onJoinAsDoctor)
-                    )
-                }
+                AuthCtaCard(
+                    title = "Join as a Doctor",
+                    subtitle = "Share your expertise",
+                    icon = DoctorStethoscopeIcon,
+                    isPrimary = false,
+                    onClick = onJoinAsDoctor
+                )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(26.dp))
 
             // 6. FOOTER / BRAND MESSAGE
             Text(
@@ -472,6 +525,93 @@ private fun ValuePropCard(item: ValuePropData, modifier: Modifier = Modifier) {
                 lineHeight = 16.5.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun AuthCtaCard(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    isPrimary: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.985f else 1f,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
+        label = "auth-cta-scale"
+    )
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(72.dp)
+            .scale(scale)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
+        shape = RoundedCornerShape(20.dp),
+        border = if (isPrimary) null else BorderStroke(1.dp, Color(0xFFE8E0D2)),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isPrimary) VedAmritCtaGreen else Color(0xFFFFFDF8)
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isPrimary) 2.5.dp else 1.dp
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .background(
+                        color = if (isPrimary) Color.White.copy(alpha = 0.15f) else Color(0xFFEFF5ED),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = if (isPrimary) PureWhite else VedAmritGreen,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    color = if (isPrimary) PureWhite else VedAmritGreen,
+                    fontSize = 15.5.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    color = if (isPrimary) PureWhite.copy(alpha = 0.85f) else MutedCharcoal,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            }
+
+            Icon(
+                imageVector = ArrowForwardIcon,
+                contentDescription = null,
+                tint = if (isPrimary) PureWhite else VedAmritGreen,
+                modifier = Modifier.size(18.dp)
             )
         }
     }

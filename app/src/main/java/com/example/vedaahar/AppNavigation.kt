@@ -268,6 +268,11 @@ fun VedaAhaarNavHost(
                             launchSingleTop = true
                         }
                     },
+                    onJoinAsPatient = {
+                        navController.navigate(VedaAhaarRoute.Login) {
+                            launchSingleTop = true
+                        }
+                    },
                     onJoinAsDoctor = {
                         navController.navigate(VedaAhaarRoute.DoctorModule) {
                             launchSingleTop = true
