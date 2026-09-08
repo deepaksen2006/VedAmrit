@@ -1,45 +1,45 @@
 package com.example.vedaahar
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.UiComposable
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
@@ -48,22 +48,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.shape.RoundedCornerShape
-import com.example.vedaahar.ui.theme.BeigeBorder
-import com.example.vedaahar.ui.theme.Cream
-import com.example.vedaahar.ui.theme.DarkForestGreen
-import com.example.vedaahar.ui.theme.ForestGreen
-import com.example.vedaahar.ui.theme.LightSage
+import com.example.vedaahar.ui.theme.MutedCharcoal
 import com.example.vedaahar.ui.theme.PureWhite
-import com.example.vedaahar.ui.theme.SageGreen
-import com.example.vedaahar.ui.theme.SoftBlueGray
+import com.example.vedaahar.ui.theme.SoftOliveGreen
+import com.example.vedaahar.ui.theme.VedAmritGreen
+import com.example.vedaahar.ui.theme.WarmIvory
 
-private data class FeatureCardData(
+private data class FeatureItemData(
     val icon: ImageVector,
     val title: String,
     val description: String
@@ -189,130 +186,128 @@ fun WelcomeScreen(
     onJoinAsDoctor: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
-    val onCreatePatientAccount: () -> Unit = onStartAssessment
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        color = WarmIvory
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
                 .statusBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Card(
+            // 1. BRANDING / LOGO (prominent, top-center, no card, no bordered container)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.vedamrit_logo),
+                    contentDescription = "VedAmrit logo",
                     modifier = Modifier
-                        .fillMaxWidth(0.75f)
-                        .height(260.dp),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = Cream),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(20.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.vedaahaar_logo),
-                            contentDescription = "VedaAhaar logo",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
-                }
+                        .fillMaxWidth(0.72f)
+                        .sizeIn(maxWidth = 260.dp, maxHeight = 260.dp)
+                        .aspectRatio(1f),
+                    contentScale = ContentScale.Fit
+                )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
+            // 2. HERO SECTION
+            // Kicker
             Text(
                 text = "AYURVEDA + AI",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    color = SageGreen,
-                    letterSpacing = 1.8.sp,
-                    fontWeight = FontWeight.SemiBold
-                ),
+                color = SoftOliveGreen,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 2.4.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Main Heading
             Text(
-                text = "Personalized Ayurvedic Care Powered by AI",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    color = DarkForestGreen,
-                    lineHeight = 40.sp
-                ),
+                text = "Personalized\nAyurvedic Care\nPowered by AI",
+                color = VedAmritGreen,
+                fontSize = 32.sp,
+                lineHeight = 40.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.SansSerif,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
+            // 3. DESCRIPTION
             Text(
-                text = "A calm, intelligent wellness companion that helps you understand your body, improve daily habits, and access holistic care with confidence.",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = SoftBlueGray,
-                    lineHeight = 24.sp
-                ),
+                text = "A calm, intelligent wellness companion\nthat helps you understand your body,\nimprove daily habits, and access holistic\ncare with confidence.",
+                color = MutedCharcoal,
+                fontSize = 15.sp,
+                lineHeight = 24.sp,
+                fontWeight = FontWeight.Normal,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = 4.dp)
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "FEATURES",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = ForestGreen,
-                        letterSpacing = 1.8.sp,
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    textAlign = TextAlign.Center
-                )
+            // 4. FEATURES SECTION
+            Text(
+                text = "FEATURES",
+                color = SoftOliveGreen,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 2.4.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
 
-                Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-                Text(
-                    text = "Everyday care, designed to feel simple",
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        color = DarkForestGreen,
-                        lineHeight = 28.sp
-                    ),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            Text(
+                text = "Everyday care, designed to feel simple",
+                color = VedAmritGreen,
+                fontSize = 22.sp,
+                lineHeight = 28.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.SansSerif,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Feature List (clean, minimal, calm aesthetic)
             val features = listOf(
-                FeatureCardData(
+                FeatureItemData(
                     icon = DoshaAnalysisIcon,
                     title = "Dosha Analysis",
                     description = "Understand your Ayurvedic constitution with guided, personalized insights."
                 ),
-                FeatureCardData(
+                FeatureItemData(
                     icon = DietPlansIcon,
                     title = "Diet Plans",
                     description = "Receive balanced meal suggestions aligned with your body type and goals."
                 ),
-                FeatureCardData(
+                FeatureItemData(
                     icon = HealthTrackerIcon,
                     title = "Health Tracker",
                     description = "Monitor routines, wellness scores, and gradual lifestyle improvements over time."
                 ),
-                FeatureCardData(
+                FeatureItemData(
                     icon = ConsultDoctorIcon,
                     title = "Consult Doctor",
                     description = "Connect with Ayurvedic experts for deeper guidance when you need support."
@@ -320,14 +315,14 @@ fun WelcomeScreen(
             )
 
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                val columns = if (maxWidth < 600.dp) 2 else 4
-                if (columns == 4) {
+                val isWide = maxWidth >= 600.dp
+                if (isWide) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         features.forEach { item ->
-                            FeatureCard(item = item, modifier = Modifier.weight(1f))
+                            CleanFeatureCard(item = item, modifier = Modifier.weight(1f))
                         }
                     }
                 } else {
@@ -338,7 +333,7 @@ fun WelcomeScreen(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 rowItems.forEach { item ->
-                                    FeatureCard(item = item, modifier = Modifier.weight(1f))
+                                    CleanFeatureCard(item = item, modifier = Modifier.weight(1f))
                                 }
                                 if (rowItems.size < 2) {
                                     Spacer(modifier = Modifier.weight(1f))
@@ -349,192 +344,122 @@ fun WelcomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(36.dp))
 
-            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                if (maxWidth >= 700.dp) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        StartTodayCard(
-                            modifier = Modifier.weight(1f),
-                            onCreatePatientAccount = onCreatePatientAccount,
-                            onJoinAsDoctor = onJoinAsDoctor
-                        )
-                    }
-                } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        StartTodayCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            onCreatePatientAccount = onCreatePatientAccount,
-                            onJoinAsDoctor = onJoinAsDoctor
-                        )
-                    }
+            // 5. CALL TO ACTION BUTTONS
+            val createAccountSource = remember { MutableInteractionSource() }
+            val isCreatePressed by createAccountSource.collectIsPressedAsState()
+            val createScale by animateFloatAsState(
+                targetValue = if (isCreatePressed) 0.98f else 1f,
+                animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
+                label = "cta-scale"
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Button(
+                    onClick = onStartAssessment,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp)
+                        .scale(createScale),
+                    interactionSource = createAccountSource,
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = VedAmritGreen,
+                        contentColor = PureWhite
+                    )
+                ) {
+                    Text(
+                        text = "Create Patient Account",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PureWhite
+                    )
+                }
+
+                OutlinedButton(
+                    onClick = onJoinAsDoctor,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    border = BorderStroke(1.2.dp, VedAmritGreen.copy(alpha = 0.65f)),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = VedAmritGreen
+                    )
+                ) {
+                    Text(
+                        text = "Join as Doctor",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = VedAmritGreen
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(28.dp))
         }
     }
 }
 
 @Composable
-@UiComposable
-private fun FeatureCard(item: FeatureCardData, modifier: Modifier = Modifier) {
+private fun CleanFeatureCard(item: FeatureItemData, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(1.dp, BeigeBorder),
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, Color(0xFFE8E4D9)),
         colors = CardDefaults.cardColors(containerColor = PureWhite),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 16.dp)
+        ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
-                    .background(color = LightSage, shape = RoundedCornerShape(14.dp)),
+                    .size(40.dp)
+                    .background(color = Color(0xFFF0F5EE), shape = CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = item.icon,
                     contentDescription = item.title,
-                    tint = ForestGreen,
-                    modifier = Modifier.size(22.dp)
+                    tint = VedAmritGreen,
+                    modifier = Modifier.size(20.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = item.title,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = DarkForestGreen,
-                    fontWeight = FontWeight.SemiBold
-                )
+                color = VedAmritGreen,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
                 text = item.description,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = SoftBlueGray,
-                    lineHeight = 22.sp
-                )
+                color = MutedCharcoal,
+                fontSize = 12.sp,
+                lineHeight = 18.sp,
+                fontWeight = FontWeight.Normal
             )
         }
     }
 }
 
-@Composable
-@UiComposable
-private fun StartTodayCard(
-    modifier: Modifier = Modifier,
-    onCreatePatientAccount: () -> Unit = {},
-    onJoinAsDoctor: () -> Unit = {}
-) {
-    val createAccountInteractionSource = remember { MutableInteractionSource() }
-    val createAccountPressed by createAccountInteractionSource.collectIsPressedAsState()
-    val createAccountScale by animateFloatAsState(
-        targetValue = if (createAccountPressed) 0.975f else 1f,
-        animationSpec = spring(dampingRatio = 0.62f, stiffness = 420f),
-        label = "create-account-scale"
-    )
-    val createAccountGlow by animateDpAsState(
-        targetValue = if (createAccountPressed) 12.dp else 0.dp,
-        animationSpec = spring(dampingRatio = 0.7f, stiffness = 360f),
-        label = "create-account-glow"
-    )
-
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(22.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(ForestGreen, DarkForestGreen)
-                    ),
-                    shape = RoundedCornerShape(22.dp)
-                )
-                .padding(20.dp)
-        ) {
-            Column {
-                Text(
-                    text = "START TODAY",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = PureWhite,
-                        letterSpacing = 1.8.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = "Start your health journey today",
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        color = PureWhite,
-                        lineHeight = 28.sp
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = "Join VedaHaar to begin with your profile, discover personalized recommendations, and build a wellness routine that fits your life.",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = PureWhite,
-                        lineHeight = 22.sp
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Button(
-                    onClick = onCreatePatientAccount,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .scale(createAccountScale)
-                        .shadow(
-                            elevation = createAccountGlow,
-                            shape = RoundedCornerShape(24.dp),
-                            ambientColor = PureWhite.copy(alpha = 0.25f),
-                            spotColor = PureWhite.copy(alpha = 0.2f)
-                        ),
-                    interactionSource = createAccountInteractionSource,
-                    shape = RoundedCornerShape(24.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PureWhite)
-                ) {
-                    Text(
-                        text = "Create Patient Account",
-                        color = ForestGreen
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                OutlinedButton(
-                    onClick = onJoinAsDoctor,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
-                    border = BorderStroke(1.dp, PureWhite),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.Transparent,
-                        contentColor = PureWhite
-                    )
-                ) {
-                    Text(text = "Join as Doctor")
-                }
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true)
+@Preview(showBackground = true, widthDp = 390, heightDp = 844)
 @Composable
 fun WelcomeScreenPreview() {
     WelcomeScreen()

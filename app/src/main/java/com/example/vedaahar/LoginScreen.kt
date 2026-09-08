@@ -247,7 +247,7 @@ fun LoginScreen(
 private fun LoginBrandHeader() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = "VedaAhaar",
+            text = "VedAmrit",
             style = MaterialTheme.typography.titleLarge.copy(
                 color = DarkForestGreen,
                 fontFamily = CinzelDecorative,

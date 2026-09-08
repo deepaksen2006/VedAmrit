@@ -285,8 +285,8 @@ private fun RetakeHeader(onBackToDashboard: () -> Unit) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(id = R.drawable.vedaahaar_logo),
-                contentDescription = "VedaAhaar logo",
+                painter = painterResource(id = R.drawable.vedamrit_logo),
+                contentDescription = "VedAmrit logo",
                 modifier = Modifier
                     .size(46.dp)
                     .clip(RoundedCornerShape(14.dp))
@@ -295,7 +295,7 @@ private fun RetakeHeader(onBackToDashboard: () -> Unit) {
             )
             Spacer(modifier = Modifier.width(10.dp))
             Column {
-                Text("VedaAhaar", color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                Text("VedAmrit", color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 22.sp)
                 Text("Dashboard Wellness Tool", color = SageGreen, fontWeight = FontWeight.Bold, fontSize = 10.sp, letterSpacing = 1.6.sp)
             }
         }
@@ -455,8 +455,8 @@ private fun AssessmentHeader(
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
-                        painter = painterResource(id = R.drawable.vedaahaar_logo),
-                        contentDescription = "VedaAhaar logo",
+                        painter = painterResource(id = R.drawable.vedamrit_logo),
+                        contentDescription = "VedAmrit logo",
                         modifier = Modifier
                             .size(46.dp)
                             .clip(RoundedCornerShape(14.dp))
@@ -466,7 +466,7 @@ private fun AssessmentHeader(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "VedaAhaar",
+                            text = "VedAmrit",
                             style = MaterialTheme.typography.bodyLarge.copy(
                                 color = DarkForestGreen,
                                 fontWeight = FontWeight.Bold

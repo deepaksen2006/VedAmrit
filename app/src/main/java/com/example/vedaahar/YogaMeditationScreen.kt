@@ -133,8 +133,8 @@ private fun YogaTopBar(modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            painter = painterResource(id = R.drawable.vedaahaar_logo),
-            contentDescription = null,
+            painter = painterResource(id = R.drawable.vedamrit_logo),
+            contentDescription = "VedAmrit logo",
             modifier = Modifier
                 .size(38.dp)
                 .clip(RoundedCornerShape(12.dp))

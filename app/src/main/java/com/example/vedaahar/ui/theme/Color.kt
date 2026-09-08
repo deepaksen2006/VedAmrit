@@ -12,6 +12,14 @@ val LightSage = Color(0xFFEAF3EA)
 val SoftBlueGray = Color(0xFF4F5962)
 val PureWhite = Color(0xFFFFFFFF)
 
+// VedAmrit Brand Palette
+val WarmIvory = Color(0xFFFAF7F0)
+val VedAmritGreen = Color(0xFF142E1F)
+val MutedCharcoal = Color(0xFF5A665E)
+val SoftOliveGreen = Color(0xFF3F6A48)
+val AntiqueGold = Color(0xFFC5A866)
+val CrimsonMaroon = Color(0xFF73181C)
+
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)
