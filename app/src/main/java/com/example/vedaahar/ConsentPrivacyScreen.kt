@@ -1,14 +1,11 @@
 package com.example.vedaahar
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,13 +24,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -46,423 +39,683 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.vedaahar.ui.theme.Cream
-import com.example.vedaahar.ui.theme.DarkForestGreen
-import com.example.vedaahar.ui.theme.ForestGreen
-import com.example.vedaahar.ui.theme.LightSage
 import com.example.vedaahar.ui.theme.PureWhite
-import com.example.vedaahar.ui.theme.SageGreen
-import com.example.vedaahar.ui.theme.SoftBlueGray
 
-private val TermsGreen = Color(0xFF14783A)
-private val TermsDeepGreen = Color(0xFF0F5D2C)
-private val TermsLine = Color(0xFFC8DEC9)
-private val TermsCard = Color(0xFFFCFFFB)
-private val TermsMint = Color(0xFFF0F8F1)
-private val TermsDisabled = Color(0xFF95A99A)
-private val TermsText = Color(0xFF141B16)
+private val ConsentBackground = Color(0xFFFAF8F2)
+private val ConsentCardBg = Color(0xFFFCFAF5)
+private val ConsentBorder = Color(0xFFE2DCD0)
+private val ConsentStripBg = Color(0xFFEDE9DE)
+private val ConsentTextPrimary = Color(0xFF143324)
+private val ConsentTextSecondary = Color(0xFF45554B)
+private val ConsentTextMuted = Color(0xFF6F7C74)
+private val ConsentButtonGreen = Color(0xFF183B2B)
+private val CinzelDecorative = FontFamily(Font(R.font.cinzel_decorative_regular))
 
 @Composable
 fun ConsentPrivacyScreen(
     onAgreeContinue: () -> Unit,
     onDecline: () -> Unit,
-    onBack: () -> Unit = onDecline
+    onBack: () -> Unit = onDecline,
+    modifier: Modifier = Modifier
 ) {
-    var accepted by remember { mutableStateOf(false) }
+    var abdmConsent by remember { mutableStateOf(true) }
+    var dpdpConsent by remember { mutableStateOf(true) }
+    val canContinue = abdmConsent && dpdpConsent
 
-    Surface(modifier = Modifier.fillMaxSize(), color = PureWhite) {
-        Box(
+    Surface(modifier = modifier.fillMaxSize(), color = ConsentBackground) {
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(PureWhite, Color(0xFFFBFEFB), Color(0xFFF7FBF6))))
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TermsBackground()
-            Column(
+            // Top Bar with Back Arrow and Logo
+            ConsentHeaderBar(onBack = onBack)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Consent Title Section
+            ConsentTitleSection()
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            // Card 1: ABDM Consent
+            ConsentCard(
+                badge = { AbdmLogoBadge() },
+                title = "Ayushman Bharat Digital Mission (ABDM) Consent",
+                description = "I allow Vedamrit to collect and use my health information (such as health records, consultation history, and Ayurvedic assessment data) in a secure and standardized format, as per ABDM guidelines, for better and continuous care.",
+                infoIcon = { ShieldCheckIcon() },
+                infoText = "This helps us connect with the national health ecosystem and ensures your data is safe, interoperable and used only for your healthcare benefit.",
+                checkboxChecked = abdmConsent,
+                onCheckboxChange = { abdmConsent = it },
+                checkboxLabel = "I give my consent for ABDM integration."
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Card 2: DPDP Consent
+            ConsentCard(
+                badge = { DpdpLogoBadge() },
+                title = "Digital Personal Data Protection Act (DPDP) Consent",
+                description = "I agree to the collection, storage, and processing of my personal data (such as name, age, contact details, lifestyle and health information) as per the DPDP Act, 2023. This data will be used only for the purposes mentioned in the Privacy Policy and will not be shared without my explicit consent.",
+                infoIcon = { StripLockIcon() },
+                infoText = "Your privacy matters. We follow strict data protection and security practices to keep your information safe.",
+                checkboxChecked = dpdpConsent,
+                onCheckboxChange = { dpdpConsent = it },
+                checkboxLabel = "I give my consent for data collection and processing as per DPDP Act, 2023."
+            )
+
+            Spacer(modifier = Modifier.height(22.dp))
+
+            // Withdrawal note flanked by thin divider lines
+            WithdrawalConsentNote()
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // "I Agree & Continue →" Action Button
+            Button(
+                onClick = onAgreeContinue,
+                enabled = canContinue,
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ConsentButtonGreen,
+                    contentColor = PureWhite,
+                    disabledContainerColor = ConsentButtonGreen.copy(alpha = 0.42f),
+                    disabledContentColor = PureWhite.copy(alpha = 0.72f)
+                ),
                 modifier = Modifier
-                    .fillMaxSize()
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
-                    .padding(horizontal = 20.dp)
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .shadow(
+                        elevation = if (canContinue) 6.dp else 0.dp,
+                        shape = RoundedCornerShape(50),
+                        ambientColor = ConsentButtonGreen.copy(alpha = 0.2f),
+                        spotColor = ConsentButtonGreen.copy(alpha = 0.15f)
+                    )
             ) {
-                TermsTopBar(onBack = onBack)
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    HeaderConsentIcon()
-                    Spacer(modifier = Modifier.height(18.dp))
-                    ConsentInfoCard()
-                    Spacer(modifier = Modifier.height(18.dp))
-                    TermsCheckboxCard(
-                        checked = accepted,
-                        onCheckedChange = { accepted = it }
-                    )
-                    Spacer(modifier = Modifier.height(18.dp))
-                    PrivacyCard()
-                    Spacer(modifier = Modifier.height(24.dp))
-                    AgreeButton(
-                        enabled = accepted,
-                        onClick = onAgreeContinue
-                    )
-                    Spacer(modifier = Modifier.height(22.dp))
-                    BottomConsentNote()
-                    Spacer(modifier = Modifier.height(18.dp))
-                }
+                Text(
+                    text = "I Agree & Continue →",
+                    fontSize = 15.5.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = PureWhite
+                )
             }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // "Remind Me Later" Button
+            Text(
+                text = "Remind Me Later",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = ConsentTextPrimary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onDecline
+                    )
+                    .padding(vertical = 6.dp, horizontal = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
-private fun TermsTopBar(onBack: () -> Unit) {
+private fun ConsentHeaderBar(onBack: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(74.dp),
-        contentAlignment = Alignment.Center
+            .padding(vertical = 4.dp)
     ) {
         IconButton(
             onClick = onBack,
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .size(48.dp)
+                .size(40.dp)
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = TermsDeepGreen,
-                modifier = Modifier.size(31.dp)
-            )
+            BackChevronIcon()
         }
-        Text(
-            text = "Terms & Conditions",
-            color = TermsDeepGreen,
-            fontWeight = FontWeight.ExtraBold,
-            fontSize = 26.sp,
-            lineHeight = 30.sp,
-            textAlign = TextAlign.Center
-        )
-    }
-}
 
-@Composable
-private fun HeaderConsentIcon() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        DecorativeRule(reverse = true, modifier = Modifier.weight(1f))
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 14.dp)
-                .size(82.dp)
-                .clip(CircleShape)
-                .background(Brush.radialGradient(listOf(LightSage, Color(0xFFE5F1E5))))
-                .border(BorderStroke(1.dp, TermsLine.copy(alpha = 0.72f)), CircleShape),
-            contentAlignment = Alignment.Center
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Canvas(modifier = Modifier.size(55.dp)) {
-                val stroke = Stroke(width = 4.2f, cap = StrokeCap.Round)
-                val clipLeft = size.width * 0.23f
-                val clipTop = size.height * 0.12f
-                drawRoundRect(
-                    color = TermsGreen,
-                    topLeft = Offset(size.width * 0.18f, size.height * 0.16f),
-                    size = androidx.compose.ui.geometry.Size(size.width * 0.52f, size.height * 0.7f),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(9f, 9f),
-                    style = stroke
-                )
-                drawLine(TermsGreen, Offset(clipLeft, clipTop + 5f), Offset(clipLeft + 22f, clipTop + 5f), strokeWidth = 4.2f, cap = StrokeCap.Round)
-                drawLine(TermsGreen.copy(alpha = 0.72f), Offset(size.width * 0.32f, size.height * 0.36f), Offset(size.width * 0.56f, size.height * 0.36f), strokeWidth = 3.4f, cap = StrokeCap.Round)
-                drawLine(TermsGreen.copy(alpha = 0.72f), Offset(size.width * 0.32f, size.height * 0.49f), Offset(size.width * 0.54f, size.height * 0.49f), strokeWidth = 3.4f, cap = StrokeCap.Round)
-                drawLine(TermsGreen.copy(alpha = 0.72f), Offset(size.width * 0.32f, size.height * 0.62f), Offset(size.width * 0.49f, size.height * 0.62f), strokeWidth = 3.4f, cap = StrokeCap.Round)
-
-                val shield = Path().apply {
-                    moveTo(size.width * 0.64f, size.height * 0.47f)
-                    cubicTo(size.width * 0.78f, size.height * 0.44f, size.width * 0.86f, size.height * 0.38f, size.width * 0.92f, size.height * 0.34f)
-                    lineTo(size.width * 0.92f, size.height * 0.62f)
-                    cubicTo(size.width * 0.9f, size.height * 0.78f, size.width * 0.78f, size.height * 0.88f, size.width * 0.66f, size.height * 0.93f)
-                    cubicTo(size.width * 0.54f, size.height * 0.88f, size.width * 0.44f, size.height * 0.77f, size.width * 0.43f, size.height * 0.62f)
-                    lineTo(size.width * 0.43f, size.height * 0.34f)
-                    cubicTo(size.width * 0.51f, size.height * 0.39f, size.width * 0.56f, size.height * 0.44f, size.width * 0.64f, size.height * 0.47f)
-                    close()
-                }
-                drawPath(shield, TermsGreen)
-                drawLine(PureWhite, Offset(size.width * 0.57f, size.height * 0.62f), Offset(size.width * 0.64f, size.height * 0.7f), strokeWidth = 4f, cap = StrokeCap.Round)
-                drawLine(PureWhite, Offset(size.width * 0.64f, size.height * 0.7f), Offset(size.width * 0.77f, size.height * 0.55f), strokeWidth = 4f, cap = StrokeCap.Round)
-            }
-        }
-        DecorativeRule(modifier = Modifier.weight(1f))
-    }
-}
-
-@Composable
-private fun DecorativeRule(reverse: Boolean = false, modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier.height(34.dp)) {
-        val y = size.height / 2f
-        val leafX = if (reverse) size.width * 0.72f else size.width * 0.28f
-        drawLine(
-            color = TermsLine,
-            start = Offset(if (reverse) size.width else 0f, y),
-            end = Offset(leafX, y),
-            strokeWidth = 1.8f,
-            cap = StrokeCap.Round
-        )
-        drawCircle(TermsGreen.copy(alpha = 0.55f), radius = 4f, center = Offset(leafX, y))
-        val direction = if (reverse) -1f else 1f
-        val stemStart = Offset(leafX + 18f * direction, y)
-        val stemEnd = Offset(leafX + 46f * direction, y - 7f)
-        drawLine(TermsGreen.copy(alpha = 0.62f), stemStart, stemEnd, strokeWidth = 2.4f, cap = StrokeCap.Round)
-        drawOval(
-            color = TermsGreen.copy(alpha = 0.56f),
-            topLeft = Offset(leafX + 22f * direction - 9f, y - 18f),
-            size = androidx.compose.ui.geometry.Size(20f, 13f)
-        )
-        drawOval(
-            color = TermsGreen.copy(alpha = 0.45f),
-            topLeft = Offset(leafX + 34f * direction - 9f, y - 3f),
-            size = androidx.compose.ui.geometry.Size(20f, 13f)
-        )
-    }
-}
-
-@Composable
-private fun ConsentInfoCard() {
-    TermsCardSurface {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            DecorativeCornerLeaves(modifier = Modifier.align(Alignment.BottomEnd))
-            Column(
-                modifier = Modifier.padding(26.dp),
-                verticalArrangement = Arrangement.spacedBy(18.dp)
-            ) {
-                Text(
-                    text = "Your Consent Matters",
-                    color = TermsDeepGreen,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 25.sp,
-                    lineHeight = 30.sp
-                )
-                Text(
-                    text = "By continuing, you voluntarily agree to provide your personal, lifestyle, and health-related information for Ayurvedic diet assessment and personalized healthcare recommendations.",
-                    color = TermsText,
-                    fontSize = 18.sp,
-                    lineHeight = 34.sp
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun TermsCheckboxCard(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    val borderColor by animateColorAsState(
-        targetValue = if (checked) TermsGreen else TermsLine,
-        label = "termsCheckboxBorder"
-    )
-    TermsCardSurface(borderColor = borderColor) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onCheckedChange(!checked) }
-                .padding(horizontal = 22.dp, vertical = 26.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            Checkbox(
-                checked = checked,
-                onCheckedChange = onCheckedChange,
-                modifier = Modifier.size(42.dp),
-                colors = CheckboxDefaults.colors(
-                    checkedColor = TermsGreen,
-                    uncheckedColor = TermsGreen,
-                    checkmarkColor = PureWhite
-                )
-            )
-            Spacer(modifier = Modifier.width(20.dp))
             Text(
-                text = buildAnnotatedString {
-                    append("I have read and understood the ")
-                    withStyle(SpanStyle(color = TermsDeepGreen, fontWeight = FontWeight.ExtraBold)) {
-                        append("Terms & Conditions")
-                    }
-                    append(" and voluntarily consent to the collection, storage, and use of my health information for Ayurvedic diet and healthcare purposes.")
-                },
-                color = TermsText,
-                fontSize = 18.sp,
-                lineHeight = 32.sp
+                text = "VEDAMRIT",
+                style = TextStyle(
+                    fontFamily = CinzelDecorative,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 2.sp,
+                    color = ConsentTextPrimary
+                )
+            )
+            Spacer(modifier = Modifier.height(1.dp))
+            Text(
+                text = "Ancient Wisdom • Modern Health",
+                fontSize = 11.5.sp,
+                fontWeight = FontWeight.Medium,
+                letterSpacing = 0.6.sp,
+                color = ConsentTextPrimary
             )
         }
     }
 }
 
 @Composable
-private fun PrivacyCard() {
-    TermsCardSurface(
-        containerColor = TermsMint,
-        borderColor = Color(0xFFDDECE0),
-        shadowAlpha = 0.06f
+private fun ConsentTitleSection() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.Start
     ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(72.dp)
-                    .clip(RoundedCornerShape(22.dp))
-                    .background(Brush.linearGradient(listOf(TermsGreen, TermsDeepGreen))),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Filled.Lock, contentDescription = null, tint = PureWhite, modifier = Modifier.size(33.dp))
-            }
-            Spacer(modifier = Modifier.width(22.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = "We value your privacy",
-                    color = TermsDeepGreen,
-                    fontSize = 21.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    lineHeight = 25.sp
-                )
-                Text(
-                    text = "Your information is safe with us and will be used only for authorized healthcare purposes.",
-                    color = TermsText,
-                    fontSize = 16.sp,
-                    lineHeight = 25.sp
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AgreeButton(enabled: Boolean, onClick: () -> Unit) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(targetValue = if (pressed && enabled) 0.98f else 1f, label = "agreeButtonScale")
-
-    Button(
-        onClick = onClick,
-        enabled = enabled,
-        interactionSource = interactionSource,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(72.dp)
-            .scale(scale)
-            .shadow(12.dp, RoundedCornerShape(18.dp), ambientColor = TermsGreen.copy(alpha = 0.18f), spotColor = TermsGreen.copy(alpha = 0.16f)),
-        shape = RoundedCornerShape(18.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = TermsGreen,
-            contentColor = PureWhite,
-            disabledContainerColor = TermsDisabled,
-            disabledContentColor = PureWhite.copy(alpha = 0.86f)
-        ),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 18.dp)
-    ) {
+        Text(
+            text = "Consent",
+            style = TextStyle(
+                fontFamily = FontFamily.Serif,
+                fontSize = 36.sp,
+                fontWeight = FontWeight.Bold,
+                color = ConsentTextPrimary
+            )
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "Your data. Your health. Our priority.",
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = ConsentTextPrimary
+        )
+        Spacer(modifier = Modifier.height(8.dp))
         Box(
             modifier = Modifier
-                .size(38.dp)
-                .clip(RoundedCornerShape(13.dp))
-                .background(PureWhite.copy(alpha = 0.22f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(Icons.Filled.Check, contentDescription = null, tint = PureWhite, modifier = Modifier.size(24.dp))
-        }
-        Spacer(modifier = Modifier.width(14.dp))
+                .width(36.dp)
+                .height(2.5.dp)
+                .clip(RoundedCornerShape(50))
+                .background(ConsentTextPrimary)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "I Agree & Continue",
-            fontWeight = FontWeight.ExtraBold,
-            fontSize = 20.sp
+            text = "To provide you with a personalized Ayurvedic experience, we need your consent to collect and process certain health and personal information, in accordance with ABDM and DPDP guidelines.",
+            fontSize = 13.5.sp,
+            lineHeight = 18.5.sp,
+            color = ConsentTextSecondary
         )
     }
 }
 
 @Composable
-private fun BottomConsentNote() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(Icons.Filled.Lock, contentDescription = null, tint = SoftBlueGray.copy(alpha = 0.76f), modifier = Modifier.size(18.dp))
-        Spacer(modifier = Modifier.width(9.dp))
-        Text(
-            text = "You can withdraw your consent at any time.",
-            color = SoftBlueGray.copy(alpha = 0.92f),
-            fontSize = 14.sp,
-            lineHeight = 18.sp,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Composable
-private fun TermsCardSurface(
-    containerColor: Color = TermsCard,
-    borderColor: Color = TermsLine,
-    shadowAlpha: Float = 0.09f,
-    content: @Composable () -> Unit
+private fun ConsentCard(
+    badge: @Composable () -> Unit,
+    title: String,
+    description: String,
+    infoIcon: @Composable () -> Unit,
+    infoText: String,
+    checkboxChecked: Boolean,
+    onCheckboxChange: (Boolean) -> Unit,
+    checkboxLabel: String
 ) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(10.dp, RoundedCornerShape(20.dp), ambientColor = TermsGreen.copy(alpha = shadowAlpha), spotColor = TermsGreen.copy(alpha = shadowAlpha)),
-        shape = RoundedCornerShape(20.dp),
-        color = containerColor,
-        border = BorderStroke(1.2.dp, borderColor)
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(18.dp),
+                ambientColor = ConsentTextPrimary.copy(alpha = 0.04f),
+                spotColor = ConsentTextPrimary.copy(alpha = 0.03f)
+            ),
+        shape = RoundedCornerShape(18.dp),
+        color = ConsentCardBg,
+        border = BorderStroke(1.dp, ConsentBorder)
     ) {
-        content()
-    }
-}
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Top row: Emblem badge + Title & Description
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top
+            ) {
+                badge()
+                Spacer(modifier = Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        style = TextStyle(
+                            fontFamily = FontFamily.Serif,
+                            fontSize = 14.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = 19.sp,
+                            color = ConsentTextPrimary
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = description,
+                        fontSize = 12.sp,
+                        lineHeight = 16.5.sp,
+                        color = ConsentTextSecondary
+                    )
+                }
+            }
 
-@Composable
-private fun DecorativeCornerLeaves(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier.size(122.dp)) {
-        val base = Offset(size.width * 0.72f, size.height * 0.78f)
-        repeat(4) { index ->
-            val offset = index * 18f
-            drawOval(
-                color = TermsGreen.copy(alpha = 0.08f + index * 0.025f),
-                topLeft = Offset(base.x - offset - 18f, base.y - offset - 9f),
-                size = androidx.compose.ui.geometry.Size(56f, 24f)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Security/Privacy Information Strip
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(ConsentStripBg)
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                infoIcon()
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = infoText,
+                    fontSize = 11.5.sp,
+                    lineHeight = 15.5.sp,
+                    color = ConsentTextSecondary,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Checkbox Row
+            ConsentCheckbox(
+                checked = checkboxChecked,
+                onCheckedChange = onCheckboxChange,
+                label = checkboxLabel
             )
         }
     }
 }
 
 @Composable
-private fun TermsBackground() {
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        drawCircle(
-            color = Cream.copy(alpha = 0.35f),
-            radius = size.width * 0.48f,
-            center = Offset(size.width * 1.02f, size.height * 0.06f)
+private fun ConsentCheckbox(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { onCheckedChange(!checked) },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(22.dp)
+                .clip(RoundedCornerShape(5.dp))
+                .background(if (checked) ConsentButtonGreen else PureWhite)
+                .border(
+                    BorderStroke(
+                        if (checked) 0.dp else 1.6.dp,
+                        if (checked) ConsentButtonGreen else Color(0xFF8E9C93)
+                    ),
+                    RoundedCornerShape(5.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (checked) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = null,
+                    tint = PureWhite,
+                    modifier = Modifier.size(15.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = label,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = ConsentTextPrimary,
+            lineHeight = 18.sp,
+            modifier = Modifier.weight(1f)
         )
+    }
+}
+
+@Composable
+private fun AbdmLogoBadge(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(76.dp)
+            .clip(CircleShape)
+            .background(PureWhite)
+            .border(BorderStroke(1.dp, Color(0xFFDFD9CC)), CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 4.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Canvas(modifier = Modifier.size(width = 36.dp, height = 24.dp)) {
+                val cx = size.width / 2f
+                val strokeWidth = 2.4.dp.toPx()
+                val headRadius = 2.7.dp.toPx()
+
+                val blueColor = Color(0xFF1555A2)
+                val tealColor = Color(0xFF009677)
+                val orangeColor = Color(0xFFE86025)
+
+                // Center Head & U-curve Body (Blue)
+                drawCircle(color = blueColor, radius = headRadius, center = Offset(cx, 4.dp.toPx()))
+                val bluePath = Path().apply {
+                    moveTo(cx - 5.dp.toPx(), 9.dp.toPx())
+                    cubicTo(
+                        cx - 5.dp.toPx(), 18.dp.toPx(),
+                        cx + 5.dp.toPx(), 18.dp.toPx(),
+                        cx + 5.dp.toPx(), 9.dp.toPx()
+                    )
+                }
+                drawPath(bluePath, color = blueColor, style = Stroke(width = strokeWidth, cap = StrokeCap.Round))
+
+                // Left Head & Embracing Body (Teal)
+                drawCircle(color = tealColor, radius = headRadius, center = Offset(cx - 9.dp.toPx(), 6.5.dp.toPx()))
+                val tealPath = Path().apply {
+                    moveTo(cx - 13.dp.toPx(), 11.dp.toPx())
+                    cubicTo(
+                        cx - 13.dp.toPx(), 19.5.dp.toPx(),
+                        cx - 3.dp.toPx(), 22.dp.toPx(),
+                        cx, 22.dp.toPx()
+                    )
+                }
+                drawPath(tealPath, color = tealColor, style = Stroke(width = strokeWidth, cap = StrokeCap.Round))
+
+                // Right Head & Embracing Body (Orange)
+                drawCircle(color = orangeColor, radius = headRadius, center = Offset(cx + 9.dp.toPx(), 6.5.dp.toPx()))
+                val orangePath = Path().apply {
+                    moveTo(cx + 13.dp.toPx(), 11.dp.toPx())
+                    cubicTo(
+                        cx + 13.dp.toPx(), 19.5.dp.toPx(),
+                        cx + 3.dp.toPx(), 22.dp.toPx(),
+                        cx, 22.dp.toPx()
+                    )
+                }
+                drawPath(orangePath, color = orangeColor, style = Stroke(width = strokeWidth, cap = StrokeCap.Round))
+            }
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = "ABDM",
+                fontSize = 9.5.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color(0xFF1555A2),
+                letterSpacing = 0.5.sp,
+                lineHeight = 11.sp
+            )
+            Text(
+                text = "Ayushman Bharat",
+                fontSize = 5.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1A3E70),
+                lineHeight = 6.sp,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = "Digital Mission",
+                fontSize = 5.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1A3E70),
+                lineHeight = 6.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun DpdpLogoBadge(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(76.dp)
+            .clip(CircleShape)
+            .background(PureWhite)
+            .border(BorderStroke(1.dp, Color(0xFFDFD9CC)), CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 2.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Canvas(modifier = Modifier.size(width = 24.dp, height = 24.dp)) {
+                val lockColor = Color(0xFF1B4332)
+                val shackleStroke = 2.3.dp.toPx()
+                val cx = size.width / 2f
+
+                // Shackle
+                val shacklePath = Path().apply {
+                    moveTo(cx - 5.5.dp.toPx(), 11.dp.toPx())
+                    lineTo(cx - 5.5.dp.toPx(), 6.5.dp.toPx())
+                    cubicTo(
+                        cx - 5.5.dp.toPx(), 1.5.dp.toPx(),
+                        cx + 5.5.dp.toPx(), 1.5.dp.toPx(),
+                        cx + 5.5.dp.toPx(), 6.5.dp.toPx()
+                    )
+                    lineTo(cx + 5.5.dp.toPx(), 11.dp.toPx())
+                }
+                drawPath(shacklePath, color = lockColor, style = Stroke(width = shackleStroke, cap = StrokeCap.Round))
+
+                // Lock Body
+                val bodyWidth = 17.dp.toPx()
+                val bodyHeight = 13.dp.toPx()
+                val bodyTop = 10.5.dp.toPx()
+                val bodyLeft = cx - (bodyWidth / 2f)
+                drawRoundRect(
+                    color = lockColor,
+                    topLeft = Offset(bodyLeft, bodyTop),
+                    size = Size(bodyWidth, bodyHeight),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.5.dp.toPx(), 3.5.dp.toPx())
+                )
+
+                // Keyhole
+                drawCircle(
+                    color = PureWhite,
+                    radius = 1.6.dp.toPx(),
+                    center = Offset(cx, bodyTop + 4.8.dp.toPx())
+                )
+                val keyholeSlot = Path().apply {
+                    moveTo(cx - 0.9.dp.toPx(), bodyTop + 5.2.dp.toPx())
+                    lineTo(cx + 0.9.dp.toPx(), bodyTop + 5.2.dp.toPx())
+                    lineTo(cx + 1.2.dp.toPx(), bodyTop + 8.8.dp.toPx())
+                    lineTo(cx - 1.2.dp.toPx(), bodyTop + 8.8.dp.toPx())
+                    close()
+                }
+                drawPath(keyholeSlot, color = PureWhite)
+            }
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = "DPDP",
+                fontSize = 9.5.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color(0xFF1B4332),
+                letterSpacing = 0.5.sp,
+                lineHeight = 11.sp
+            )
+            Text(
+                text = "Digital Personal Data",
+                fontSize = 5.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF384E42),
+                lineHeight = 6.sp,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = "Protection Act",
+                fontSize = 5.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF384E42),
+                lineHeight = 6.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun ShieldCheckIcon(modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.size(24.dp)) {
+        val strokeColor = Color(0xFF1B4332)
+        val strokeWidth = 2.dp.toPx()
+
+        // Shield contour
+        val shieldPath = Path().apply {
+            moveTo(size.width * 0.5f, size.height * 0.08f)
+            cubicTo(
+                size.width * 0.75f, size.height * 0.08f,
+                size.width * 0.90f, size.height * 0.16f,
+                size.width * 0.90f, size.height * 0.38f
+            )
+            cubicTo(
+                size.width * 0.90f, size.height * 0.68f,
+                size.width * 0.66f, size.height * 0.88f,
+                size.width * 0.5f, size.height * 0.96f
+            )
+            cubicTo(
+                size.width * 0.34f, size.height * 0.88f,
+                size.width * 0.10f, size.height * 0.68f,
+                size.width * 0.10f, size.height * 0.38f
+            )
+            cubicTo(
+                size.width * 0.10f, size.height * 0.16f,
+                size.width * 0.25f, size.height * 0.08f,
+                size.width * 0.5f, size.height * 0.08f
+            )
+            close()
+        }
+        drawPath(shieldPath, color = strokeColor, style = Stroke(width = strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round))
+
+        // Checkmark inside shield
+        val checkPath = Path().apply {
+            moveTo(size.width * 0.33f, size.height * 0.50f)
+            lineTo(size.width * 0.45f, size.height * 0.62f)
+            lineTo(size.width * 0.68f, size.height * 0.38f)
+        }
+        drawPath(checkPath, color = strokeColor, style = Stroke(width = strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round))
+    }
+}
+
+@Composable
+private fun StripLockIcon(modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.size(22.dp)) {
+        val lockColor = Color(0xFF1B4332)
+        val cx = size.width / 2f
+        val shackleStroke = 2.dp.toPx()
+
+        val shacklePath = Path().apply {
+            moveTo(cx - 4.5.dp.toPx(), 9.dp.toPx())
+            lineTo(cx - 4.5.dp.toPx(), 5.dp.toPx())
+            cubicTo(
+                cx - 4.5.dp.toPx(), 1.5.dp.toPx(),
+                cx + 4.5.dp.toPx(), 1.5.dp.toPx(),
+                cx + 4.5.dp.toPx(), 5.dp.toPx()
+            )
+            lineTo(cx + 4.5.dp.toPx(), 9.dp.toPx())
+        }
+        drawPath(shacklePath, color = lockColor, style = Stroke(width = shackleStroke, cap = StrokeCap.Round))
+
+        val bodyW = 14.dp.toPx()
+        val bodyH = 10.5.dp.toPx()
+        val bodyT = 8.5.dp.toPx()
+        drawRoundRect(
+            color = lockColor,
+            topLeft = Offset(cx - bodyW / 2f, bodyT),
+            size = Size(bodyW, bodyH),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.5.dp.toPx(), 2.5.dp.toPx())
+        )
+
         drawCircle(
-            color = SageGreen.copy(alpha = 0.06f),
-            radius = size.width * 0.52f,
-            center = Offset(-size.width * 0.1f, size.height * 0.58f)
+            color = ConsentStripBg,
+            radius = 1.3.dp.toPx(),
+            center = Offset(cx, bodyT + 3.8.dp.toPx())
+        )
+        drawLine(
+            color = ConsentStripBg,
+            start = Offset(cx, bodyT + 3.8.dp.toPx()),
+            end = Offset(cx, bodyT + 7.2.dp.toPx()),
+            strokeWidth = 1.3.dp.toPx(),
+            cap = StrokeCap.Round
+        )
+    }
+}
+
+@Composable
+private fun BackChevronIcon(modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.size(20.dp)) {
+        val color = ConsentTextPrimary
+        val strokeWidth = 2.2.dp.toPx()
+        val path = Path().apply {
+            moveTo(size.width * 0.62f, size.height * 0.18f)
+            lineTo(size.width * 0.30f, size.height * 0.50f)
+            lineTo(size.width * 0.62f, size.height * 0.82f)
+        }
+        drawPath(path, color = color, style = Stroke(width = strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round))
+    }
+}
+
+@Composable
+private fun WithdrawalConsentNote() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(Color(0xFFDDD7CB))
+        )
+        Text(
+            text = "You can withdraw your consent anytime from your profile settings.",
+            fontSize = 11.sp,
+            color = ConsentTextMuted,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(Color(0xFFDDD7CB))
         )
     }
 }
@@ -470,5 +723,5 @@ private fun TermsBackground() {
 @Preview(showBackground = true)
 @Composable
 private fun ConsentPrivacyScreenPreview() {
-    ConsentPrivacyScreen(onAgreeContinue = {}, onDecline = {})
+    ConsentPrivacyScreen(onAgreeContinue = {}, onDecline = {}, onBack = {})
 }

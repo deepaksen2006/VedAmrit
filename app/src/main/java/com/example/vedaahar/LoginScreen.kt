@@ -33,7 +33,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -47,7 +46,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -80,21 +78,11 @@ import com.example.vedaahar.ui.theme.ForestGreen
 import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 private val LoginGold = Color(0xFFE6C978)
 private val LoginCard = Color(0xFFFFFBF4)
 private val LoginErrorRed = Color(0xFFC8483D)
-private val AbhaInputBorder = Color(0xFFD6DDD5)
 private val CinzelDecorative = FontFamily(Font(R.font.cinzel_decorative_regular))
-
-private enum class AbhaVerificationState {
-    Idle,
-    Loading,
-    Success,
-    Error
-}
 
 private fun validateLoginIdentifier(value: String): String? {
     if (value.isBlank()) return "Enter email or phone number"
@@ -106,11 +94,6 @@ private fun validateLoginIdentifier(value: String): String? {
         val phonePattern = Regex("^[6-9][0-9]{9}$")
         if (phonePattern.matches(value)) null else "Enter a valid 10-digit phone number"
     }
-}
-
-private fun validateAbhaNumber(value: String): String? {
-    if (value.isBlank()) return "Enter your ABHA number"
-    return if (Regex("^[0-9]{14}$").matches(value)) null else "Enter a valid 14-digit ABHA number"
 }
 
 private val LoginEyeIcon: ImageVector = ImageVector.Builder(
@@ -177,17 +160,13 @@ fun LoginScreen(
     onCreateAccount: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var abhaNumber by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var abhaVerificationState by remember { mutableStateOf(AbhaVerificationState.Idle) }
     var emailTouched by remember { mutableStateOf(false) }
-    val abhaError = validateAbhaNumber(abhaNumber)
-    val isAbhaValid = abhaError == null
     val emailError = validateLoginIdentifier(email)
     val isEmailValid = emailError == null
-    val isLoginEnabled = abhaVerificationState == AbhaVerificationState.Success && isEmailValid && password.isNotEmpty()
+    val isLoginEnabled = isEmailValid && password.isNotEmpty()
 
     Surface(modifier = modifier.fillMaxSize(), color = Cream) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -207,19 +186,6 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 LoginCard(
-                    abhaNumber = abhaNumber,
-                    onAbhaNumberChange = {
-                        abhaNumber = it.filter(Char::isDigit).take(14)
-                        abhaVerificationState = AbhaVerificationState.Idle
-                    },
-                    abhaError = abhaError,
-                    abhaVerificationState = abhaVerificationState,
-                    onVerifyAbha = {
-                        abhaVerificationState = AbhaVerificationState.Loading
-                    },
-                    onAbhaVerified = {
-                        abhaVerificationState = it
-                    },
                     email = email,
                     onEmailChange = {
                         emailTouched = true
@@ -273,12 +239,6 @@ private fun LoginBrandHeader() {
 
 @Composable
 private fun LoginCard(
-    abhaNumber: String,
-    onAbhaNumberChange: (String) -> Unit,
-    abhaError: String?,
-    abhaVerificationState: AbhaVerificationState,
-    onVerifyAbha: () -> Unit,
-    onAbhaVerified: (AbhaVerificationState) -> Unit,
     email: String,
     onEmailChange: (String) -> Unit,
     emailError: String?,
@@ -306,17 +266,6 @@ private fun LoginCard(
             .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.9f)), RoundedCornerShape(28.dp))
             .padding(20.dp)
     ) {
-        AbhaVerificationSection(
-            abhaNumber = abhaNumber,
-            onAbhaNumberChange = onAbhaNumberChange,
-            errorText = abhaError,
-            verificationState = abhaVerificationState,
-            onVerify = onVerifyAbha,
-            onVerified = onAbhaVerified
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         LoginField(
             label = "Email / Phone Number",
             value = email,
@@ -407,179 +356,6 @@ private fun LoginCard(
 }
 
 @Composable
-private fun AbhaVerificationSection(
-    abhaNumber: String,
-    onAbhaNumberChange: (String) -> Unit,
-    errorText: String?,
-    verificationState: AbhaVerificationState,
-    onVerify: () -> Unit,
-    onVerified: (AbhaVerificationState) -> Unit
-) {
-    val scope = rememberCoroutineScope()
-    val isValidAbha = errorText == null
-    val isLoading = verificationState == AbhaVerificationState.Loading
-    val isSuccess = verificationState == AbhaVerificationState.Success
-    val isError = verificationState == AbhaVerificationState.Error
-    val verifyEnabled = isValidAbha && !isLoading && !isSuccess
-    val borderColor by animateDpAsState(
-        targetValue = if (isSuccess || isLoading) 4.dp else 0.dp,
-        animationSpec = spring(dampingRatio = 0.72f, stiffness = 360f),
-        label = "abha-glow"
-    )
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "ABHA Number",
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = DarkForestGreen,
-                fontWeight = FontWeight.Bold
-            )
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            OutlinedTextField(
-                value = abhaNumber,
-                onValueChange = onAbhaNumberChange,
-                modifier = Modifier
-                    .weight(1f)
-                    .shadow(
-                        borderColor,
-                        RoundedCornerShape(16.dp),
-                        ambientColor = ForestGreen.copy(alpha = 0.1f),
-                        spotColor = ForestGreen.copy(alpha = 0.08f)
-                    ),
-                placeholder = { Text("12XX XXXX XXXX XX", color = SoftBlueGray.copy(alpha = 0.78f)) },
-                leadingIcon = {
-                    Icon(Icons.Filled.Person, contentDescription = null)
-                },
-                trailingIcon = if (isSuccess) {
-                    {
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = "ABHA verified",
-                            tint = ForestGreen,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                } else {
-                    null
-                },
-                isError = isError,
-                enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = DarkForestGreen,
-                    unfocusedTextColor = DarkForestGreen,
-                    focusedLeadingIconColor = ForestGreen,
-                    unfocusedLeadingIconColor = SoftBlueGray,
-                    focusedTrailingIconColor = ForestGreen,
-                    unfocusedTrailingIconColor = ForestGreen,
-                    focusedBorderColor = if (isError) LoginErrorRed else ForestGreen,
-                    unfocusedBorderColor = when {
-                        isError -> LoginErrorRed
-                        isSuccess -> ForestGreen
-                        else -> AbhaInputBorder
-                    },
-                    errorBorderColor = LoginErrorRed,
-                    errorLeadingIconColor = LoginErrorRed,
-                    disabledTextColor = DarkForestGreen,
-                    disabledLeadingIconColor = SoftBlueGray,
-                    disabledTrailingIconColor = ForestGreen,
-                    disabledBorderColor = ForestGreen.copy(alpha = 0.42f),
-                    disabledContainerColor = PureWhite,
-                    focusedContainerColor = PureWhite,
-                    unfocusedContainerColor = PureWhite,
-                    errorContainerColor = PureWhite,
-                    cursorColor = ForestGreen
-                )
-            )
-            Button(
-                onClick = {
-                    onVerify()
-                    scope.launch {
-                        delay(1100)
-                        onVerified(
-                            if (abhaNumber == "00000000000000") {
-                                AbhaVerificationState.Error
-                            } else {
-                                AbhaVerificationState.Success
-                            }
-                        )
-                    }
-                },
-                enabled = verifyEnabled,
-                modifier = Modifier
-                    .height(56.dp)
-                    .width(118.dp)
-                    .shadow(
-                        if (verifyEnabled) 8.dp else 0.dp,
-                        RoundedCornerShape(15.dp),
-                        ambientColor = ForestGreen.copy(alpha = 0.18f),
-                        spotColor = ForestGreen.copy(alpha = 0.14f)
-                    ),
-                shape = RoundedCornerShape(15.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2E7D32),
-                    contentColor = PureWhite,
-                    disabledContainerColor = SageGreen.copy(alpha = 0.36f),
-                    disabledContentColor = PureWhite.copy(alpha = 0.82f)
-                ),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp)
-            ) {
-                if (isLoading) {
-                    Text("Verifying...", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                } else if (isSuccess) {
-                    Icon(Icons.Filled.Check, contentDescription = "Verified", modifier = Modifier.size(19.dp))
-                } else {
-                    Text("Verify", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                }
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            val helperColor = when {
-                isError -> LoginErrorRed
-                isSuccess -> ForestGreen
-                else -> SoftBlueGray
-            }
-            if (isSuccess) {
-                Icon(Icons.Filled.Check, contentDescription = null, tint = ForestGreen, modifier = Modifier.size(15.dp))
-                Spacer(modifier = Modifier.width(5.dp))
-            } else if (isError) {
-                Box(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clip(RoundedCornerShape(50))
-                        .background(LoginErrorRed.copy(alpha = 0.12f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("!", color = LoginErrorRed, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                }
-                Spacer(modifier = Modifier.width(6.dp))
-            }
-            Text(
-                text = when {
-                    isLoading -> "Verifying..."
-                    isSuccess -> "ABHA verified successfully"
-                    isError -> "ABHA not found"
-                    else -> "Verify your ABHA securely"
-                },
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = helperColor,
-                    fontWeight = FontWeight.Medium
-                )
-            )
-        }
-    }
-}
-
-@Composable
 private fun LoginField(
     label: String,
     value: String,
@@ -627,7 +403,14 @@ private fun LoginField(
                     ambientColor = if (showError) LoginErrorRed.copy(alpha = 0.1f) else SageGreen.copy(alpha = 0.12f),
                     spotColor = if (showError) LoginErrorRed.copy(alpha = 0.08f) else SageGreen.copy(alpha = 0.1f)
                 ),
-            placeholder = { Text(placeholder, color = SoftBlueGray) },
+            placeholder = {
+                Text(
+                    text = placeholder,
+                    color = SoftBlueGray,
+                    maxLines = 1,
+                    softWrap = false
+                )
+            },
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
             interactionSource = interactionSource,
