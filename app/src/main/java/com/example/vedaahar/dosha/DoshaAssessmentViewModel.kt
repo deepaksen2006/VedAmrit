@@ -54,19 +54,34 @@ class DoshaAssessmentViewModel(
         persistAnswers()
     }
 
+    fun selectConstitution(profileName: String) {
+        val result = DoshaScoringEngine.resultForProfile(profileName)
+        val savedAtMillis = System.currentTimeMillis()
+        val previousResult = DoshaResultStore.save(context, result, savedAtMillis)
+        _uiState.update { state ->
+            state.copy(
+                result = result,
+                savedAtMillis = savedAtMillis,
+                previousSavedResult = previousResult,
+                savedAssessmentCount = DoshaResultStore.historyCount(context)
+            )
+        }
+    }
+
     fun restart() {
         preferences.edit().clear().apply()
-        _uiState.value = DoshaAssessmentUiState()
+        _uiState.value = loadState()
     }
 
     private fun loadState(): DoshaAssessmentUiState {
-        val answers = DoshaQuestionBank.questions.mapNotNull { question ->
-            preferences.getString("question_${question.id}", null)?.let { question.id to it }
-        }.toMap()
-        val index = preferences.getInt("current_index", 0).coerceIn(0, DoshaQuestionBank.questions.lastIndex)
+        val currentSaved = DoshaResultStore.current(context)
+        val initialResult = currentSaved?.let {
+            DoshaScoringEngine.resultForProfile(it.profileName)
+        } ?: DoshaScoringEngine.resultForProfile("Vata-Pitta")
         return DoshaAssessmentUiState(
-            answers = answers,
-            currentQuestionIndex = index,
+            result = initialResult,
+            savedAtMillis = currentSaved?.savedAtMillis ?: System.currentTimeMillis(),
+            previousSavedResult = currentSaved,
             savedAssessmentCount = DoshaResultStore.historyCount(context)
         )
     }

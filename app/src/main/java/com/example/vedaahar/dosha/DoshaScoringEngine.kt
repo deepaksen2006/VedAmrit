@@ -52,8 +52,87 @@ object DoshaScoringEngine {
         }
     }
 
-    private fun descriptionFor(profileName: String): DoshaResultDescription {
+    fun descriptionFor(profileName: String): DoshaResultDescription {
         return descriptions[profileName] ?: descriptions.getValue("Vata")
+    }
+
+    fun resultForProfile(profileName: String): DoshaResult {
+        val cleanName = when {
+            profileName.contains("Vata-Pitta", ignoreCase = true) -> "Vata-Pitta"
+            profileName.contains("Pitta-Kapha", ignoreCase = true) -> "Pitta-Kapha"
+            profileName.contains("Vata-Kapha", ignoreCase = true) -> "Vata-Kapha"
+            profileName.contains("Tri-Doshic", ignoreCase = true) || profileName.contains("Balanced", ignoreCase = true) -> "Tri-Doshic / Balanced Constitution"
+            profileName.contains("Pitta", ignoreCase = true) -> "Pitta"
+            profileName.contains("Kapha", ignoreCase = true) -> "Kapha"
+            else -> "Vata"
+        }
+        val dominant: Dosha
+        val secondary: Dosha?
+        val profileType: DoshaProfileType
+        val percentages: Map<Dosha, Int>
+        val scores: Map<Dosha, Int>
+
+        when (cleanName) {
+            "Pitta" -> {
+                dominant = Dosha.Pitta
+                secondary = null
+                profileType = DoshaProfileType.Single
+                percentages = mapOf(Dosha.Vata to 20, Dosha.Pitta to 65, Dosha.Kapha to 15)
+                scores = mapOf(Dosha.Vata to 8, Dosha.Pitta to 26, Dosha.Kapha to 6)
+            }
+            "Kapha" -> {
+                dominant = Dosha.Kapha
+                secondary = null
+                profileType = DoshaProfileType.Single
+                percentages = mapOf(Dosha.Vata to 15, Dosha.Pitta to 20, Dosha.Kapha to 65)
+                scores = mapOf(Dosha.Vata to 6, Dosha.Pitta to 8, Dosha.Kapha to 26)
+            }
+            "Vata-Pitta" -> {
+                dominant = Dosha.Vata
+                secondary = Dosha.Pitta
+                profileType = DoshaProfileType.Dual
+                percentages = mapOf(Dosha.Vata to 45, Dosha.Pitta to 40, Dosha.Kapha to 15)
+                scores = mapOf(Dosha.Vata to 18, Dosha.Pitta to 16, Dosha.Kapha to 6)
+            }
+            "Pitta-Kapha" -> {
+                dominant = Dosha.Pitta
+                secondary = Dosha.Kapha
+                profileType = DoshaProfileType.Dual
+                percentages = mapOf(Dosha.Vata to 15, Dosha.Pitta to 45, Dosha.Kapha to 40)
+                scores = mapOf(Dosha.Vata to 6, Dosha.Pitta to 18, Dosha.Kapha to 16)
+            }
+            "Vata-Kapha" -> {
+                dominant = Dosha.Vata
+                secondary = Dosha.Kapha
+                profileType = DoshaProfileType.Dual
+                percentages = mapOf(Dosha.Vata to 45, Dosha.Pitta to 15, Dosha.Kapha to 40)
+                scores = mapOf(Dosha.Vata to 18, Dosha.Pitta to 6, Dosha.Kapha to 16)
+            }
+            "Tri-Doshic / Balanced Constitution" -> {
+                dominant = Dosha.Vata
+                secondary = Dosha.Pitta
+                profileType = DoshaProfileType.Balanced
+                percentages = mapOf(Dosha.Vata to 34, Dosha.Pitta to 33, Dosha.Kapha to 33)
+                scores = mapOf(Dosha.Vata to 14, Dosha.Pitta to 13, Dosha.Kapha to 13)
+            }
+            else -> {
+                dominant = Dosha.Vata
+                secondary = null
+                profileType = DoshaProfileType.Single
+                percentages = mapOf(Dosha.Vata to 65, Dosha.Pitta to 20, Dosha.Kapha to 15)
+                scores = mapOf(Dosha.Vata to 26, Dosha.Pitta to 8, Dosha.Kapha to 6)
+            }
+        }
+
+        return DoshaResult(
+            profileName = if (cleanName.startsWith("Tri-Doshic")) "Tri-Doshic" else cleanName,
+            profileType = profileType,
+            dominant = dominant,
+            secondary = secondary,
+            scores = scores,
+            percentages = percentages,
+            description = descriptionFor(cleanName)
+        )
     }
 
     private val descriptions = mapOf(

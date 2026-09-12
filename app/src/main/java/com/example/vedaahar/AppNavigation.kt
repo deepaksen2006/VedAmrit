@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,9 +30,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.example.vedaahar.dosha.DoshaAssessmentRoute
 import com.example.vedaahar.dosha.RetakeDoshaAssessmentRoute
 import com.example.vedaahar.doctor.ui.DoctorModuleRoute
+import com.example.vedaahar.document.ui.UploadMedicalDocumentScreen
+import com.example.vedaahar.document.ui.MyMedicalDocumentsScreen
 import com.example.vedaahar.ui.theme.Cream
 import com.example.vedaahar.ui.theme.ForestGreen
 
@@ -49,8 +54,11 @@ private object VedaAhaarRoute {
     const val YogaMeditation = "yoga_meditation"
     const val HealthReminder = "health_reminder"
     const val IngredientBook = "ingredient_book"
+    const val SymptomsAnalysis = "symptoms_analysis"
     const val CommunityCare = "community_care"
     const val DoctorModule = "doctor_module"
+    const val UploadMedicalDocument = "upload_medical_document"
+    const val MyMedicalDocuments = "my_medical_documents"
 }
 
 private object OnboardingPrefs {
@@ -89,6 +97,7 @@ fun VedaAhaarNavHost(
         context.getSharedPreferences(OnboardingPrefs.Name, Context.MODE_PRIVATE)
     }
     var onboardingState by remember { mutableStateOf(OnboardingState()) }
+    var dashboardTab by rememberSaveable { mutableStateOf("Home") }
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
@@ -169,8 +178,11 @@ fun VedaAhaarNavHost(
                             currentRoute == VedaAhaarRoute.YogaMeditation ||
                             currentRoute == VedaAhaarRoute.HealthReminder ||
                             currentRoute == VedaAhaarRoute.IngredientBook ||
+                            currentRoute == VedaAhaarRoute.SymptomsAnalysis ||
                             currentRoute == VedaAhaarRoute.CommunityCare ||
-                            currentRoute == VedaAhaarRoute.DoctorModule
+                            currentRoute == VedaAhaarRoute.DoctorModule ||
+                            currentRoute.startsWith(VedaAhaarRoute.UploadMedicalDocument) ||
+                            currentRoute.startsWith(VedaAhaarRoute.MyMedicalDocuments)
                         )
                 )
 
@@ -219,14 +231,51 @@ fun VedaAhaarNavHost(
     val routesWithLocalBackButton = setOf(
         VedaAhaarRoute.Shopping,
         VedaAhaarRoute.DietAssessment,
+        VedaAhaarRoute.SymptomsAnalysis,
         VedaAhaarRoute.DoshaAssessment,
         VedaAhaarRoute.DoshaRetake,
         VedaAhaarRoute.HealthReminder,
         VedaAhaarRoute.IngredientBook,
         VedaAhaarRoute.CommunityCare,
         VedaAhaarRoute.DoctorModule,
-        VedaAhaarRoute.ConsentPrivacy
+        VedaAhaarRoute.ConsentPrivacy,
+        VedaAhaarRoute.UploadMedicalDocument,
+        VedaAhaarRoute.MyMedicalDocuments
     )
+
+    val isMainAppRoute = currentRoute != null &&
+        currentRoute != VedaAhaarRoute.Loading &&
+        currentRoute != VedaAhaarRoute.Welcome &&
+        currentRoute != VedaAhaarRoute.Login &&
+        currentRoute != VedaAhaarRoute.ConsentPrivacy &&
+        currentRoute != VedaAhaarRoute.PatientProfile &&
+        currentRoute != VedaAhaarRoute.DoshaAssessment &&
+        currentRoute != VedaAhaarRoute.DoshaRetake &&
+        currentRoute != VedaAhaarRoute.DietAssessment &&
+        currentRoute != VedaAhaarRoute.SymptomsAnalysis
+
+    val activeNavTab = when (currentRoute) {
+        VedaAhaarRoute.PatientDashboard -> dashboardTab
+        VedaAhaarRoute.Shopping -> "Shopping"
+        VedaAhaarRoute.YogaMeditation, VedaAhaarRoute.HealthReminder, VedaAhaarRoute.IngredientBook -> "Wellness"
+        VedaAhaarRoute.CommunityCare -> "Consult"
+        VedaAhaarRoute.MyMedicalDocuments, VedaAhaarRoute.UploadMedicalDocument -> "Profile"
+        else -> dashboardTab
+    }
+
+    fun handleTabSelected(tab: String) {
+        dashboardTab = tab
+        if (currentRoute != VedaAhaarRoute.PatientDashboard) {
+            navController.navigate(VedaAhaarRoute.PatientDashboard) {
+                popUpTo(VedaAhaarRoute.PatientDashboard) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
+
     val showGlobalBackButton = currentRoute != null &&
         currentRoute != VedaAhaarRoute.Loading &&
         currentRoute != VedaAhaarRoute.Welcome &&
@@ -465,6 +514,8 @@ fun VedaAhaarNavHost(
             }
         ) {
             PatientDashboardScreen(
+                selectedTab = dashboardTab,
+                onTabSelected = ::handleTabSelected,
                 onShoppingClick = {
                     navController.navigate(VedaAhaarRoute.Shopping) {
                         launchSingleTop = true
@@ -499,6 +550,123 @@ fun VedaAhaarNavHost(
                     navController.navigate(VedaAhaarRoute.DietAssessment) {
                         launchSingleTop = true
                     }
+                },
+                onSymptomsAnalysisClick = {
+                    navController.navigate(VedaAhaarRoute.SymptomsAnalysis) {
+                        launchSingleTop = true
+                    }
+                },
+                onUploadDocumentClick = {
+                    navController.navigate(VedaAhaarRoute.UploadMedicalDocument) {
+                        launchSingleTop = true
+                    }
+                },
+                onViewAllDocumentsClick = {
+                    navController.navigate(VedaAhaarRoute.MyMedicalDocuments) {
+                        launchSingleTop = true
+                    }
+                },
+                onViewDocumentClick = { doc ->
+                    navController.navigate("${VedaAhaarRoute.MyMedicalDocuments}?docId=${doc.id}") {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = VedaAhaarRoute.UploadMedicalDocument,
+            enterTransition = {
+                fadeIn(animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)) +
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(durationMillis = 380, easing = FastOutSlowInEasing)
+                    )
+            },
+            popExitTransition = {
+                fadeOut(animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing)) +
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
+                    )
+            }
+        ) {
+            UploadMedicalDocumentScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToMyDocuments = {
+                    navController.navigate(VedaAhaarRoute.MyMedicalDocuments) {
+                        popUpTo(VedaAhaarRoute.UploadMedicalDocument) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onViewDocument = { doc ->
+                    navController.navigate("${VedaAhaarRoute.MyMedicalDocuments}?docId=${doc.id}") {
+                        popUpTo(VedaAhaarRoute.UploadMedicalDocument) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = "${VedaAhaarRoute.MyMedicalDocuments}?docId={docId}",
+            arguments = listOf(
+                navArgument("docId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            ),
+            enterTransition = {
+                fadeIn(animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)) +
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(durationMillis = 380, easing = FastOutSlowInEasing)
+                    )
+            },
+            popExitTransition = {
+                fadeOut(animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing)) +
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
+                    )
+            }
+        ) { backStackEntry ->
+            val docId = backStackEntry.arguments?.getString("docId")
+            MyMedicalDocumentsScreen(
+                onBack = { navController.popBackStack() },
+                onUploadClick = {
+                    navController.navigate(VedaAhaarRoute.UploadMedicalDocument) {
+                        launchSingleTop = true
+                    }
+                },
+                initialViewDocId = docId
+            )
+        }
+
+        composable(
+            route = VedaAhaarRoute.MyMedicalDocuments,
+            enterTransition = {
+                fadeIn(animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)) +
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(durationMillis = 380, easing = FastOutSlowInEasing)
+                    )
+            },
+            popExitTransition = {
+                fadeOut(animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing)) +
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
+                    )
+            }
+        ) {
+            MyMedicalDocumentsScreen(
+                onBack = { navController.popBackStack() },
+                onUploadClick = {
+                    navController.navigate(VedaAhaarRoute.UploadMedicalDocument) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -523,6 +691,32 @@ fun VedaAhaarNavHost(
                 onBack = { navController.popBackStack() },
                 onEditPrakriti = {
                     navController.navigate(VedaAhaarRoute.DoshaRetake) {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+        composable(
+            route = VedaAhaarRoute.SymptomsAnalysis,
+            enterTransition = {
+                fadeIn(animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)) +
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
+                    )
+            },
+            popExitTransition = {
+                fadeOut(animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing)) +
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
+                    )
+            }
+        ) {
+            SymptomsAnalysisScreen(
+                onBack = { navController.popBackStack() },
+                onConsultDoctor = {
+                    navController.navigate(VedaAhaarRoute.CommunityCare) {
                         launchSingleTop = true
                     }
                 }
@@ -673,6 +867,14 @@ fun VedaAhaarNavHost(
             exit = fadeOut(animationSpec = tween(durationMillis = 120, easing = FastOutSlowInEasing))
         ) {
             BackButton(onClick = ::handleBack)
+        }
+
+        if (isMainAppRoute) {
+            VedamritBottomNavigationBar(
+                selectedLabel = activeNavTab,
+                onTabSelected = ::handleTabSelected,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
 }

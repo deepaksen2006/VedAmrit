@@ -178,7 +178,7 @@ fun ShoppingScreen(
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 14.dp, top = 14.dp, end = 14.dp, bottom = if (cartCount > 0) 104.dp else 22.dp),
+                    contentPadding = PaddingValues(start = 14.dp, top = 14.dp, end = 14.dp, bottom = if (cartCount > 0) 180.dp else 120.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -732,7 +732,7 @@ private fun BottomCartBar(cartCount: Int) {
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 14.dp, vertical = 12.dp)
+            .padding(start = 14.dp, end = 14.dp, bottom = 80.dp, top = 12.dp)
             .shadow(18.dp, RoundedCornerShape(20.dp), ambientColor = ForestGreen.copy(alpha = 0.2f), spotColor = ForestGreen.copy(alpha = 0.16f)),
         shape = RoundedCornerShape(20.dp),
         color = ForestGreen,

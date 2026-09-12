@@ -1,24 +1,11 @@
 package com.example.vedaahar
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -39,41 +26,33 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ScrollableTabRow
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -85,1123 +64,15 @@ import com.example.vedaahar.ui.theme.LightSage
 import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
-import kotlinx.coroutines.delay
 
-private val DietGold = Color(0xFFE8C97B)
 private val DietWarmCard = Color(0xFFFFFBF4)
 private val DietGreenGlow = Color(0xFF90C987)
-private val DietDanger = Color(0xFFB85A45)
-private val DietDangerSoft = Color(0xFFFFEFE9)
 private val DietMint = Color(0xFFDDEFE2)
-private val DietHoney = Color(0xFFFFE9B6)
-private val DietRose = Color(0xFFFFDAD4)
 private val DietSky = Color(0xFFDDEBFF)
+private val DietDangerSoft = Color(0xFFFFEFE9)
+private val DietDanger = Color(0xFFB85A45)
 
-private enum class DietStep(val title: String, val subtitle: String) {
-    Goals("What would you like to improve?", "Choose your wellness goals"),
-    Health("Any health concerns?", "This helps us personalise safely"),
-    Vikriti("How are you feeling lately?", "Select what matches your body"),
-    Agni("How is your digestion?", "Your digestion guides your meal plan"),
-    Ama("Any of these symptoms?", "This helps us understand toxin load"),
-    Lifestyle("Tell us about your lifestyle", "Small routines shape digestion"),
-    Food("Your food choices", "We'll keep your plan realistic"),
-    Rasa("What tastes do you crave?", "Ayurveda uses taste to understand imbalance"),
-    Routine("Your daily routine", "Meal timing matters as much as food"),
-    Mind("How do you feel mentally?", "Food also supports your mind"),
-    Processing("Analysing your Ayurvedic profile...", "Building your personalised plan"),
-    Result("Your Ayurvedic Diet Profile", "Personalised for your prakriti")
-}
-
-@Composable
-fun DietAssessmentScreen(
-    prakriti: String = "Vata-Pitta",
-    onBack: () -> Unit,
-    onEditPrakriti: () -> Unit = {},
-    modifier: Modifier = Modifier
-) {
-    var stepIndex by remember { mutableIntStateOf(0) }
-    val selectedGoals = remember { mutableStateOf(setOf<String>()) }
-    val healthConcerns = remember { mutableStateOf(setOf<String>()) }
-    val femaleAnswers = remember { mutableStateMapOf("Pregnant?" to "No", "Breastfeeding?" to "No", "Menstrual irregularity?" to "No") }
-    val vikritiSymptoms = remember { mutableStateOf(setOf<String>()) }
-    var hunger by remember { mutableStateOf("") }
-    var mealFeel by remember { mutableStateOf("") }
-    val digestionIssues = remember { mutableStateOf(setOf<String>()) }
-    val amaSymptoms = remember { mutableStateOf(setOf<String>()) }
-    var workType by remember { mutableStateOf("") }
-    var activity by remember { mutableStateOf("") }
-    var stress by remember { mutableFloatStateOf(4f) }
-    var sleepTime by remember { mutableStateOf("") }
-    var wakeTime by remember { mutableStateOf("") }
-    val exercises = remember { mutableStateOf(setOf<String>()) }
-    var dietType by remember { mutableStateOf("") }
-    val avoidFoods = remember { mutableStateOf(setOf<String>()) }
-    val allergies = remember { mutableStateOf(setOf<String>()) }
-    val dislikedFoods = remember { mutableStateOf(setOf<String>()) }
-    var spice by remember { mutableFloatStateOf(1f) }
-    val rasaEnjoyment = remember { mutableStateMapOf<String, Float>() }
-    val rasaCravings = remember { mutableStateMapOf<String, Boolean>() }
-    var breakfast by remember { mutableStateOf("") }
-    var lunch by remember { mutableStateOf("") }
-    var dinner by remember { mutableStateOf("") }
-    var water by remember { mutableStateOf("") }
-    var lateEating by remember { mutableStateOf("") }
-    val mentalStates = remember { mutableStateOf(setOf<String>()) }
-
-    val visibleSteps = DietStep.entries.take(10)
-    val currentStep = DietStep.entries[stepIndex]
-    val result = remember(
-        selectedGoals.value,
-        healthConcerns.value,
-        vikritiSymptoms.value,
-        hunger,
-        mealFeel,
-        digestionIssues.value,
-        amaSymptoms.value,
-        mentalStates.value
-    ) {
-        buildDietResult(
-            prakriti = prakriti,
-            goals = selectedGoals.value,
-            conditions = healthConcerns.value,
-            vikritiSymptoms = vikritiSymptoms.value,
-            hunger = hunger,
-            mealFeel = mealFeel,
-            digestionIssues = digestionIssues.value,
-            amaSymptoms = amaSymptoms.value,
-            dietType = dietType,
-            mentalStates = mentalStates.value
-        )
-    }
-
-    LaunchedEffect(currentStep) {
-        if (currentStep == DietStep.Processing) {
-            delay(3900)
-            stepIndex = DietStep.Result.ordinal
-        }
-    }
-
-    Surface(modifier = modifier.fillMaxSize(), color = Cream) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(Color(0xFFFFF8ED), Cream, LightSage.copy(alpha = 0.55f))))
-        ) {
-            DietAmbientBackground()
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .statusBarsPadding()
-            ) {
-                if (currentStep != DietStep.Result && currentStep != DietStep.Processing) {
-                    DietTopBar(
-                        stepIndex = stepIndex,
-                        totalSteps = visibleSteps.size,
-                        onBack = {
-                            if (stepIndex == 0) onBack() else stepIndex -= 1
-                        }
-                    )
-                }
-
-                AnimatedContent(
-                    targetState = currentStep,
-                    transitionSpec = { fadeIn(tween(260)) togetherWith fadeOut(tween(180)) },
-                    label = "diet-assessment-step",
-                    modifier = Modifier.weight(1f)
-                ) { step ->
-                    when (step) {
-                        DietStep.Goals -> AssessmentStepScaffold(
-                            step = step,
-                            prakriti = prakriti,
-                            onEditPrakriti = onEditPrakriti,
-                            canContinue = selectedGoals.value.isNotEmpty(),
-                            onContinue = { stepIndex += 1 }
-                        ) {
-                            GoalSelection(selected = selectedGoals.value, onChange = { selectedGoals.value = it })
-                        }
-
-                        DietStep.Health -> AssessmentStepScaffold(step, prakriti, onEditPrakriti, true, { stepIndex += 1 }) {
-                            HealthConcernStep(
-                                selected = healthConcerns.value,
-                                femaleAnswers = femaleAnswers,
-                                onSelectedChange = { healthConcerns.value = it }
-                            )
-                        }
-
-                        DietStep.Vikriti -> AssessmentStepScaffold(step, prakriti, onEditPrakriti, vikritiSymptoms.value.isNotEmpty(), { stepIndex += 1 }) {
-                            VikritiStep(selected = vikritiSymptoms.value, onChange = { vikritiSymptoms.value = it })
-                        }
-
-                        DietStep.Agni -> AssessmentStepScaffold(
-                            step = step,
-                            prakriti = prakriti,
-                            onEditPrakriti = onEditPrakriti,
-                            canContinue = hunger.isNotBlank() && mealFeel.isNotBlank() && digestionIssues.value.isNotEmpty(),
-                            onContinue = { stepIndex += 1 }
-                        ) {
-                            AgniStep(
-                                hunger = hunger,
-                                mealFeel = mealFeel,
-                                issues = digestionIssues.value,
-                                onHunger = { hunger = it },
-                                onMealFeel = { mealFeel = it },
-                                onIssues = { digestionIssues.value = it }
-                            )
-                        }
-
-                        DietStep.Ama -> AssessmentStepScaffold(step, prakriti, onEditPrakriti, true, { stepIndex += 1 }) {
-                            AmaStep(selected = amaSymptoms.value, onChange = { amaSymptoms.value = it })
-                        }
-
-                        DietStep.Lifestyle -> AssessmentStepScaffold(
-                            step = step,
-                            prakriti = prakriti,
-                            onEditPrakriti = onEditPrakriti,
-                            canContinue = workType.isNotBlank() && activity.isNotBlank() && sleepTime.isNotBlank() && wakeTime.isNotBlank(),
-                            onContinue = { stepIndex += 1 }
-                        ) {
-                            LifestyleStep(
-                                workType = workType,
-                                activity = activity,
-                                stress = stress,
-                                sleepTime = sleepTime,
-                                wakeTime = wakeTime,
-                                exercises = exercises.value,
-                                onWorkType = { workType = it },
-                                onActivity = { activity = it },
-                                onStress = { stress = it },
-                                onSleepTime = { sleepTime = it },
-                                onWakeTime = { wakeTime = it },
-                                onExercises = { exercises.value = it }
-                            )
-                        }
-
-                        DietStep.Food -> AssessmentStepScaffold(step, prakriti, onEditPrakriti, dietType.isNotBlank(), { stepIndex += 1 }) {
-                            FoodPreferenceStep(
-                                dietType = dietType,
-                                avoidFoods = avoidFoods.value,
-                                allergies = allergies.value,
-                                dislikedFoods = dislikedFoods.value,
-                                spice = spice,
-                                onDietType = { dietType = it },
-                                onAvoid = { avoidFoods.value = it },
-                                onAllergies = { allergies.value = it },
-                                onDisliked = { dislikedFoods.value = it },
-                                onSpice = { spice = it }
-                            )
-                        }
-
-                        DietStep.Rasa -> AssessmentStepScaffold(step, prakriti, onEditPrakriti, true, { stepIndex += 1 }) {
-                            RasaStep(enjoyment = rasaEnjoyment, cravings = rasaCravings)
-                        }
-
-                        DietStep.Routine -> AssessmentStepScaffold(
-                            step = step,
-                            prakriti = prakriti,
-                            onEditPrakriti = onEditPrakriti,
-                            canContinue = breakfast.isNotBlank() && lunch.isNotBlank() && dinner.isNotBlank() && water.isNotBlank() && lateEating.isNotBlank(),
-                            onContinue = { stepIndex += 1 }
-                        ) {
-                            RoutineStep(
-                                breakfast = breakfast,
-                                lunch = lunch,
-                                dinner = dinner,
-                                water = water,
-                                lateEating = lateEating,
-                                onBreakfast = { breakfast = it },
-                                onLunch = { lunch = it },
-                                onDinner = { dinner = it },
-                                onWater = { water = it },
-                                onLateEating = { lateEating = it }
-                            )
-                        }
-
-                        DietStep.Mind -> AssessmentStepScaffold(
-                            step = step,
-                            prakriti = prakriti,
-                            onEditPrakriti = onEditPrakriti,
-                            canContinue = mentalStates.value.isNotEmpty(),
-                            onContinue = { stepIndex = DietStep.Processing.ordinal },
-                            ctaText = "Create My Plan"
-                        ) {
-                            MindStep(selected = mentalStates.value, onChange = { mentalStates.value = it })
-                        }
-
-                        DietStep.Processing -> ProcessingStep()
-                        DietStep.Result -> ResultStep(result = result, onBack = onBack)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DietTopBar(stepIndex: Int, totalSteps: Int, onBack: () -> Unit) {
-    val progress = (stepIndex + 1).toFloat() / totalSteps.toFloat()
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            BackButton(onClick = onBack)
-            Spacer(Modifier.weight(1f))
-            Text("Step ${stepIndex + 1} of $totalSteps", color = SageGreen, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-        }
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(9.dp)
-                .clip(RoundedCornerShape(50)),
-            color = ForestGreen,
-            trackColor = LightSage
-        )
-        Text("${(progress * 100).toInt()}% Complete - ${motivationFor(stepIndex)}", color = SoftBlueGray, fontSize = 12.sp)
-    }
-}
-
-@Composable
-private fun AssessmentStepScaffold(
-    step: DietStep,
-    prakriti: String,
-    onEditPrakriti: () -> Unit,
-    canContinue: Boolean,
-    onContinue: () -> Unit,
-    ctaText: String = "Continue",
-    content: @Composable () -> Unit
-) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 18.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            PrakritiStrip(prakriti = prakriti, onEdit = onEditPrakriti)
-            PremiumDietCard {
-                Column(modifier = Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    DietBadge("Ayurvedic Diet Assessment")
-                    Text(
-                        step.title,
-                        color = DarkForestGreen,
-                        fontFamily = FontFamily.Serif,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 30.sp,
-                        lineHeight = 34.sp
-                    )
-                    Text(step.subtitle, color = SoftBlueGray, lineHeight = 22.sp)
-                    content()
-                }
-            }
-            Spacer(Modifier.height(12.dp))
-        }
-        Surface(color = Cream.copy(alpha = 0.96f), shadowElevation = 10.dp) {
-            Button(
-                onClick = onContinue,
-                enabled = canContinue,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(horizontal = 18.dp, vertical = 14.dp)
-                    .height(56.dp)
-                    .shadow(10.dp, RoundedCornerShape(50), ambientColor = DietGreenGlow.copy(alpha = 0.22f), spotColor = ForestGreen.copy(alpha = 0.15f)),
-                shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ForestGreen,
-                    contentColor = PureWhite,
-                    disabledContainerColor = LightSage,
-                    disabledContentColor = SageGreen
-                )
-            ) {
-                Text(ctaText, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.width(8.dp))
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
-            }
-        }
-    }
-}
-
-@Composable
-private fun PrakritiStrip(prakriti: String, onEdit: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp))
-            .background(Brush.linearGradient(listOf(LightSage, DietWarmCard)))
-            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(22.dp))
-            .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(modifier = Modifier.size(34.dp).clip(CircleShape).background(ForestGreen), contentAlignment = Alignment.Center) {
-            Icon(Icons.Filled.Star, contentDescription = null, tint = DietGold, modifier = Modifier.size(17.dp))
-        }
-        Spacer(Modifier.width(10.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text("Your selected prakriti", color = SageGreen, fontWeight = FontWeight.Bold, fontSize = 11.sp, letterSpacing = 1.2.sp)
-            Text(prakriti, color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-        }
-        OutlinedButton(
-            onClick = onEdit,
-            shape = RoundedCornerShape(50),
-            border = BorderStroke(1.dp, ForestGreen.copy(alpha = 0.45f)),
-            colors = ButtonDefaults.outlinedButtonColors(containerColor = PureWhite, contentColor = ForestGreen)
-        ) {
-            Text("Edit", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun GoalSelection(selected: Set<String>, onChange: (Set<String>) -> Unit) {
-    val goals = listOf(
-        DietGoalOption("Weight Loss", "Light meals, steady metabolism", "Agni", DietRose),
-        DietGoalOption("Weight Gain", "Nourishment and strength", "Bala", DietHoney),
-        DietGoalOption("Better Digestion", "Gut comfort and regularity", "Agni", DietMint),
-        DietGoalOption("Better Energy", "Daylong vitality and focus", "Ojas", DietHoney),
-        DietGoalOption("Skin Glow", "Cooling, clear-food support", "Tejas", DietRose),
-        DietGoalOption("Hair Health", "Mineral-rich nourishment", "Rasa", DietMint),
-        DietGoalOption("Stress Relief", "Calm routine and grounding", "Sattva", DietHoney),
-        DietGoalOption("Better Sleep", "Evening rhythm correction", "Nidra", DietSky),
-        DietGoalOption("PCOS Support", "Hormonal balance support", "Cycle", DietRose),
-        DietGoalOption("Diabetes Support", "Blood sugar aware meals", "Sugar", DietMint),
-        DietGoalOption("Acidity Relief", "Cooling pitta balance", "Cool", DietSky),
-        DietGoalOption("Immunity Boost", "Resilience and recovery", "Ojas", DietMint),
-        DietGoalOption("Muscle Gain", "Protein-aware strength plan", "Bala", DietHoney)
-    )
-    GoalProgressPanel(selectedCount = selected.size)
-    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        val compactCards = maxWidth < 360.dp
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            goals.forEach { goal ->
-                val isSelected = goal.title in selected
-                GoalOptionCard(
-                    goal = goal,
-                    selected = isSelected,
-                    disabled = selected.size == 3 && !isSelected,
-                    onClick = {
-                        onChange(
-                            when {
-                                isSelected -> selected - goal.title
-                                selected.size < 3 -> selected + goal.title
-                                else -> selected
-                            }
-                        )
-                    },
-                    modifier = if (compactCards) {
-                        Modifier.fillMaxWidth()
-                    } else {
-                        Modifier
-                            .weight(1f)
-                            .fillMaxWidth(0.48f)
-                    }
-                )
-            }
-        }
-    }
-    if (selected.size == 3) InsightCard("Focused plan", "Three goals selected. We'll prioritise these while building your meals.")
-}
-
-private data class DietGoalOption(
-    val title: String,
-    val subtitle: String,
-    val tag: String,
-    val accent: Color
-)
-
-@Composable
-private fun GoalProgressPanel(selectedCount: Int) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp))
-            .background(Brush.linearGradient(listOf(ForestGreen, DarkForestGreen)))
-            .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(46.dp)
-                .clip(CircleShape)
-                .background(PureWhite.copy(alpha = 0.14f))
-                .border(BorderStroke(1.dp, PureWhite.copy(alpha = 0.22f)), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("$selectedCount/3", color = PureWhite, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-        }
-        Spacer(Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text("Select your top priorities", color = PureWhite, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            Text(
-                if (selectedCount == 0) "Pick up to three goals to tune your meal plan."
-                else "Your choices shape foods, timing, and lifestyle tips.",
-                color = PureWhite.copy(alpha = 0.78f),
-                fontSize = 12.sp,
-                lineHeight = 17.sp
-            )
-        }
-    }
-}
-
-@Composable
-private fun GoalOptionCard(
-    goal: DietGoalOption,
-    selected: Boolean,
-    disabled: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val scale by animateFloatAsState(if (selected) 1.015f else 1f, tween(160), label = "goal-card-scale")
-    val borderColor = when {
-        selected -> ForestGreen
-        disabled -> BeigeBorder.copy(alpha = 0.38f)
-        else -> BeigeBorder.copy(alpha = 0.85f)
-    }
-    val container = when {
-        selected -> Brush.linearGradient(listOf(LightSage, PureWhite, goal.accent.copy(alpha = 0.5f)))
-        disabled -> Brush.linearGradient(listOf(PureWhite.copy(alpha = 0.52f), Cream.copy(alpha = 0.7f)))
-        else -> Brush.linearGradient(listOf(PureWhite, DietWarmCard))
-    }
-    Card(
-        modifier = modifier
-            .height(98.dp)
-            .scale(scale)
-            .clickable(enabled = !disabled || selected, onClick = onClick),
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        border = BorderStroke(if (selected) 1.6.dp else 1.dp, borderColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (selected) 4.dp else 0.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(container)
-                .padding(13.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(if (selected) ForestGreen else goal.accent.copy(alpha = if (disabled) 0.35f else 0.75f)),
-                contentAlignment = Alignment.Center
-            ) {
-                if (selected) {
-                    Icon(Icons.Filled.Check, contentDescription = null, tint = PureWhite, modifier = Modifier.size(19.dp))
-                } else {
-                    Text(goal.tag.take(2).uppercase(), color = ForestGreen.copy(alpha = if (disabled) 0.45f else 1f), fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                }
-            }
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-                Text(
-                    goal.title,
-                    color = if (disabled) SoftBlueGray.copy(alpha = 0.58f) else DarkForestGreen,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
-                    lineHeight = 16.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    goal.subtitle,
-                    color = if (disabled) SoftBlueGray.copy(alpha = 0.46f) else SoftBlueGray,
-                    fontSize = 11.sp,
-                    lineHeight = 15.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun HealthConcernStep(
-    selected: Set<String>,
-    femaleAnswers: MutableMap<String, String>,
-    onSelectedChange: (Set<String>) -> Unit
-) {
-    val concerns = listOf("Diabetes", "Thyroid", "PCOS", "IBS", "Acidity", "Constipation", "Gas/Bloating", "Obesity", "Hypertension", "Migraine", "Arthritis", "Skin Issues", "No condition")
-    SectionLabel("Searchable health chips")
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        concerns.forEach { concern ->
-            DietChip(
-                text = concern,
-                selected = concern in selected,
-                onClick = {
-                    onSelectedChange(
-                        when {
-                            concern == "No condition" -> setOf("No condition")
-                            concern in selected -> selected - concern
-                            else -> (selected - "No condition") + concern
-                        }
-                    )
-                }
-            )
-        }
-    }
-    SectionLabel("Female health")
-    listOf("Pregnant?", "Breastfeeding?", "Menstrual irregularity?").forEach { question ->
-        YesNoRow(question, femaleAnswers[question] ?: "No") { femaleAnswers[question] = it }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun VikritiStep(selected: Set<String>, onChange: (Set<String>) -> Unit) {
-    val groups = listOf(
-        "Vata Symptoms" to listOf("Dry skin", "Anxiety", "Overthinking", "Constipation", "Joint cracking", "Cold hands/feet", "Irregular appetite", "Insomnia"),
-        "Pitta Symptoms" to listOf("Acidity", "Anger/irritation", "Excess hunger", "Loose stools", "Body heat", "Pimples", "Burning sensation"),
-        "Kapha Symptoms" to listOf("Laziness", "Weight gain", "Water retention", "Sleepiness", "Slow digestion", "Mucus/cold", "Emotional eating")
-    )
-    groups.forEach { (title, symptoms) ->
-        MiniPanel(title) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                symptoms.forEach { item ->
-                    DietChip(item, item in selected) {
-                        onChange(if (item in selected) selected - item else selected + item)
-                    }
-                }
-            }
-        }
-    }
-    if (selected.isNotEmpty()) InsightCard("Current imbalance detected", "${detectVikriti(selected)} increase")
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun AgniStep(
-    hunger: String,
-    mealFeel: String,
-    issues: Set<String>,
-    onHunger: (String) -> Unit,
-    onMealFeel: (String) -> Unit,
-    onIssues: (Set<String>) -> Unit
-) {
-    SingleChoiceGroup("Hunger level", listOf("Very low", "Normal", "Excessive", "Irregular"), hunger, onHunger)
-    SingleChoiceGroup("How do you feel after meals?", listOf("Light", "Heavy", "Sleepy", "Bloated"), mealFeel, onMealFeel)
-    SectionLabel("Digestion issue?")
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        listOf("Gas", "Acidity", "Constipation", "Loose motion", "None").forEach { item ->
-            DietChip(item, item in issues) {
-                onIssues(
-                    when {
-                        item == "None" -> setOf("None")
-                        item in issues -> issues - item
-                        else -> (issues - "None") + item
-                    }
-                )
-            }
-        }
-    }
-    if (hunger.isNotBlank() && mealFeel.isNotBlank()) {
-        InsightCard("Agni insight", "${classifyAgni(hunger, mealFeel, issues)} pattern detected.")
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun AmaStep(selected: Set<String>, onChange: (Set<String>) -> Unit) {
-    val items = listOf("White tongue coating", "Bad breath", "Laziness", "Brain fog", "Bloating", "Sticky stool", "Feeling heavy")
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        items.forEach { item ->
-            DietChip(item, item in selected) { onChange(if (item in selected) selected - item else selected + item) }
-        }
-    }
-    InsightCard(
-        if (selected.size >= 3) "Ama detected" else "Ama check",
-        if (selected.size >= 3) "We'll prioritise gentle gut cleansing." else "No major ama signs yet. Your plan can stay nourishing and light."
-    )
-}
-
-@Composable
-private fun LifestyleStep(
-    workType: String,
-    activity: String,
-    stress: Float,
-    sleepTime: String,
-    wakeTime: String,
-    exercises: Set<String>,
-    onWorkType: (String) -> Unit,
-    onActivity: (String) -> Unit,
-    onStress: (Float) -> Unit,
-    onSleepTime: (String) -> Unit,
-    onWakeTime: (String) -> Unit,
-    onExercises: (Set<String>) -> Unit
-) {
-    SingleChoiceGroup("Work Type", listOf("Student", "Office Worker", "Work From Home", "Homemaker", "Labor Intensive"), workType, onWorkType)
-    SingleChoiceGroup("Activity Level", listOf("Sedentary", "Lightly Active", "Moderate", "Active", "Athlete"), activity, onActivity)
-    SliderPanel("Stress Level", stress, "Calm", "High stress", onStress)
-    SingleChoiceGroup("Sleep Time", listOf("Before 10 PM", "10-12 PM", "After 12 AM"), sleepTime, onSleepTime)
-    SingleChoiceGroup("Wake Time", listOf("Before 6", "6-8", "After 8"), wakeTime, onWakeTime)
-    MultiChoiceGroup("Exercise", listOf("None", "Walking", "Yoga", "Gym", "Sports"), exercises, onExercises)
-}
-
-@Composable
-private fun FoodPreferenceStep(
-    dietType: String,
-    avoidFoods: Set<String>,
-    allergies: Set<String>,
-    dislikedFoods: Set<String>,
-    spice: Float,
-    onDietType: (String) -> Unit,
-    onAvoid: (Set<String>) -> Unit,
-    onAllergies: (Set<String>) -> Unit,
-    onDisliked: (Set<String>) -> Unit,
-    onSpice: (Float) -> Unit
-) {
-    SingleChoiceGroup("Diet Type", listOf("Vegetarian", "Eggetarian", "Non Vegetarian", "Vegan"), dietType, onDietType)
-    MultiChoiceGroup("Avoid foods", listOf("Milk", "Gluten", "Soy", "Nuts", "Curd", "Paneer", "Rice", "Wheat"), avoidFoods, onAvoid)
-    MultiChoiceGroup("Allergies", listOf("Milk", "Gluten", "Nuts", "Soy", "Sesame", "Seafood", "Eggs", "None"), allergies) {
-        onAllergies(if ("None" in it) setOf("None") else it)
-    }
-    MultiChoiceGroup("Disliked foods", listOf("Karela", "Lauki", "Curd", "Banana", "Dal", "Rice"), dislikedFoods, onDisliked)
-    SliderPanel("Spice tolerance", spice, "Low", "High", onSpice)
-}
-
-@Composable
-private fun RasaStep(
-    enjoyment: MutableMap<String, Float>,
-    cravings: MutableMap<String, Boolean>
-) {
-    val rasas = listOf(
-        "Madhura / Sweet" to "Rice, milk, sweets, banana",
-        "Amla / Sour" to "Curd, lemon, pickle",
-        "Lavana / Salty" to "Salted snacks",
-        "Katu / Spicy" to "Chili, ginger",
-        "Tikta / Bitter" to "Karela, neem",
-        "Kashaya / Astringent" to "Tea, lentils"
-    )
-    rasas.forEach { (rasa, examples) ->
-        MiniPanel(rasa) {
-            Text(examples, color = SoftBlueGray, fontSize = 12.sp)
-            SliderPanel(
-                title = "Enjoy this taste",
-                value = enjoyment[rasa] ?: 2f,
-                start = "Never",
-                end = "Always",
-                onValueChange = { enjoyment[rasa] = it }
-            )
-            YesNoRow("Craving recently?", if (cravings[rasa] == true) "Yes" else "No") { cravings[rasa] = it == "Yes" }
-        }
-    }
-    InsightCard("Taste analysis", "High spicy and sour craving can suggest Pitta aggravation.")
-}
-
-@Composable
-private fun RoutineStep(
-    breakfast: String,
-    lunch: String,
-    dinner: String,
-    water: String,
-    lateEating: String,
-    onBreakfast: (String) -> Unit,
-    onLunch: (String) -> Unit,
-    onDinner: (String) -> Unit,
-    onWater: (String) -> Unit,
-    onLateEating: (String) -> Unit
-) {
-    SingleChoiceGroup("Breakfast time", listOf("Before 8", "8-10", "After 10", "Skip"), breakfast, onBreakfast)
-    SingleChoiceGroup("Lunch time", listOf("Before 12", "12-2", "2-4", "After 4"), lunch, onLunch)
-    SingleChoiceGroup("Dinner time", listOf("Before 7", "7-9", "After 9", "Late night"), dinner, onDinner)
-    SingleChoiceGroup("Water Intake", listOf("<1L", "1-2L", "2-3L", "3L+"), water, onWater)
-    SingleChoiceGroup("Late-night eating?", listOf("Yes", "No"), lateEating, onLateEating)
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun MindStep(selected: Set<String>, onChange: (Set<String>) -> Unit) {
-    val states = listOf("Calm", "Overthinking", "Anxiety", "Stress", "Anger", "Low mood")
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        states.forEach { item ->
-            DietChip(item, item in selected) {
-                onChange(if (item in selected) selected - item else selected + item)
-            }
-        }
-    }
-    if (selected.isNotEmpty()) InsightCard("Manas mapping", "Your mental state will influence warming, cooling, or grounding food choices.")
-}
-
-@Composable
-private fun ProcessingStep() {
-    val pulse by rememberInfiniteTransition(label = "processing").animateFloat(
-        initialValue = 0.92f,
-        targetValue = 1.06f,
-        animationSpec = infiniteRepeatable(tween(900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "pulse"
-    )
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(22.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        PremiumDietCard {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Canvas(modifier = Modifier.size(116.dp).scale(pulse)) {
-                    drawCircle(Brush.radialGradient(listOf(DietGreenGlow.copy(alpha = 0.35f), Color.Transparent)), radius = size.minDimension / 2f)
-                    drawCircle(ForestGreen.copy(alpha = 0.18f), radius = size.minDimension * 0.32f)
-                    drawCircle(DietGold.copy(alpha = 0.72f), radius = size.minDimension * 0.22f, style = Stroke(width = 4f))
-                    drawLine(ForestGreen, Offset(size.width / 2f, size.height * 0.28f), Offset(size.width / 2f, size.height * 0.72f), strokeWidth = 8f, cap = StrokeCap.Round)
-                }
-                Text("Analysing your Ayurvedic profile...", color = DarkForestGreen, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 32.sp, textAlign = TextAlign.Center)
-                listOf("Dosha Analysis", "Digestion Check", "Lifestyle Mapping", "Taste Analysis", "Seasonal Adjustment").forEach { item ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(18.dp))
-                            .background(Brush.linearGradient(listOf(PureWhite, LightSage.copy(alpha = 0.72f))))
-                            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(18.dp))
-                            .padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(modifier = Modifier.size(28.dp).clip(CircleShape).background(ForestGreen), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Filled.Check, contentDescription = null, tint = PureWhite, modifier = Modifier.size(16.dp))
-                        }
-                        Spacer(Modifier.width(12.dp))
-                        Text(item, color = DarkForestGreen, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ResultStep(result: DietResult, onBack: () -> Unit) {
-    var tab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Body Analysis", "Foods To Eat", "Foods To Avoid", "Meal Plan", "Lifestyle Tips", "Ayurvedic")
-    Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
-        Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .weight(1f)
-                .padding(horizontal = 18.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                BackButton(onClick = onBack, text = "Dashboard")
-            }
-            PremiumDietCard {
-                Column(modifier = Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    DietBadge("Diet Plan Ready")
-                    Text("Your Ayurvedic Diet Profile", color = DarkForestGreen, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold, fontSize = 31.sp, lineHeight = 35.sp)
-                    Text("Personalised for ${result.prakriti}", color = SoftBlueGray)
-                    FlowChips(listOf(result.vikriti, result.agni, result.amaStatus, result.season))
-                }
-            }
-            ScrollableTabRow(
-                selectedTabIndex = tab,
-                containerColor = Color.Transparent,
-                contentColor = ForestGreen,
-                edgePadding = 0.dp,
-                divider = {}
-            ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = tab == index,
-                        onClick = { tab = index },
-                        text = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
-                    )
-                }
-            }
-            when (tab) {
-                0 -> BodyAnalysisTab(result)
-                1 -> RecommendationTab(result.foodsToEat, positive = true)
-                2 -> RecommendationTab(result.foodsToAvoid, positive = false)
-                3 -> MealPlanTab(result)
-                4 -> LifestyleTipsTab(result)
-                else -> AyurvedicTab(result)
-            }
-        }
-    }
-}
-
-@Composable
-private fun BodyAnalysisTab(result: DietResult) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        ResultMetric("Prakriti", result.prakriti)
-        ResultMetric("Vikriti", result.vikriti)
-        ResultMetric("Agni Type", result.agni)
-        ResultMetric("Ama Status", result.amaStatus)
-        InsightCard("Why this matters", result.analysis)
-    }
-}
-
-@Composable
-private fun RecommendationTab(items: List<String>, positive: Boolean) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        items.forEach { item ->
-            ResultListCard(
-                title = item,
-                body = if (positive) "Supports your current dosha, digestion, and goal profile." else "May aggravate your current imbalance or digestion pattern.",
-                positive = positive
-            )
-        }
-    }
-}
-
-@Composable
-private fun MealPlanTab(result: DietResult) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        TimelineMeal("Breakfast", result.breakfast)
-        TimelineMeal("Lunch", result.lunch)
-        TimelineMeal("Dinner", result.dinner)
-        TimelineMeal("Snacks", result.snacks)
-    }
-}
-
-@Composable
-private fun LifestyleTipsTab(result: DietResult) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        result.lifestyleTips.forEach { ResultListCard(it, "Small daily rhythm correction for better digestion.", positive = true) }
-    }
-}
-
-@Composable
-private fun AyurvedicTab(result: DietResult) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        result.ayurvedicTips.forEach { ResultListCard(it, "Consider with practitioner guidance where herbs are involved.", positive = true) }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun SingleChoiceGroup(title: String, options: List<String>, selected: String, onSelected: (String) -> Unit) {
-    SectionLabel(title)
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        options.forEach { item -> DietChip(item, item == selected) { onSelected(item) } }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun MultiChoiceGroup(title: String, options: List<String>, selected: Set<String>, onSelected: (Set<String>) -> Unit) {
-    SectionLabel(title)
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        options.forEach { item ->
-            DietChip(item, item in selected) {
-                onSelected(if (item in selected) selected - item else selected + item)
-            }
-        }
-    }
-}
-
-@Composable
-private fun SliderPanel(title: String, value: Float, start: String, end: String, onValueChange: (Float) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        SectionLabel(title)
-        Slider(value = value, onValueChange = onValueChange, valueRange = 1f..10f, steps = 8)
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(start, color = SageGreen, fontSize = 11.sp)
-            Text(end, color = SageGreen, fontSize = 11.sp)
-        }
-    }
-}
-
-@Composable
-private fun YesNoRow(title: String, selected: String, onSelected: (String) -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, modifier = Modifier.weight(1f), color = DarkForestGreen, fontWeight = FontWeight.Bold)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            DietChip("Yes", selected == "Yes") { onSelected("Yes") }
-            DietChip("No", selected == "No") { onSelected("No") }
-        }
-    }
-}
-
-@Composable
-private fun SelectableDietCard(text: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val scale by animateFloatAsState(if (selected) 1.02f else 1f, tween(160), label = "card-scale")
-    Card(
-        modifier = modifier
-            .height(72.dp)
-            .scale(scale)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = if (selected) LightSage else PureWhite),
-        border = BorderStroke(1.dp, if (selected) ForestGreen else BeigeBorder),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Row(modifier = Modifier.fillMaxSize().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(text, modifier = Modifier.weight(1f), color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp, lineHeight = 16.sp)
-            if (selected) Icon(Icons.Filled.Check, contentDescription = null, tint = ForestGreen, modifier = Modifier.size(18.dp))
-        }
-    }
-}
-
-@Composable
-private fun DietChip(text: String, selected: Boolean, onClick: () -> Unit) {
-    val background = if (selected) ForestGreen else LightSage.copy(alpha = 0.8f)
-    val content = if (selected) PureWhite else ForestGreen
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(background)
-            .border(BorderStroke(1.dp, if (selected) ForestGreen else BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(50))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 13.dp, vertical = 9.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text, color = content, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-    }
-}
-
-@Composable
-private fun MiniPanel(title: String, content: @Composable () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(PureWhite.copy(alpha = 0.76f))
-            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.7f)), RoundedCornerShape(20.dp))
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        SectionLabel(title)
-        content()
-    }
-}
-
-@Composable
-private fun SectionLabel(text: String) {
-    Text(text.uppercase(), color = SageGreen, fontWeight = FontWeight.Bold, fontSize = 11.sp, letterSpacing = 1.4.sp)
-}
-
-@Composable
-private fun DietBadge(text: String) {
-    Text(
-        text,
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(Brush.linearGradient(listOf(LightSage, DietWarmCard)))
-            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.55f)), RoundedCornerShape(50))
-            .padding(horizontal = 13.dp, vertical = 8.dp),
-        color = ForestGreen,
-        fontWeight = FontWeight.Bold,
-        fontSize = 11.sp,
-        letterSpacing = 1.1.sp
-    )
-}
-
-@Composable
-private fun InsightCard(title: String, body: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
-            .background(Brush.linearGradient(listOf(LightSage.copy(alpha = 0.9f), PureWhite)))
-            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(18.dp))
-            .padding(14.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(DietGold.copy(alpha = 0.38f)), contentAlignment = Alignment.Center) {
-            Icon(Icons.Filled.Star, contentDescription = null, tint = ForestGreen, modifier = Modifier.size(16.dp))
-        }
-        Spacer(Modifier.width(10.dp))
-        Column {
-            Text(title, color = DarkForestGreen, fontWeight = FontWeight.Bold)
-            Text(body, color = SoftBlueGray, fontSize = 12.sp, lineHeight = 18.sp)
-        }
-    }
-}
-
-@Composable
-private fun PremiumDietCard(content: @Composable () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(12.dp, RoundedCornerShape(28.dp), ambientColor = DietGold.copy(alpha = 0.11f), spotColor = DietGreenGlow.copy(alpha = 0.08f))
-            .border(BorderStroke(1.dp, Brush.linearGradient(listOf(PureWhite, BeigeBorder.copy(alpha = 0.7f), DietGold.copy(alpha = 0.24f)))), RoundedCornerShape(28.dp)),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        content()
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun FlowChips(items: List<String>) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        items.forEach { DietChip(it, selected = true, onClick = {}) }
-    }
-}
-
-@Composable
-private fun ResultMetric(label: String, value: String) {
-    ResultListCard(label, value, positive = true)
-}
-
-@Composable
-private fun ResultListCard(title: String, body: String, positive: Boolean) {
-    val tint = if (positive) ForestGreen else DietDanger
-    val fill = if (positive) LightSage.copy(alpha = 0.74f) else DietDangerSoft
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(Brush.linearGradient(listOf(PureWhite, fill)))
-            .border(BorderStroke(1.dp, if (positive) BeigeBorder else DietDanger.copy(alpha = 0.28f)), RoundedCornerShape(20.dp))
-            .padding(15.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        Box(modifier = Modifier.size(34.dp).clip(CircleShape).background(tint.copy(alpha = 0.14f)), contentAlignment = Alignment.Center) {
-            Icon(Icons.Filled.Star, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
-        }
-        Spacer(Modifier.width(12.dp))
-        Column {
-            Text(title, color = DarkForestGreen, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(4.dp))
-            Text(body, color = SoftBlueGray, fontSize = 12.sp, lineHeight = 18.sp)
-        }
-    }
-}
-
-@Composable
-private fun TimelineMeal(title: String, body: String) {
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(ForestGreen), contentAlignment = Alignment.Center) {
-                Icon(Icons.Filled.Check, contentDescription = null, tint = PureWhite, modifier = Modifier.size(16.dp))
-            }
-            Box(modifier = Modifier.width(2.dp).height(48.dp).background(DietGold.copy(alpha = 0.55f)))
-        }
-        Spacer(Modifier.width(12.dp))
-        ResultListCard(title, body, positive = true)
-    }
-}
-
-@Composable
-private fun DietAmbientBackground() {
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        drawCircle(
-            brush = Brush.radialGradient(listOf(DietGold.copy(alpha = 0.18f), Color.Transparent)),
-            radius = size.width * 0.58f,
-            center = Offset(size.width * 0.16f, size.height * 0.12f)
-        )
-        drawCircle(
-            brush = Brush.radialGradient(listOf(DietGreenGlow.copy(alpha = 0.16f), Color.Transparent)),
-            radius = size.width * 0.52f,
-            center = Offset(size.width * 0.9f, size.height * 0.34f)
-        )
-    }
-}
-
-private data class DietResult(
+data class DietResult(
     val prakriti: String,
     val vikriti: String,
     val agni: String,
@@ -1218,78 +89,772 @@ private data class DietResult(
     val ayurvedicTips: List<String>
 )
 
-private fun buildDietResult(
-    prakriti: String,
-    goals: Set<String>,
-    conditions: Set<String>,
-    vikritiSymptoms: Set<String>,
-    hunger: String,
-    mealFeel: String,
-    digestionIssues: Set<String>,
-    amaSymptoms: Set<String>,
-    dietType: String,
-    mentalStates: Set<String>
-): DietResult {
-    val vikriti = detectVikriti(vikritiSymptoms)
-    val agni = classifyAgni(hunger, mealFeel, digestionIssues)
-    val ama = if (amaSymptoms.size >= 3) "Ama: Mild" else "Ama: Low"
-    val pittaPlan = vikriti.contains("Pitta") || agni == "Tikshna Agni" || "Acidity" in conditions
-    val kaphaPlan = vikriti.contains("Kapha") || "Weight Loss" in goals || "Obesity" in conditions
-    val vataPlan = vikriti.contains("Vata") || mentalStates.any { it == "Anxiety" || it == "Overthinking" }
-    val eat = when {
-        pittaPlan -> listOf("Moong dal khichdi", "Bottle gourd", "Cucumber", "Coconut water", "Amla", "Steamed vegetables")
-        kaphaPlan -> listOf("Barley khichdi", "Millet upma", "Moong soup", "Steamed greens", "Ginger coriander tea", "Light dal")
-        vataPlan -> listOf("Warm rice porridge", "Ghee-tempered moong dal", "Cooked carrots", "Sesame-free soups", "Ripe banana", "Cumin ajwain water")
-        else -> listOf("Seasonal vegetables", "Moong dal", "Rice kanji", "Fresh fruits", "Buttermilk at lunch", "Herbal water")
-    }.filterNot { dietType == "Vegan" && it.contains("ghee", ignoreCase = true) }
-    val avoid = when {
-        pittaPlan -> listOf("Very spicy food", "Pickles", "Fried snacks", "Excess tea/coffee", "Curd at night", "Fermented sour foods")
-        kaphaPlan -> listOf("Heavy sweets", "Cold drinks", "Deep fried snacks", "Late dinner", "Excess dairy", "Day sleeping")
-        vataPlan -> listOf("Dry snacks", "Cold salads", "Irregular meals", "Excess caffeine", "Raw sprouts", "Late-night eating")
-        else -> listOf("Overeating", "Late dinner", "Very cold drinks", "Repeated reheated food", "Excess sugar", "Mindless snacking")
+private val constitutionOptions = listOf(
+    "Vata-Pitta",
+    "Pitta-Kapha",
+    "Vata-Kapha",
+    "Tri-Doshic",
+    "Vata",
+    "Pitta",
+    "Kapha"
+)
+
+private fun getDietPlanForConstitution(prakriti: String): DietResult {
+    return when (prakriti) {
+        "Pitta" -> DietResult(
+            prakriti = "Pitta",
+            vikriti = "Pitta Balanced",
+            agni = "Tikshna Agni (High Metabolic Fire)",
+            amaStatus = "Ama: Low",
+            season = "Seasonal Cooling Adjusted",
+            analysis = "Pitta represents fire and transformation. Your nutrition emphasizes cooling, sweet, bitter, and astringent foods that soothe digestive fire and prevent acid accumulation.",
+            foodsToEat = listOf(
+                "Moong dal khichdi cooked with cooling ghee",
+                "Bottle gourd (lauki), zucchini, and cucumber",
+                "Fresh tender coconut water and coconut milk",
+                "Amla (Indian gooseberry) and pomegranate",
+                "Sweet ripe fruits (melons, pears, sweet apples)",
+                "Cooling herbs: fresh coriander, fennel, and mint"
+            ),
+            foodsToAvoid = listOf(
+                "Excessive green chilies, cayenne, and hot mustard",
+                "Fermented, sour pickles and vinegar condiments",
+                "Deep-fried oily snacks and reheating oils",
+                "Excess coffee, black tea, and energy drinks",
+                "Curd / yogurt at night (increases bodily heat)",
+                "Refined white sugar and artificial sweeteners"
+            ),
+            breakfast = "Cooling oatmeal with soaked sweet almonds and stewed pear, or sweet rice porridge.",
+            lunch = "Main meal: Basmati rice, ghee-tempered yellow moong dal, steamed bottle gourd, and cooling mint raita.",
+            dinner = "Light vegetable soup with barley or mung chilla before 7:30 PM.",
+            snacks = "Fresh sweet coconut water, soaked black raisins, or a crisp sweet apple.",
+            lifestyleTips = listOf(
+                "Never skip meals; high Pitta acid burns stomach lining when food is delayed.",
+                "Eat in a calm, cool environment away from work stress and screens.",
+                "Sip room-temperature fennel-infused water throughout the afternoon.",
+                "Take a calm evening stroll near greenery or water.",
+                "Practice 5 minutes of cooling Sheetali breathwork after work."
+            ),
+            ayurvedicTips = listOf(
+                "Use coriander and fennel seeds as daily digestive cooling spices.",
+                "Take 1 teaspoon of pure cow's A2 ghee with warm meals for internal oleation.",
+                "Amla churna or fresh juice supports liver health and skin clarity.",
+                "Avoid intense hot yoga; prefer cooling, restorative postures.",
+                "Opt for natural sweet rasas instead of synthetic sugars."
+            )
+        )
+        "Kapha" -> DietResult(
+            prakriti = "Kapha",
+            vikriti = "Kapha Balanced",
+            agni = "Manda Agni (Slow, Steady Digestion)",
+            amaStatus = "Ama: Low",
+            season = "Warming & Light Adjusted",
+            analysis = "Kapha represents earth and water: stability and heaviness. Your dietary plan favors warm, light, stimulating, and pungent foods that invigorate digestion and prevent sluggishness.",
+            foodsToEat = listOf(
+                "Barley (jau) khichdi and roasted millet upma",
+                "Steamed bitter greens (spinach, methi, moringa)",
+                "Light split red lentil or whole moong soup",
+                "Warming spices: ginger, black pepper, cinnamon, and pippali",
+                "Astringent fruits: pomegranate, dry figs, and green apples",
+                "Warm herbal teas with tulsi, ginger, and a touch of raw honey"
+            ),
+            foodsToAvoid = listOf(
+                "Heavy sweets, ice creams, and chilled milk shakes",
+                "Deep-fried snacks, samosas, and refined flour (maida)",
+                "Late heavy dinners and night snacking",
+                "Excessive cheese, paneer, and dense butter",
+                "Daytime sleeping immediately after lunch",
+                "Very cold, refrigerated food and iced water"
+            ),
+            breakfast = "Light roasted millet upma with steamed vegetables and dry ginger tea.",
+            lunch = "Balanced meal: Barley roti or brown rice, spicy moong soup, and sautéed greens.",
+            dinner = "Warm clear vegetable soup or thin mung soup before 7:00 PM.",
+            snacks = "Roasted makhana (foxnuts) with black pepper or a tart green apple.",
+            lifestyleTips = listOf(
+                "Practice intermittent overnight fasting (12-14 hours) to allow complete digestive clearance.",
+                "Engage in vigorous morning movement or brisk Surya Namaskar.",
+                "Avoid reclining after meals; take a 100-step gentle walk (Shatapadi).",
+                "Rise early before 6:00 AM to prevent lethargy.",
+                "Dry skin brushing (Garshana) stimulates lymphatic circulation."
+            ),
+            ayurvedicTips = listOf(
+                "Chew a slice of fresh ginger with rock salt 10 minutes before meals.",
+                "Trikatu churna (dry ginger, black pepper, pippali) rekindles sluggish Agni.",
+                "Honey should only be consumed raw and never heated or cooked.",
+                "Practice Bhastrika or Kapalbhati pranayama in the morning.",
+                "Favor bitter, pungent, and astringent rasas."
+            )
+        )
+        "Vata" -> DietResult(
+            prakriti = "Vata",
+            vikriti = "Vata Balanced",
+            agni = "Vishama Agni (Variable, Fluctuating Digestion)",
+            amaStatus = "Ama: Low",
+            season = "Grounding & Nourishing",
+            analysis = "Vata represents air and ether: lightness, mobility, and coldness. Your diet focuses on warm, nourishing, unctuous (ghee/oil), and grounding meals to stabilize digestive rhythm.",
+            foodsToEat = listOf(
+                "Warm rice porridge, oatmeal, and soft cooked grains",
+                "Well-cooked root vegetables (carrots, sweet potatoes, beets)",
+                "Yellow moong dal tempered with ghee, cumin, and hing",
+                "Sweet, ripe fruits: bananas, soaked dates, stewed apples",
+                "Healthy unctuous fats: pure cow's ghee and sesame oil",
+                "Warming spices: cardamom, cinnamon, ajwain, and ginger"
+            ),
+            foodsToAvoid = listOf(
+                "Raw cold salads, dry crackers, and cold sandwiches",
+                "Carbonated drinks, cold water, and iced beverages",
+                "Excess caffeine, stimulating sodas, and energy drinks",
+                "Irregular meal timings and skipped meals",
+                "Hard-to-digest beans (raw rajma, chana) without digestive spices",
+                "Eating on the go or while driving/walking"
+            ),
+            breakfast = "Warm cooked oats or suji porridge with soaked almonds, dates, and cinnamon.",
+            lunch = "Warm basmati rice with ghee, yellow moong dal, soft cooked pumpkin/carrots.",
+            dinner = "Comforting khichdi with ghee or nourishing vegetable soup before 8:00 PM.",
+            snacks = "Warm spiced almond milk, soaked figs, or soft ripe banana.",
+            lifestyleTips = listOf(
+                "Maintain strict, regular meal times to anchor variable Vishama Agni.",
+                "Eat in a quiet, warm, draft-free room with minimal sensory stimulation.",
+                "Sip warm cumin-ajwain water throughout the day.",
+                "Perform daily warm sesame oil body massage (Abhyanga).",
+                "Protect sleep quality with a consistent 10:00 PM bedtime."
+            ),
+            ayurvedicTips = listOf(
+                "Always add hing (asafoetida) and cumin to lentils to prevent gas and bloating.",
+                "Ashwagandha supports nervous stability and restorative rest.",
+                "Warm golden milk with a pinch of nutmeg promotes deep recovery.",
+                "Practice Nadi Shodhana (calm alternate nostril breathwork).",
+                "Favor sweet, sour, and salty rasas for grounding."
+            )
+        )
+        "Vata-Pitta" -> DietResult(
+            prakriti = "Vata-Pitta",
+            vikriti = "Vata-Pitta Harmonized",
+            agni = "Sama Agni (Balanced Digestive Fire)",
+            amaStatus = "Ama: Low",
+            season = "Seasonal Harmony",
+            analysis = "Your dual constitution blends Vata's agility with Pitta's sharp focus. The plan prioritizes warm, unctuous, but moderately spiced meals that ground nervous energy while preventing internal heat.",
+            foodsToEat = listOf(
+                "Warm moong dal khichdi with cow's ghee",
+                "Steamed bottle gourd, carrots, zucchini, and spinach",
+                "Basmati rice, rolled oats, and quinoa",
+                "Ripe sweet fruits: pomegranate, sweet grapes, soaked raisins",
+                "A2 cow's milk, ghee, and fresh homemade paneer in moderation",
+                "Gentle digestive spices: cumin, fennel, coriander, and turmeric"
+            ),
+            foodsToAvoid = listOf(
+                "Excessive red or green chilies and pungent mustard",
+                "Dry packaged snacks, chips, and cold raw salads",
+                "Fermented foods, stale leftovers, and sour curd at night",
+                "Very hot coffee and artificial energy drinks",
+                "Irregular eating schedules and prolonged empty-stomach periods",
+                "Deep-fried roadside food and hydrogenated fats"
+            ),
+            breakfast = "Warm moong dal chilla with mint chutney, or warm spiced oatmeal with dates.",
+            lunch = "Main balanced meal: Steamed basmati rice, yellow moong dal, sautéed zucchini, and cucumber salad.",
+            dinner = "Warm vegetable khichdi or comforting pumpkin soup before 8:00 PM.",
+            snacks = "Tender coconut water, soaked almonds, or roasted makhana with ghee.",
+            lifestyleTips = listOf(
+                "Anchor your daily rhythm with consistent meal hours.",
+                "Chew each morsel thoroughly in a relaxed, peaceful setting.",
+                "Avoid screens and stressful reading during meals.",
+                "Sip warm fennel-infused water between meals, not directly with meals.",
+                "Dedicate 10 minutes to gentle mindfulness before bed."
+            ),
+            ayurvedicTips = listOf(
+                "Coriander and fennel create the perfect balancing duo for Vata-Pitta.",
+                "Use ghee as primary cooking fat to nourish Vata and soothe Pitta.",
+                "Amla and soaked raisins gently nourish without overheating.",
+                "Practice gentle yoga postures that ground the pelvis and cool the chest.",
+                "Favor naturally sweet, bitter, and astringent flavors."
+            )
+        )
+        "Pitta-Kapha" -> DietResult(
+            prakriti = "Pitta-Kapha",
+            vikriti = "Pitta-Kapha Harmonized",
+            agni = "Sama Agni (Stable Metabolic Flame)",
+            amaStatus = "Ama: Low",
+            season = "Cooling & Light Adjusted",
+            analysis = "Pitta-Kapha combines fiery metabolism with grounded endurance. Your dietary plan highlights cooling, light, and cleansing foods that prevent both acidity and heaviness.",
+            foodsToEat = listOf(
+                "Barley, millet, and aged basmati rice",
+                "Moong dal, split peas, and sprouted legumes",
+                "Leafy bitter greens, cucumber, bitter gourd, and cabbage",
+                "Apples, pomegranates, cranberries, and berries",
+                "Cooling herbs: mint, cilantro, fennel, and cardamom",
+                "Light vegetable broths and herbal digestive infusions"
+            ),
+            foodsToAvoid = listOf(
+                "Heavy deep-fried snacks, heavy cream, and rich cheeses",
+                "Excessive hot peppers, garlic, and fermented condiments",
+                "Salty fried chips and processed packaged foods",
+                "Ice cold beverages that quench digestive fire",
+                "Heavy late-night feasts and daytime naps after eating",
+                "Refined sugar and dense oily bakery items"
+            ),
+            breakfast = "Light vegetable poha with mint, or stewed green apple with cinnamon.",
+            lunch = "Whole grain roti, moong dal soup, steamed greens, and cucumber slices.",
+            dinner = "Clear seasonal vegetable soup or light dal soup before 7:30 PM.",
+            snacks = "Pomegranate seeds, roasted chana, or fresh coconut water.",
+            lifestyleTips = listOf(
+                "Maintain moderate portion sizes; avoid eating until uncomfortably full.",
+                "Engage in steady, non-competitive cardiovascular movement daily.",
+                "Take a 15-minute gentle walk after your principal midday meal.",
+                "Avoid alcohol and heavy evening dining.",
+                "Keep living and sleeping areas well-ventilated and cool."
+            ),
+            ayurvedicTips = listOf(
+                "Use cumin and coriander to stimulate digestion without creating excess heat.",
+                "Bitter vegetables like karela (bitter gourd) effectively balance Pitta and Kapha.",
+                "Triphala water at bedtime supports colon cleansing and tissue clarity.",
+                "Incorporate moderate morning sun salutations.",
+                "Favor bitter, astringent, and mildly pungent flavors."
+            )
+        )
+        "Vata-Kapha" -> DietResult(
+            prakriti = "Vata-Kapha",
+            vikriti = "Vata-Kapha Harmonized",
+            agni = "Vishama-Manda Agni",
+            amaStatus = "Ama: Low",
+            season = "Warming & Digestive",
+            analysis = "Vata-Kapha constitutions require warmth, light textures, and gentle stimulation. The plan focuses on freshly cooked, warm, easy-to-digest meals that activate circulation and prevent cold stagnation.",
+            foodsToEat = listOf(
+                "Warm cooked quinoa, basmati rice, and millet",
+                "Cooked root vegetables, leafy greens, and zucchini",
+                "Light yellow moong dal prepared with ginger and cumin",
+                "Warm stewed fruits, soaked figs, and papayas",
+                "Warming spices: dry ginger, black pepper, cumin, cloves, and ajwain",
+                "Clear herbal broths and warm spiced digestive teas"
+            ),
+            foodsToAvoid = listOf(
+                "Iced drinks, cold salads, and refrigerated raw food",
+                "Heavy creamy sauces, cold yogurt, and processed cheese",
+                "Excessive raw cabbage, cauliflower, or dry crackers",
+                "Irregular eating intervals and skipped breakfasts",
+                "Heavy oily sweets and dense fried foods",
+                "Sleeping immediately following a heavy meal"
+            ),
+            breakfast = "Warm spiced rice porridge or hot millet upma with ginger.",
+            lunch = "Warm basmati rice, yellow moong dal with cumin tempering, and steamed vegetables.",
+            dinner = "Light vegetable soup with black pepper and toasted pumpkin seeds before 7:30 PM.",
+            snacks = "Warm herbal ginger tea with a touch of honey, or a ripe sweet papaya.",
+            lifestyleTips = listOf(
+                "Keep meals consistently warm and freshly cooked.",
+                "Avoid cold or iced drinks under all circumstances.",
+                "Maintain an active morning routine with energizing movement.",
+                "Practice regular meal schedules to guide digestive predictability.",
+                "Wear warm layers to protect against cold drafts and chill."
+            ),
+            ayurvedicTips = listOf(
+                "Ajwain and fresh ginger provide the ideal digestive stimulation for Vata-Kapha.",
+                "A pinch of black pepper in meals aids assimilation and eliminates mucus.",
+                "Trikatu supports metabolic rate and tissue lightness.",
+                "Perform brisk morning walking and warm solar pranayama.",
+                "Favor warm, pungent, and gently bitter rasas."
+            )
+        )
+        else -> DietResult(
+            prakriti = "Tri-Doshic",
+            vikriti = "Tridosha Balanced",
+            agni = "Sama Agni (Harmonious Metabolic Rhythm)",
+            amaStatus = "Ama: Low",
+            season = "Seasonal Equilibrium",
+            analysis = "A balanced Tri-Doshic constitution benefits from fresh, seasonal, sattvic whole foods. Nutrition focuses on balance across all six rasas with seasonal adaptation.",
+            foodsToEat = listOf(
+                "Fresh seasonal vegetables and whole cooked grains",
+                "Moong dal, red lentils, and light vegetable soups",
+                "Fresh seasonal fruits consumed between meals",
+                "Pure cow's A2 ghee used mindfully for cooking",
+                "Balanced spices: turmeric, cumin, coriander, fennel, ginger",
+                "Fresh buttermilk (Takra) seasoned with roasted cumin at lunch"
+            ),
+            foodsToAvoid = listOf(
+                "Overly processed, canned, or microwave-reheated foods",
+                "Extreme flavor excesses: overly spicy, excessively sour, or overly salty",
+                "Mindless eating while multitasking or watching television",
+                "Very cold or iced beverages directly with meals",
+                "Eating past 8:30 PM",
+                "Artificial additives and refined sugars"
+            ),
+            breakfast = "Warm cooked porridge, steamed idlis with fresh mint chutney, or seasonal fruit.",
+            lunch = "Complete balanced thali: grain, dal, seasonal vegetable subzi, and fresh buttermilk.",
+            dinner = "Comforting light khichdi or warm vegetable soup before 8:00 PM.",
+            snacks = "Roasted makhana, seasonal fruit, or fresh coconut water.",
+            lifestyleTips = listOf(
+                "Follow the natural solar cycle for meal timing.",
+                "Consume the largest meal when the sun is highest (12:00 PM - 1:30 PM).",
+                "Practice 2 minutes of silent gratitude before beginning your meal.",
+                "Stay active through balanced daily movement and yoga.",
+                "Retire by 10:30 PM to honor natural biological repair."
+            ),
+            ayurvedicTips = listOf(
+                "Incorporate all six tastes (sweet, sour, salty, pungent, bitter, astringent) daily.",
+                "Adjust diet smoothly according to seasonal transitions (Ritucharya).",
+                "Maintain healthy hydration with warm, boiled water throughout the day.",
+                "Practice mindful eating (Ahara Vidhi) for supreme vitality (Ojas).",
+                "Trust natural hunger cues and never force-feed."
+            )
+        )
     }
-    return DietResult(
-        prakriti = prakriti,
-        vikriti = "$vikriti increase",
-        agni = agni,
-        amaStatus = ama,
-        season = "Summer adjusted",
-        analysis = "Your plan balances $prakriti with current $vikriti signs, $agni digestion, goal priorities, food preference, routine, mental state, season, and climate.",
-        foodsToEat = eat,
-        foodsToAvoid = avoid,
-        breakfast = if (kaphaPlan) "Light millet upma with ginger tea." else "Warm moong dal chilla or rice porridge.",
-        lunch = "Main balanced meal with dal, cooked vegetables, grain, and gentle spices.",
-        dinner = "Light soup or khichdi before 8:30 PM.",
-        snacks = if (pittaPlan) "Coconut water, soaked raisins, or fresh seasonal fruit." else "Roasted makhana, herbal tea, or fruit as per hunger.",
-        lifestyleTips = listOf("Walk 10 minutes after lunch", "Keep dinner early and light", "Sip warm or room-temperature water", "Sleep before 10:30 PM when possible", "Practice 5 minutes of calm breathing"),
-        ayurvedicTips = listOf("Use coriander and fennel for gentle digestion", "Prefer seasonal freshly cooked meals", "Consider Amla with practitioner guidance", "Yoga: gentle twists and forward folds", "Avoid aggressive detox without clinical advice")
-    )
 }
 
-private fun detectVikriti(selected: Set<String>): String {
-    val vata = setOf("Dry skin", "Anxiety", "Overthinking", "Constipation", "Joint cracking", "Cold hands/feet", "Irregular appetite", "Insomnia").count { it in selected }
-    val pitta = setOf("Acidity", "Anger/irritation", "Excess hunger", "Loose stools", "Body heat", "Pimples", "Burning sensation").count { it in selected }
-    val kapha = setOf("Laziness", "Weight gain", "Water retention", "Sleepiness", "Slow digestion", "Mucus/cold", "Emotional eating").count { it in selected }
-    val scores = listOf("Vata" to vata, "Pitta" to pitta, "Kapha" to kapha).filter { it.second > 0 }
-    val max = scores.maxOfOrNull { it.second } ?: return "Balanced"
-    return scores.filter { it.second == max }.joinToString("-") { it.first }
-}
+@Composable
+fun DietAssessmentScreen(
+    prakriti: String = "Vata-Pitta",
+    onBack: () -> Unit,
+    onEditPrakriti: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    var selectedPrakriti by remember { mutableStateOf(prakriti) }
+    var activeTabIndex by remember { mutableIntStateOf(0) }
+    val result = remember(selectedPrakriti) { getDietPlanForConstitution(selectedPrakriti) }
+    val tabs = listOf("Body Analysis", "Foods To Eat", "Foods To Avoid", "Meal Plan", "Lifestyle Tips", "Ayurvedic Dravya")
 
-private fun classifyAgni(hunger: String, mealFeel: String, issues: Set<String>): String {
-    return when {
-        hunger == "Normal" && mealFeel == "Light" && ("None" in issues || issues.isEmpty()) -> "Sama Agni"
-        hunger == "Very low" || mealFeel in setOf("Heavy", "Sleepy") -> "Manda Agni"
-        hunger == "Excessive" || "Acidity" in issues || "Loose motion" in issues -> "Tikshna Agni"
-        hunger == "Irregular" || mealFeel == "Bloated" || "Gas" in issues || "Constipation" in issues -> "Vishama Agni"
-        else -> "Sama Agni"
+    Surface(modifier = modifier.fillMaxSize(), color = Cream) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(listOf(Color(0xFFFFF9EE), Cream, LightSage.copy(alpha = 0.55f))))
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+            ) {
+                // Top Bar
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 18.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BackButton(onClick = onBack, text = "Dashboard")
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .background(DietMint)
+                            .border(BorderStroke(1.dp, ForestGreen.copy(alpha = 0.4f)), RoundedCornerShape(50))
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Pathya Apathya",
+                            color = ForestGreen,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            letterSpacing = 1.1.sp
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .weight(1f)
+                        .padding(horizontal = 18.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Hero Card
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(6.dp, RoundedCornerShape(24.dp), ambientColor = ForestGreen.copy(alpha = 0.08f)),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
+                        border = BorderStroke(1.dp, BeigeBorder)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(50))
+                                    .background(LightSage)
+                                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "AYURVEDIC DIET DASHBOARD",
+                                    color = ForestGreen,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 10.sp,
+                                    letterSpacing = 1.3.sp
+                                )
+                            }
+
+                            Text(
+                                text = "Personalised Diet & Nutritional Guide",
+                                fontFamily = FontFamily.Serif,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 26.sp,
+                                lineHeight = 31.sp,
+                                color = DarkForestGreen
+                            )
+
+                            Text(
+                                text = "Food is medicine (Maha Bheshaja) in Ayurveda. Your diet plan is customized for your constitution, digestive fire (Agni), and seasonal vitality.",
+                                fontSize = 12.5.sp,
+                                lineHeight = 19.sp,
+                                color = SoftBlueGray
+                            )
+
+                            // Status Badges
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                DietStatusBadge("Prakriti", result.prakriti, Modifier.weight(1f))
+                                DietStatusBadge("Agni", "Sama Agni", Modifier.weight(1f))
+                                DietStatusBadge("Ama", "Clear / Low", Modifier.weight(1f))
+                                DietStatusBadge("Season", "Sharad Ritu", Modifier.weight(1f))
+                            }
+                        }
+                    }
+
+                    // Constitution Switcher / Selector
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "SELECT CONSTITUTION FOR PLAN",
+                            color = SageGreen,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.8.sp
+                        )
+
+                        ScrollableTabRow(
+                            selectedTabIndex = constitutionOptions.indexOf(selectedPrakriti).coerceAtLeast(0),
+                            containerColor = Color.Transparent,
+                            contentColor = ForestGreen,
+                            edgePadding = 0.dp,
+                            divider = {}
+                        ) {
+                            constitutionOptions.forEach { option ->
+                                val isSelected = option == selectedPrakriti
+                                Tab(
+                                    selected = isSelected,
+                                    onClick = { selectedPrakriti = option },
+                                    text = {
+                                        Text(
+                                            text = option,
+                                            color = if (isSelected) ForestGreen else SoftBlueGray,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // 6 Comprehensive Feature Tabs
+                    ScrollableTabRow(
+                        selectedTabIndex = activeTabIndex,
+                        containerColor = Color.Transparent,
+                        contentColor = ForestGreen,
+                        edgePadding = 0.dp,
+                        divider = {}
+                    ) {
+                        tabs.forEachIndexed { index, title ->
+                            Tab(
+                                selected = activeTabIndex == index,
+                                onClick = { activeTabIndex = index },
+                                text = {
+                                    Text(
+                                        text = title,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            )
+                        }
+                    }
+
+                    // Tab Contents
+                    when (activeTabIndex) {
+                        0 -> BodyAnalysisContent(result)
+                        1 -> FoodsListContent(result.foodsToEat, positive = true)
+                        2 -> FoodsListContent(result.foodsToAvoid, positive = false)
+                        3 -> MealPlanContent(result)
+                        4 -> LifestyleContent(result.lifestyleTips)
+                        else -> AyurvedicDravyaContent(result.ayurvedicTips)
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp).navigationBarsPadding())
+                }
+            }
+        }
     }
 }
 
-private fun motivationFor(index: Int): String {
-    return when (index) {
-        0, 1 -> "Building your wellness profile"
-        in 2..5 -> "Personalising your digestion map"
-        in 6..8 -> "Almost there"
-        else -> "Preparing your plan"
+@Composable
+private fun DietStatusBadge(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(PureWhite)
+            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.7f)), RoundedCornerShape(14.dp))
+            .padding(8.dp)
+    ) {
+        Text(label.uppercase(), color = SageGreen, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(value, color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+@Composable
+private fun BodyAnalysisContent(result: DietResult) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        MetricCard("Constitution (Prakriti)", result.prakriti, "Primary constitutional dosha blueprint.")
+        MetricCard("Metabolic State (Vikriti)", result.vikriti, "Current balance of biological humors.")
+        MetricCard("Digestive Fire (Agni)", result.agni, "Strength and stability of gut enzymes and assimilation.")
+        MetricCard("Toxin Clearance (Ama)", result.amaStatus, "Indicator of undigested metabolic byproduct clearance.")
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = PureWhite),
+            border = BorderStroke(1.dp, BeigeBorder)
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    text = "CLINICAL DIETETIC RATIONALE",
+                    color = SageGreen,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 10.sp,
+                    letterSpacing = 1.2.sp
+                )
+                Text(
+                    text = result.analysis,
+                    color = Color(0xFF334438),
+                    fontSize = 12.5.sp,
+                    lineHeight = 19.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MetricCard(title: String, headline: String, body: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(PureWhite)
+            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(16.dp))
+            .padding(14.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(LightSage),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Filled.Star, contentDescription = null, tint = ForestGreen, modifier = Modifier.size(16.dp))
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(title.uppercase(), color = SageGreen, fontWeight = FontWeight.Bold, fontSize = 9.5.sp, letterSpacing = 1.2.sp)
+            Text(headline, color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Text(body, color = SoftBlueGray, fontSize = 11.5.sp, lineHeight = 16.sp)
+        }
+    }
+}
+
+@Composable
+private fun FoodsListContent(items: List<String>, positive: Boolean) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        val headerText = if (positive) "BALANCING FOODS TO FAVOR (PATHYA)" else "FOODS TO MINIMIZE OR AVOID (APATHYA)"
+        val headerColor = if (positive) ForestGreen else DietDanger
+        val icon = if (positive) Icons.Filled.Check else Icons.Filled.Close
+        val containerColor = if (positive) PureWhite else DietDangerSoft.copy(alpha = 0.5f)
+        val iconBg = if (positive) DietMint else Color(0xFFFFDAD4)
+
+        Text(
+            text = headerText,
+            color = headerColor,
+            fontWeight = FontWeight.Bold,
+            fontSize = 10.sp,
+            letterSpacing = 1.4.sp
+        )
+
+        items.forEach { food ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(containerColor)
+                    .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.7f)), RoundedCornerShape(16.dp))
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(iconBg),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(icon, contentDescription = null, tint = headerColor, modifier = Modifier.size(16.dp))
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        text = food,
+                        color = DarkForestGreen,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.5.sp
+                    )
+                    Text(
+                        text = if (positive) "Promotes digestion, cellular nourishment, and doshic equilibrium." else "May provoke ama formation or aggravate constitutional tendencies.",
+                        color = SoftBlueGray,
+                        fontSize = 11.sp,
+                        lineHeight = 15.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MealPlanContent(result: DietResult) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = "DAILY AYURVEDIC MEAL TIMELINE",
+            color = SageGreen,
+            fontWeight = FontWeight.Bold,
+            fontSize = 10.sp,
+            letterSpacing = 1.4.sp
+        )
+
+        MealTimelineCard("Early Morning (Ushapan)", "6:30 AM - 7:00 AM", "Warm boiled water with dry ginger or copper-vessel water to initiate peristalsis.")
+        MealTimelineCard("Breakfast (Pratarasha)", "8:00 AM - 8:30 AM", result.breakfast)
+        MealTimelineCard("Lunch (Madhyahna Ahara)", "12:30 PM - 1:30 PM", result.lunch)
+        MealTimelineCard("Afternoon Refresh", "4:30 PM - 5:00 PM", result.snacks)
+        MealTimelineCard("Dinner (Sayam Ahara)", "7:00 PM - 7:45 PM", result.dinner)
+        MealTimelineCard("Bedtime Elixir", "9:45 PM", "Warm spiced almond milk with nutmeg or soothing chamomile infusion.")
+    }
+}
+
+@Composable
+private fun MealTimelineCard(mealName: String, timing: String, description: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(PureWhite)
+            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(16.dp))
+            .padding(14.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(DietMint),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("🍽", fontSize = 14.sp)
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(mealName, color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(timing, color = SageGreen, fontWeight = FontWeight.Bold, fontSize = 10.5.sp)
+            }
+            Text(description, color = Color(0xFF334438), fontSize = 12.sp, lineHeight = 17.sp)
+        }
+    }
+}
+
+@Composable
+private fun LifestyleContent(tips: List<String>) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            text = "DINACHARYA & MINDFUL EATING GUIDELINES",
+            color = SageGreen,
+            fontWeight = FontWeight.Bold,
+            fontSize = 10.sp,
+            letterSpacing = 1.4.sp
+        )
+
+        tips.forEachIndexed { index, tip ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(PureWhite)
+                    .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(16.dp))
+                    .padding(14.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(LightSage),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("${index + 1}", color = ForestGreen, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(tip, color = DarkForestGreen, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    Text("Daily routine practice to optimize nutrient absorption and gut vitality.", color = SoftBlueGray, fontSize = 11.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AyurvedicDravyaContent(tips: List<String>) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            text = "AYURVEDIC DRAVYA & SPICE THERAPY",
+            color = SageGreen,
+            fontWeight = FontWeight.Bold,
+            fontSize = 10.sp,
+            letterSpacing = 1.4.sp
+        )
+
+        tips.forEach { tip ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(PureWhite)
+                    .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(16.dp))
+                    .padding(14.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(DietWarmCard)
+                        .border(BorderStroke(1.dp, BeigeBorder), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("🌿", fontSize = 13.sp)
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(tip, color = DarkForestGreen, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    Text("Classical herb and kitchen spice formulation for systemic harmony.", color = SoftBlueGray, fontSize = 11.sp)
+                }
+            }
+        }
     }
 }

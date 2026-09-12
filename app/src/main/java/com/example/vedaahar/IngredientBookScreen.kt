@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -134,6 +135,20 @@ fun IngredientBookScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {}
 ) {
+    var selectedFilter by remember { mutableStateOf("All") }
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredIngredients = remember(selectedFilter, searchQuery) {
+        ingredientBookItems.filter { item ->
+            val matchesFilter = selectedFilter == "All" || selectedFilter in item.tags
+            val matchesSearch = searchQuery.isBlank() ||
+                item.name.contains(searchQuery, ignoreCase = true) ||
+                item.description.contains(searchQuery, ignoreCase = true) ||
+                item.tags.any { it.contains(searchQuery, ignoreCase = true) }
+            matchesFilter && matchesSearch
+        }
+    }
+
     var selectedIngredient by remember { mutableStateOf(ingredientBookItems.first()) }
 
     Surface(modifier = modifier.fillMaxSize(), color = IngredientBackground) {
@@ -152,7 +167,10 @@ fun IngredientBookScreen(
             ) {
                 BackButton(onClick = onBack, text = "Dashboard")
                 IngredientBookHero(selectedIngredient = selectedIngredient)
-                IngredientFilterRow()
+                IngredientFilterRow(
+                    selectedFilter = selectedFilter,
+                    onSelectFilter = { selectedFilter = it }
+                )
                 Text(
                     text = "INGREDIENT CHAPTERS",
                     color = SageGreen,
@@ -161,11 +179,12 @@ fun IngredientBookScreen(
                     letterSpacing = 2.2.sp
                 )
                 IngredientGrid(
+                    ingredients = filteredIngredients.ifEmpty { ingredientBookItems },
                     selectedIngredient = selectedIngredient,
                     onSelectIngredient = { selectedIngredient = it }
                 )
                 IngredientDetailPanel(ingredient = selectedIngredient)
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(100.dp).navigationBarsPadding())
             }
         }
     }
@@ -262,18 +281,23 @@ private fun FeaturedIngredientShelf(ingredient: IngredientBookItem) {
 }
 
 @Composable
-private fun IngredientFilterRow() {
+private fun IngredientFilterRow(
+    selectedFilter: String,
+    onSelectFilter: (String) -> Unit
+) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         Text("Filter", color = SoftBlueGray, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-        listOf("All", "Skin", "Hair", "Health").forEachIndexed { index, label ->
+        listOf("All", "Skin", "Hair", "Health").forEach { label ->
+            val isSelected = label == selectedFilter
             Text(
                 text = label,
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(if (index == 0) ForestGreen else Color(0xFFF8FBF4))
+                    .background(if (isSelected) ForestGreen else Color(0xFFF8FBF4))
                     .border(BorderStroke(1.dp, IngredientLine), RoundedCornerShape(50))
+                    .clickable { onSelectFilter(label) }
                     .padding(horizontal = 12.dp, vertical = 7.dp),
-                color = if (index == 0) PureWhite else ForestGreen,
+                color = if (isSelected) PureWhite else ForestGreen,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -283,6 +307,7 @@ private fun IngredientFilterRow() {
 
 @Composable
 private fun IngredientGrid(
+    ingredients: List<IngredientBookItem>,
     selectedIngredient: IngredientBookItem,
     onSelectIngredient: (IngredientBookItem) -> Unit
 ) {
@@ -290,7 +315,7 @@ private fun IngredientGrid(
         val twoColumns = maxWidth > 430.dp
         if (twoColumns) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                ingredientBookItems.chunked(2).forEach { rowItems ->
+                ingredients.chunked(2).forEach { rowItems ->
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                         rowItems.forEach { ingredient ->
                             IngredientChapterCard(
@@ -306,7 +331,7 @@ private fun IngredientGrid(
             }
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                ingredientBookItems.forEach { ingredient ->
+                ingredients.forEach { ingredient ->
                     IngredientChapterCard(
                         ingredient = ingredient,
                         selected = selectedIngredient.name == ingredient.name,
@@ -406,7 +431,7 @@ private fun IngredientDetailPanel(ingredient: IngredientBookItem) {
                         .background(ingredient.accent.copy(alpha = 0.18f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Filled.Search, contentDescription = null, tint = ForestGreen, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Filled.Star, contentDescription = null, tint = ForestGreen, modifier = Modifier.size(20.dp))
                 }
             }
             Text(ingredient.description, color = SoftBlueGray, fontSize = 12.sp, lineHeight = 18.sp)

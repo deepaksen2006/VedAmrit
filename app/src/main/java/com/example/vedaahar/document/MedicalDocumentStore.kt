@@ -37,11 +37,17 @@ object MedicalDocumentStore {
         fileType: String,
         sizeBytes: Long,
         pageCount: Int = 1,
-        sourceBytes: ByteArray? = null
+        sourceBytes: ByteArray? = null,
+        subTitle: String = "",
+        documentType: String = "Lab Report",
+        documentDate: String? = null,
+        doctorOrHospital: String = "",
+        notes: String = ""
     ): MedicalDocument {
         val id = UUID.randomUUID().toString()
         val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-        val formattedDate = dateFormat.format(Date())
+        val defaultFormattedDate = dateFormat.format(Date())
+        val finalDate = documentDate?.takeIf { it.isNotBlank() } ?: defaultFormattedDate
         val formattedSize = formatFileSize(sizeBytes)
 
         var localPath: String? = null
@@ -62,15 +68,53 @@ object MedicalDocumentStore {
             sizeBytes = sizeBytes,
             formattedSize = formattedSize,
             uploadTimestamp = System.currentTimeMillis(),
-            formattedDate = formattedDate,
+            formattedDate = finalDate,
             pageCount = pageCount,
-            localPath = localPath
+            localPath = localPath,
+            subTitle = subTitle,
+            documentType = documentType,
+            documentDate = finalDate,
+            doctorOrHospital = doctorOrHospital,
+            notes = notes,
+            sharedWith = emptyList()
         )
 
         val currentList = getDocuments(context).toMutableList()
         currentList.add(0, newDoc)
         saveDocuments(context, currentList)
         return newDoc
+    }
+
+    fun renameDocument(context: Context, id: String, newTitle: String): Boolean {
+        val currentList = getDocuments(context).toMutableList()
+        val index = currentList.indexOfFirst { it.id == id }
+        if (index != -1) {
+            val existing = currentList[index]
+            currentList[index] = existing.copy(title = newTitle.trim())
+            saveDocuments(context, currentList)
+            return true
+        }
+        return false
+    }
+
+    fun shareDocument(
+        context: Context,
+        id: String,
+        recipient: String,
+        purpose: String = "",
+        duration: String = "7 Days"
+    ): Boolean {
+        val currentList = getDocuments(context).toMutableList()
+        val index = currentList.indexOfFirst { it.id == id }
+        if (index != -1) {
+            val existing = currentList[index]
+            val record = "$recipient ($purpose, expires: $duration)"
+            val updatedShared = (existing.sharedWith + record).distinct()
+            currentList[index] = existing.copy(sharedWith = updatedShared)
+            saveDocuments(context, currentList)
+            return true
+        }
+        return false
     }
 
     fun deleteDocument(context: Context, id: String) {
@@ -103,37 +147,52 @@ object MedicalDocumentStore {
     private fun defaultSeedDocuments(): List<MedicalDocument> {
         return listOf(
             MedicalDocument(
-                id = "seed-1",
-                title = "Prescription",
-                fileName = "Prescription_September.pdf",
-                fileType = "PDF",
-                sizeBytes = 2516582L,
-                formattedSize = "2.4 MB",
-                uploadTimestamp = System.currentTimeMillis() - 86400000L,
-                formattedDate = "09 Sep 2026",
-                pageCount = 1
-            ),
-            MedicalDocument(
-                id = "seed-2",
+                id = "seed-blood-test",
                 title = "Blood Test Report",
-                fileName = "Blood_Test_Panel.pdf",
+                fileName = "Blood_Test_Report.pdf",
                 fileType = "PDF",
-                sizeBytes = 1887436L,
-                formattedSize = "1.8 MB",
-                uploadTimestamp = System.currentTimeMillis() - 172800000L,
-                formattedDate = "07 Sep 2026",
-                pageCount = 2
+                sizeBytes = 2516582L, // 2.4 MB
+                formattedSize = "2.4 MB",
+                uploadTimestamp = 1788854400000L, // 08 Sep 2026
+                formattedDate = "08 Sep 2026",
+                pageCount = 2,
+                subTitle = "Complete Blood Count",
+                documentType = "Lab Report",
+                documentDate = "08 Sep 2026",
+                doctorOrHospital = "Apollo Diagnostics",
+                notes = "Routine full blood panel including CBC and hemoglobin."
             ),
             MedicalDocument(
-                id = "seed-3",
-                title = "Doctor Prescription",
-                fileName = "Ayurvedic_Consultation.jpg",
+                id = "seed-prescription",
+                title = "Prescription",
+                fileName = "General_Consultation_Prescription.pdf",
+                fileType = "PDF",
+                sizeBytes = 1258291L, // 1.2 MB
+                formattedSize = "1.2 MB",
+                uploadTimestamp = 1788595200000L, // 05 Sep 2026
+                formattedDate = "05 Sep 2026",
+                pageCount = 1,
+                subTitle = "General Consultation",
+                documentType = "Prescription",
+                documentDate = "05 Sep 2026",
+                doctorOrHospital = "Dr. Arvind Vaidya (VedaMrit Ayurveda)",
+                notes = "Herbal supplements and dietary guidelines for Vata-Pitta balance."
+            ),
+            MedicalDocument(
+                id = "seed-xray",
+                title = "X-Ray Report",
+                fileName = "Chest_XRay_Digital.jpg",
                 fileType = "JPG",
-                sizeBytes = 943718L,
-                formattedSize = "920 KB",
-                uploadTimestamp = System.currentTimeMillis() - 604800000L,
-                formattedDate = "02 Sep 2026",
-                pageCount = 1
+                sizeBytes = 3250585L, // 3.1 MB
+                formattedSize = "3.1 MB",
+                uploadTimestamp = 1787904000000L, // 28 Aug 2026
+                formattedDate = "28 Aug 2026",
+                pageCount = 1,
+                subTitle = "Chest X-Ray",
+                documentType = "X-Ray / Scan",
+                documentDate = "28 Aug 2026",
+                doctorOrHospital = "Metro Imaging Center",
+                notes = "PA view chest radiograph. Lung fields clear, cardiothoracic ratio normal."
             )
         )
     }
@@ -150,10 +209,27 @@ object MedicalDocumentStore {
             put("formattedDate", formattedDate)
             put("pageCount", pageCount)
             put("localPath", localPath ?: "")
+            put("subTitle", subTitle)
+            put("documentType", documentType)
+            put("documentDate", documentDate)
+            put("doctorOrHospital", doctorOrHospital)
+            put("notes", notes)
+            val sharedArray = JSONArray()
+            sharedWith.forEach { sharedArray.put(it) }
+            put("sharedWith", sharedArray)
         }
     }
 
     private fun JSONObject.toMedicalDocument(): MedicalDocument {
+        val sharedList = mutableListOf<String>()
+        val sharedArray = optJSONArray("sharedWith")
+        if (sharedArray != null) {
+            for (i in 0 until sharedArray.length()) {
+                sharedArray.optString(i)?.let { sharedList.add(it) }
+            }
+        }
+
+        val fDate = optString("formattedDate", "08 Sep 2026")
         return MedicalDocument(
             id = optString("id"),
             title = optString("title"),
@@ -162,9 +238,16 @@ object MedicalDocumentStore {
             sizeBytes = optLong("sizeBytes"),
             formattedSize = optString("formattedSize"),
             uploadTimestamp = optLong("uploadTimestamp"),
-            formattedDate = optString("formattedDate"),
+            formattedDate = fDate,
             pageCount = optInt("pageCount", 1),
-            localPath = optString("localPath").takeIf { it.isNotBlank() }
+            localPath = optString("localPath").takeIf { it.isNotBlank() },
+            subTitle = optString("subTitle", ""),
+            documentType = optString("documentType", "Lab Report"),
+            documentDate = optString("documentDate", fDate),
+            doctorOrHospital = optString("doctorOrHospital", ""),
+            notes = optString("notes", ""),
+            sharedWith = sharedList
         )
     }
 }
+
