@@ -51,11 +51,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.vedaahar.dosha.DoshaResultStore
 import com.example.vedaahar.ui.theme.BeigeBorder
 import com.example.vedaahar.ui.theme.Cream
 import com.example.vedaahar.ui.theme.DarkForestGreen
@@ -405,7 +407,10 @@ fun DietAssessmentScreen(
     onEditPrakriti: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var selectedPrakriti by remember { mutableStateOf(prakriti) }
+    val context = LocalContext.current
+    val savedDosha = remember { DoshaResultStore.current(context)?.profileName }
+    val initialPrakriti = savedDosha?.takeIf { it.isNotBlank() } ?: prakriti
+    var selectedPrakriti by remember(initialPrakriti) { mutableStateOf(initialPrakriti) }
     var activeTabIndex by remember { mutableIntStateOf(0) }
     val result = remember(selectedPrakriti) { getDietPlanForConstitution(selectedPrakriti) }
     val tabs = listOf("Body Analysis", "Foods To Eat", "Foods To Avoid", "Meal Plan", "Lifestyle Tips", "Ayurvedic Dravya")

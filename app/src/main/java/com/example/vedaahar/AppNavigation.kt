@@ -33,6 +33,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.vedaahar.dosha.DoshaAssessmentRoute
+import com.example.vedaahar.dosha.DoshaResultStore
 import com.example.vedaahar.dosha.RetakeDoshaAssessmentRoute
 import com.example.vedaahar.doctor.ui.DoctorModuleRoute
 import com.example.vedaahar.document.ui.UploadMedicalDocumentScreen
@@ -687,7 +688,10 @@ fun VedaAhaarNavHost(
                     )
             }
         ) {
+            val context = LocalContext.current
+            val currentDosha = remember { DoshaResultStore.current(context)?.profileName ?: "Vata-Pitta" }
             DietAssessmentScreen(
+                prakriti = currentDosha,
                 onBack = { navController.popBackStack() },
                 onEditPrakriti = {
                     navController.navigate(VedaAhaarRoute.DoshaRetake) {
