@@ -1,6 +1,6 @@
-# VedAahar
+# VedAmrit
 
-VedAahar is an Android wellness application focused on Ayurvedic diet guidance, dosha assessment, patient onboarding, doctor discovery, community care, reminders, yoga, meditation, and herbal product browsing. The repository also includes a Django REST backend scaffold for doctor, consultation, and diet-plan APIs.
+VedAmrit is an Android wellness application focused on Ayurvedic diet guidance, dosha assessment, patient onboarding, doctor discovery, community care, reminders, yoga, meditation, and herbal product browsing. The repository also includes a Django REST backend scaffold for doctor, consultation, and diet-plan APIs.
 
 ## Features
 
@@ -49,7 +49,7 @@ VedAahar is an Android wellness application focused on Ayurvedic diet guidance, 
 |   |   +-- consultations/
 |   |   +-- dietplans/
 |   |   +-- doctors/
-|   +-- vedaahar_backend/
+|   +-- vedamrit_backend/
 +-- gradle/                       # Gradle wrapper and version catalog
 +-- output/                       # Generated showcase/architecture assets
 ```
