@@ -34,6 +34,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
@@ -57,7 +58,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.vedaahar.agni.AgniOption
+import com.example.vedaahar.agni.AgniResult
+import com.example.vedaahar.agni.AgniResultStore
+import com.example.vedaahar.agni.AgniType
+import com.example.vedaahar.agni.agniQuestions
+import com.example.vedaahar.agni.generateAgniResult
+import com.example.vedaahar.assessment.AssessmentProfileStore
 import com.example.vedaahar.dosha.DoshaResultStore
+import com.example.vedaahar.prakriti.PrakritiDosha
+import com.example.vedaahar.prakriti.PrakritiOption
+import com.example.vedaahar.prakriti.PrakritiResult
+import com.example.vedaahar.prakriti.generatePrakritiResult
+import com.example.vedaahar.prakriti.prakritiQuestions
+import com.example.vedaahar.vikriti.VikritiDosha
+import com.example.vedaahar.vikriti.VikritiAnswerOption
+import com.example.vedaahar.vikriti.VikritiResult
+import com.example.vedaahar.vikriti.VikritiResultStore
+import com.example.vedaahar.vikriti.generateVikritiResult
+import com.example.vedaahar.vikriti.vikritiAnswerOptions
+import com.example.vedaahar.vikriti.vikritiQuestions
 import com.example.vedaahar.ui.theme.BeigeBorder
 import com.example.vedaahar.ui.theme.Cream
 import com.example.vedaahar.ui.theme.DarkForestGreen
@@ -73,6 +93,8 @@ private val DietMint = Color(0xFFDDEFE2)
 private val DietSky = Color(0xFFDDEBFF)
 private val DietDangerSoft = Color(0xFFFFEFE9)
 private val DietDanger = Color(0xFFB85A45)
+private val DietPitta = Color(0xFFE65100)
+private val DietKapha = Color(0xFF2E7D32)
 
 data class DietResult(
     val prakriti: String,
@@ -93,16 +115,30 @@ data class DietResult(
 
 private val constitutionOptions = listOf(
     "Vata-Pitta",
+    "Pitta-Vata",
     "Pitta-Kapha",
+    "Kapha-Pitta",
     "Vata-Kapha",
-    "Tri-Doshic",
+    "Kapha-Vata",
+    "Tridoshic",
     "Vata",
     "Pitta",
     "Kapha"
 )
 
-private fun getDietPlanForConstitution(prakriti: String): DietResult {
+private fun normalizePrakritiForDietPlan(prakriti: String): String {
     return when (prakriti) {
+        "Pitta-Vata" -> "Vata-Pitta"
+        "Kapha-Pitta" -> "Pitta-Kapha"
+        "Kapha-Vata" -> "Vata-Kapha"
+        "Tridoshic" -> "Tri-Doshic"
+        else -> prakriti
+    }
+}
+
+private fun getDietPlanForConstitution(prakriti: String): DietResult {
+    val normalizedPrakriti = normalizePrakritiForDietPlan(prakriti)
+    return when (normalizedPrakriti) {
         "Pitta" -> DietResult(
             prakriti = "Pitta",
             vikriti = "Pitta Balanced",
@@ -410,9 +446,221 @@ fun DietAssessmentScreen(
     val context = LocalContext.current
     val savedDosha = remember { DoshaResultStore.current(context)?.profileName }
     val initialPrakriti = savedDosha?.takeIf { it.isNotBlank() } ?: prakriti
-    var selectedPrakriti by remember(initialPrakriti) { mutableStateOf(initialPrakriti) }
+    var currentQuestionIndex by remember { mutableIntStateOf(0) }
+    var answers by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
+    var assessmentResult by remember { mutableStateOf<PrakritiResult?>(null) }
+    var showVikritiIntro by remember { mutableStateOf(false) }
+    var vikritiStarted by remember { mutableStateOf(false) }
+    var vikritiQuestionIndex by remember { mutableIntStateOf(0) }
+    var vikritiAnswers by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var vikritiResult by remember { mutableStateOf<VikritiResult?>(null) }
+    var showAgniIntro by remember { mutableStateOf(false) }
+    var agniStarted by remember { mutableStateOf(false) }
+    var agniQuestionIndex by remember { mutableIntStateOf(0) }
+    var agniAnswers by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
+    var agniResult by remember { mutableStateOf<AgniResult?>(null) }
+    var showAyurvedicProfile by remember { mutableStateOf(false) }
+    var showDietPlan by remember { mutableStateOf(false) }
+
+    if (!showDietPlan) {
+        Surface(modifier = modifier.fillMaxSize(), color = Cream) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Brush.verticalGradient(listOf(Color(0xFFFFF9EE), Cream, LightSage.copy(alpha = 0.55f))))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .statusBarsPadding()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 18.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        BackButton(onClick = onBack, text = "Dashboard")
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(50))
+                                .background(DietMint)
+                                .border(BorderStroke(1.dp, ForestGreen.copy(alpha = 0.4f)), RoundedCornerShape(50))
+                                .padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = when {
+                                    showAgniIntro || agniStarted || agniResult != null -> "Agni Assessment"
+                                    showVikritiIntro || vikritiStarted || vikritiResult != null -> "Vikriti Assessment"
+                                    else -> "Prakriti Assessment"
+                                },
+                                color = ForestGreen,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp,
+                                letterSpacing = 1.1.sp
+                            )
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .verticalScroll(rememberScrollState())
+                            .weight(1f)
+                            .padding(horizontal = 18.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        val completedResult = assessmentResult
+                        val completedVikriti = vikritiResult
+                        val completedAgni = agniResult
+                        if (completedResult == null) {
+                            PrakritiQuestionnaireContent(
+                                currentQuestionIndex = currentQuestionIndex,
+                                answers = answers,
+                                onAnswerSelected = { questionId, optionId ->
+                                    answers = answers + (questionId to optionId)
+                                },
+                                onPrevious = {
+                                    currentQuestionIndex = (currentQuestionIndex - 1).coerceAtLeast(0)
+                                },
+                                onNext = {
+                                    if (currentQuestionIndex < prakritiQuestions.lastIndex) {
+                                        currentQuestionIndex += 1
+                                    } else if (answers.size == prakritiQuestions.size) {
+                                        assessmentResult = generatePrakritiResult(answers)
+                                    }
+                                }
+                            )
+                        } else if (completedVikriti == null && !showVikritiIntro) {
+                            PrakritiResultContent(
+                                result = completedResult,
+                                onRetake = {
+                                    answers = emptyMap()
+                                    currentQuestionIndex = 0
+                                    assessmentResult = null
+                                    showVikritiIntro = false
+                                    vikritiStarted = false
+                                    vikritiAnswers = emptyMap()
+                                    vikritiQuestionIndex = 0
+                                    vikritiResult = null
+                                    showAgniIntro = false
+                                    agniStarted = false
+                                    agniQuestionIndex = 0
+                                    agniAnswers = emptyMap()
+                                    agniResult = null
+                                    showAyurvedicProfile = false
+                                    showDietPlan = false
+                                },
+                                primaryActionText = "Continue to Vikriti Assessment",
+                                onViewDietPlan = { showVikritiIntro = true }
+                            )
+                        } else if (completedVikriti == null && !vikritiStarted) {
+                            VikritiIntroContent(
+                                onStart = { vikritiStarted = true }
+                            )
+                        } else if (completedVikriti == null) {
+                            VikritiQuestionnaireContent(
+                                currentQuestionIndex = vikritiQuestionIndex,
+                                answers = vikritiAnswers,
+                                onAnswerSelected = { questionId, optionId ->
+                                    vikritiAnswers = vikritiAnswers + (questionId to optionId)
+                                },
+                                onPrevious = {
+                                    vikritiQuestionIndex = (vikritiQuestionIndex - 1).coerceAtLeast(0)
+                                },
+                                onNext = {
+                                    if (vikritiQuestionIndex < vikritiQuestions.lastIndex) {
+                                        vikritiQuestionIndex += 1
+                                    } else if (vikritiAnswers.size == vikritiQuestions.size) {
+                                        val completedVikriti = generateVikritiResult(
+                                            answers = vikritiAnswers,
+                                            prakritiType = completedResult.prakritiType
+                                        )
+                                        VikritiResultStore.save(context, completedVikriti)
+                                        vikritiResult = completedVikriti
+                                    }
+                                }
+                            )
+                        } else if (completedAgni == null && !showAgniIntro) {
+                            VikritiResultContent(
+                                result = completedVikriti,
+                                onRetake = {
+                                    vikritiAnswers = emptyMap()
+                                    vikritiQuestionIndex = 0
+                                    vikritiStarted = false
+                                    showVikritiIntro = true
+                                    vikritiResult = null
+                                    showAgniIntro = false
+                                    agniStarted = false
+                                    agniAnswers = emptyMap()
+                                    agniQuestionIndex = 0
+                                    agniResult = null
+                                    showAyurvedicProfile = false
+                                },
+                                primaryActionText = "Continue to Agni Assessment",
+                                onViewProfile = { showAgniIntro = true }
+                            )
+                        } else if (completedAgni == null && !agniStarted) {
+                            AgniIntroContent(
+                                onStart = { agniStarted = true }
+                            )
+                        } else if (completedAgni == null) {
+                            AgniQuestionnaireContent(
+                                currentQuestionIndex = agniQuestionIndex,
+                                answers = agniAnswers,
+                                onAnswerSelected = { questionId, optionId ->
+                                    agniAnswers = agniAnswers + (questionId to optionId)
+                                },
+                                onPrevious = {
+                                    agniQuestionIndex = (agniQuestionIndex - 1).coerceAtLeast(0)
+                                },
+                                onNext = {
+                                    if (agniQuestionIndex < agniQuestions.lastIndex) {
+                                        agniQuestionIndex += 1
+                                    } else if (agniAnswers.size == agniQuestions.size) {
+                                        val completedAgniResult = generateAgniResult(agniAnswers)
+                                        AgniResultStore.save(context, completedAgniResult)
+                                        AssessmentProfileStore.save(context, completedResult, completedVikriti, completedAgniResult)
+                                        agniResult = completedAgniResult
+                                    }
+                                }
+                            )
+                        } else if (!showAyurvedicProfile) {
+                            AgniResultContent(
+                                result = completedAgni,
+                                onRetake = {
+                                    agniAnswers = emptyMap()
+                                    agniQuestionIndex = 0
+                                    agniStarted = false
+                                    showAgniIntro = true
+                                    agniResult = null
+                                    showAyurvedicProfile = false
+                                },
+                                onViewProfile = { showAyurvedicProfile = true }
+                            )
+                        } else {
+                            AyurvedicProfileSummaryContent(
+                                prakritiResult = completedResult,
+                                vikritiResult = completedVikriti,
+                                agniResult = completedAgni,
+                                onViewDietPlan = { showDietPlan = true }
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(32.dp).navigationBarsPadding())
+                    }
+                }
+            }
+        }
+        return
+    }
+
+    val assessmentPrakriti = assessmentResult?.prakritiType ?: initialPrakriti
+    var selectedPrakriti by remember(assessmentPrakriti) { mutableStateOf(assessmentPrakriti) }
     var activeTabIndex by remember { mutableIntStateOf(0) }
     val result = remember(selectedPrakriti) { getDietPlanForConstitution(selectedPrakriti) }
+    val currentVikriti = vikritiResult?.dominantDosha ?: result.vikriti
+    val currentAgni = agniResult?.displayResult ?: result.agni
     val tabs = listOf("Body Analysis", "Foods To Eat", "Foods To Avoid", "Meal Plan", "Lifestyle Tips", "Ayurvedic Dravya")
 
     Surface(modifier = modifier.fillMaxSize(), color = Cream) {
@@ -511,46 +759,53 @@ fun DietAssessmentScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 DietStatusBadge("Prakriti", result.prakriti, Modifier.weight(1f))
-                                DietStatusBadge("Agni", "Sama Agni", Modifier.weight(1f))
-                                DietStatusBadge("Ama", "Clear / Low", Modifier.weight(1f))
+                                DietStatusBadge("Vikriti", currentVikriti, Modifier.weight(1f))
+                                DietStatusBadge("Agni", currentAgni, Modifier.weight(1f))
                                 DietStatusBadge("Season", "Sharad Ritu", Modifier.weight(1f))
                             }
                         }
                     }
 
-                    // Constitution Switcher / Selector
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            text = "SELECT CONSTITUTION FOR PLAN",
-                            color = SageGreen,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.8.sp
-                        )
+                    if (assessmentResult == null) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = "SELECT CONSTITUTION FOR PLAN",
+                                color = SageGreen,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.8.sp
+                            )
 
-                        ScrollableTabRow(
-                            selectedTabIndex = constitutionOptions.indexOf(selectedPrakriti).coerceAtLeast(0),
-                            containerColor = Color.Transparent,
-                            contentColor = ForestGreen,
-                            edgePadding = 0.dp,
-                            divider = {}
-                        ) {
-                            constitutionOptions.forEach { option ->
-                                val isSelected = option == selectedPrakriti
-                                Tab(
-                                    selected = isSelected,
-                                    onClick = { selectedPrakriti = option },
-                                    text = {
-                                        Text(
-                                            text = option,
-                                            color = if (isSelected) ForestGreen else SoftBlueGray,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                            fontSize = 12.sp
-                                        )
-                                    }
-                                )
+                            ScrollableTabRow(
+                                selectedTabIndex = constitutionOptions.indexOf(selectedPrakriti).coerceAtLeast(0),
+                                containerColor = Color.Transparent,
+                                contentColor = ForestGreen,
+                                edgePadding = 0.dp,
+                                divider = {}
+                            ) {
+                                constitutionOptions.forEach { option ->
+                                    val isSelected = option == selectedPrakriti
+                                    Tab(
+                                        selected = isSelected,
+                                        onClick = { selectedPrakriti = option },
+                                        text = {
+                                            Text(
+                                                text = option,
+                                                color = if (isSelected) ForestGreen else SoftBlueGray,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                fontSize = 12.sp
+                                            )
+                                        }
+                                    )
+                                }
                             }
                         }
+                    } else {
+                        PersonalizedDietSourceCard(
+                            prakriti = result.prakriti,
+                            vikriti = currentVikriti,
+                            agni = currentAgni
+                        )
                     }
 
                     // 6 Comprehensive Feature Tabs
@@ -580,7 +835,7 @@ fun DietAssessmentScreen(
 
                     // Tab Contents
                     when (activeTabIndex) {
-                        0 -> BodyAnalysisContent(result)
+                        0 -> BodyAnalysisContent(result, currentVikriti, currentAgni)
                         1 -> FoodsListContent(result.foodsToEat, positive = true)
                         2 -> FoodsListContent(result.foodsToAvoid, positive = false)
                         3 -> MealPlanContent(result)
@@ -593,6 +848,1031 @@ fun DietAssessmentScreen(
             }
         }
     }
+}
+
+@Composable
+private fun PrakritiQuestionnaireContent(
+    currentQuestionIndex: Int,
+    answers: Map<Int, String>,
+    onAnswerSelected: (questionId: Int, optionId: String) -> Unit,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit
+) {
+    val question = prakritiQuestions[currentQuestionIndex]
+    val selectedOption = answers[question.id]
+    val isLastQuestion = currentQuestionIndex == prakritiQuestions.lastIndex
+    val canContinue = selectedOption != null
+    val canSubmit = answers.size == prakritiQuestions.size
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(6.dp, RoundedCornerShape(24.dp), ambientColor = ForestGreen.copy(alpha = 0.08f)),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
+        border = BorderStroke(1.dp, BeigeBorder)
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text(
+                text = "PERSONALISED DIET STARTS HERE",
+                color = SageGreen,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.4.sp
+            )
+            Text(
+                text = "21-Question Prakriti Assessment",
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 27.sp,
+                lineHeight = 32.sp,
+                color = DarkForestGreen
+            )
+            Text(
+                text = "Answer each question honestly. This wellness assessment estimates your Ayurvedic body constitution and then shapes your diet guidance.",
+                fontSize = 12.5.sp,
+                lineHeight = 19.sp,
+                color = SoftBlueGray
+            )
+        }
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = PureWhite),
+        border = BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.8f))
+    ) {
+        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Question ${currentQuestionIndex + 1} of ${prakritiQuestions.size}",
+                    color = ForestGreen,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${answers.size}/${prakritiQuestions.size} answered",
+                    color = SageGreen,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            LinearProgressIndicator(
+                progress = { (currentQuestionIndex + 1).toFloat() / prakritiQuestions.size.toFloat() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(50)),
+                color = ForestGreen,
+                trackColor = LightSage
+            )
+
+            Text(
+                text = question.text,
+                color = DarkForestGreen,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+                lineHeight = 28.sp
+            )
+
+            question.options.forEach { option ->
+                PrakritiAnswerCard(
+                    option = option,
+                    selected = selectedOption == option.id,
+                    onClick = { onAnswerSelected(question.id, option.id) }
+                )
+            }
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = onPrevious,
+                    enabled = currentQuestionIndex > 0,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    border = BorderStroke(1.dp, BeigeBorder),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+                ) {
+                    Text("Previous", fontWeight = FontWeight.Bold)
+                }
+
+                Button(
+                    onClick = onNext,
+                    enabled = if (isLastQuestion) canSubmit else canContinue,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ForestGreen,
+                        contentColor = PureWhite,
+                        disabledContainerColor = SageGreen.copy(alpha = 0.32f),
+                        disabledContentColor = PureWhite.copy(alpha = 0.8f)
+                    )
+                ) {
+                    Text(if (isLastQuestion) "View My Prakriti" else "Next", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PrakritiAnswerCard(
+    option: PrakritiOption,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val borderColor = if (selected) ForestGreen else BeigeBorder.copy(alpha = 0.8f)
+    val background = if (selected) DietMint else Color(0xFFFFFDF8)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(background)
+            .border(BorderStroke(if (selected) 1.6.dp else 1.dp, borderColor), RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
+            .padding(14.dp),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .clip(CircleShape)
+                .background(if (selected) ForestGreen else PureWhite)
+                .border(BorderStroke(1.dp, borderColor), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            if (selected) {
+                Icon(Icons.Filled.Check, contentDescription = null, tint = PureWhite, modifier = Modifier.size(15.dp))
+            }
+        }
+        Text(
+            text = option.text,
+            color = DarkForestGreen,
+            fontSize = 13.5.sp,
+            lineHeight = 19.sp,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun PrakritiResultContent(
+    result: PrakritiResult,
+    onRetake: () -> Unit,
+    primaryActionText: String = "View Diet Guide",
+    onViewDietPlan: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(8.dp, RoundedCornerShape(26.dp), ambientColor = ForestGreen.copy(alpha = 0.1f)),
+        shape = RoundedCornerShape(26.dp),
+        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
+        border = BorderStroke(1.dp, BeigeBorder)
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text("Your Prakriti", color = SageGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
+            Text(
+                text = result.prakritiType,
+                color = DarkForestGreen,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 34.sp,
+                lineHeight = 38.sp
+            )
+            Text(
+                text = prakritiResultMessage(result),
+                color = SoftBlueGray,
+                fontSize = 13.sp,
+                lineHeight = 20.sp
+            )
+
+            PrakritiPercentageBar("Vata", result.percentages.getValue(PrakritiDosha.Vata), DietSky)
+            PrakritiPercentageBar("Pitta", result.percentages.getValue(PrakritiDosha.Pitta), DietDangerSoft)
+            PrakritiPercentageBar("Kapha", result.percentages.getValue(PrakritiDosha.Kapha), DietMint)
+
+            MetricCard("Primary Dosha", result.primaryDosha, if (result.prakritiType == "Tridoshic") "All three doshas are approximately balanced." else "The strongest constitution influence in this assessment.")
+            result.secondaryDosha?.let {
+                MetricCard("Secondary Dosha", it, "A meaningful supporting influence in your constitution.")
+            }
+            MetricCard("Prakriti Type", result.prakritiType, if (result.borderline) "Borderline result: your second dosha is close enough to consider during lifestyle planning." else "Used to shape the diet guidance that follows.")
+
+            Text(
+                text = "This is an Ayurvedic wellness body-constitution assessment, not a clinical diagnosis or replacement for professional medical care.",
+                color = SoftBlueGray,
+                fontSize = 11.5.sp,
+                lineHeight = 17.sp
+            )
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = onRetake,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    border = BorderStroke(1.dp, BeigeBorder),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+                ) {
+                    Text("Retake", fontWeight = FontWeight.Bold)
+                }
+                Button(
+                    onClick = onViewDietPlan,
+                    modifier = Modifier
+                        .weight(1.25f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+                ) {
+                    Text(primaryActionText, fontWeight = FontWeight.Bold, fontSize = 12.5.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VikritiIntroContent(onStart: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(8.dp, RoundedCornerShape(26.dp), ambientColor = ForestGreen.copy(alpha = 0.1f)),
+        shape = RoundedCornerShape(26.dp),
+        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
+        border = BorderStroke(1.dp, BeigeBorder)
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text("CURRENT BALANCE", color = SageGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
+            Text(
+                text = "Vikriti Assessment - Your Current Dosha Balance",
+                color = DarkForestGreen,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 29.sp,
+                lineHeight = 34.sp
+            )
+            Text(
+                text = "Your Prakriti represents your natural constitution, while Vikriti reflects your current state. Answer the following questions based on how you have been feeling recently.",
+                color = SoftBlueGray,
+                fontSize = 13.sp,
+                lineHeight = 20.sp
+            )
+            Button(
+                onClick = onStart,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+            ) {
+                Text("Start Vikriti Assessment", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun VikritiQuestionnaireContent(
+    currentQuestionIndex: Int,
+    answers: Map<String, String>,
+    onAnswerSelected: (questionId: String, optionId: String) -> Unit,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit
+) {
+    val question = vikritiQuestions[currentQuestionIndex]
+    val selectedOption = answers[question.id]
+    val isLastQuestion = currentQuestionIndex == vikritiQuestions.lastIndex
+    val canContinue = selectedOption != null
+    val canSubmit = answers.size == vikritiQuestions.size
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(6.dp, RoundedCornerShape(24.dp), ambientColor = ForestGreen.copy(alpha = 0.08f)),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
+        border = BorderStroke(1.dp, BeigeBorder)
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text(
+                text = "Vikriti Assessment",
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 27.sp,
+                lineHeight = 32.sp,
+                color = DarkForestGreen
+            )
+            Text(
+                text = "Answer based on how you have been feeling recently.",
+                fontSize = 12.5.sp,
+                lineHeight = 19.sp,
+                color = SoftBlueGray
+            )
+        }
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = PureWhite),
+        border = BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.8f))
+    ) {
+        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Question ${currentQuestionIndex + 1} of ${vikritiQuestions.size}",
+                    color = ForestGreen,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${answers.size}/${vikritiQuestions.size} answered",
+                    color = SageGreen,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            LinearProgressIndicator(
+                progress = { answers.size.toFloat() / vikritiQuestions.size.toFloat() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(50)),
+                color = ForestGreen,
+                trackColor = LightSage
+            )
+
+            Text(
+                text = question.text,
+                color = DarkForestGreen,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+                lineHeight = 28.sp
+            )
+
+            vikritiAnswerOptions.forEach { option ->
+                VikritiAnswerCard(
+                    option = option,
+                    selected = selectedOption == option.id,
+                    onClick = { onAnswerSelected(question.id, option.id) }
+                )
+            }
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = onPrevious,
+                    enabled = currentQuestionIndex > 0,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    border = BorderStroke(1.dp, BeigeBorder),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+                ) {
+                    Text("Previous", fontWeight = FontWeight.Bold)
+                }
+
+                Button(
+                    onClick = onNext,
+                    enabled = if (isLastQuestion) canSubmit else canContinue,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ForestGreen,
+                        contentColor = PureWhite,
+                        disabledContainerColor = SageGreen.copy(alpha = 0.32f),
+                        disabledContentColor = PureWhite.copy(alpha = 0.8f)
+                    )
+                ) {
+                    Text(if (isLastQuestion) "View My Vikriti Result" else "Next", fontWeight = FontWeight.Bold, fontSize = 12.2.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VikritiAnswerCard(
+    option: VikritiAnswerOption,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val borderColor = if (selected) ForestGreen else BeigeBorder.copy(alpha = 0.8f)
+    val background = if (selected) DietMint else Color(0xFFFFFDF8)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(background)
+            .border(BorderStroke(if (selected) 1.6.dp else 1.dp, borderColor), RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .clip(CircleShape)
+                .background(if (selected) ForestGreen else PureWhite)
+                .border(BorderStroke(1.dp, borderColor), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            if (selected) {
+                Icon(Icons.Filled.Check, contentDescription = null, tint = PureWhite, modifier = Modifier.size(15.dp))
+            }
+        }
+        Text(
+            text = option.label,
+            color = DarkForestGreen,
+            fontSize = 14.sp,
+            lineHeight = 20.sp,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun VikritiResultContent(
+    result: VikritiResult,
+    onRetake: () -> Unit,
+    primaryActionText: String = "View Profile",
+    onViewProfile: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(8.dp, RoundedCornerShape(26.dp), ambientColor = ForestGreen.copy(alpha = 0.1f)),
+        shape = RoundedCornerShape(26.dp),
+        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
+        border = BorderStroke(1.dp, BeigeBorder)
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text("Your Current Vikriti", color = SageGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
+            Text(
+                text = "Current Dominant Imbalance: ${result.dominantDosha}",
+                color = DarkForestGreen,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 29.sp,
+                lineHeight = 34.sp
+            )
+            Text(
+                text = vikritiResultMessage(result),
+                color = SoftBlueGray,
+                fontSize = 13.sp,
+                lineHeight = 20.sp
+            )
+
+            VikritiDosha.entries.forEach { dosha ->
+                VikritiScoreCard(
+                    dosha = dosha.displayName,
+                    score = result.scores.getValue(dosha),
+                    severity = result.severities.getValue(dosha),
+                    percentage = result.percentages.getValue(dosha),
+                    highlighted = result.dominantDosha == dosha.displayName
+                )
+            }
+
+            Text(
+                text = "This is a rule-based Ayurvedic wellness assessment and should not be treated as a medical diagnosis.",
+                color = SoftBlueGray,
+                fontSize = 11.5.sp,
+                lineHeight = 17.sp
+            )
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = onRetake,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    border = BorderStroke(1.dp, BeigeBorder),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+                ) {
+                    Text("Retake", fontWeight = FontWeight.Bold)
+                }
+                Button(
+                    onClick = onViewProfile,
+                    modifier = Modifier
+                        .weight(1.35f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+                ) {
+                    Text(primaryActionText, fontWeight = FontWeight.Bold, fontSize = 12.2.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VikritiScoreCard(
+    dosha: String,
+    score: Int,
+    severity: String,
+    percentage: Double,
+    highlighted: Boolean
+) {
+    val accent = when (dosha) {
+        "Pitta" -> DietPitta
+        "Kapha" -> DietKapha
+        else -> ForestGreen
+    }
+    val background = if (highlighted) DietMint else PureWhite
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(background)
+            .border(BorderStroke(if (highlighted) 1.8.dp else 1.dp, if (highlighted) accent else BeigeBorder), RoundedCornerShape(18.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(dosha, color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("Score: $score / 35", color = accent, fontWeight = FontWeight.Bold, fontSize = 12.5.sp)
+        }
+        Text("Severity: $severity", color = SoftBlueGray, fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold)
+        LinearProgressIndicator(
+            progress = { (percentage / 100.0).toFloat() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp)
+                .clip(RoundedCornerShape(50)),
+            color = accent,
+            trackColor = LightSage
+        )
+    }
+}
+
+@Composable
+private fun AgniIntroContent(onStart: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(8.dp, RoundedCornerShape(26.dp), ambientColor = ForestGreen.copy(alpha = 0.1f)),
+        shape = RoundedCornerShape(26.dp),
+        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
+        border = BorderStroke(1.dp, BeigeBorder)
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text("Agni Assessment", color = SageGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
+            Text(
+                text = "Understand Your Digestive Pattern",
+                color = DarkForestGreen,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 30.sp,
+                lineHeight = 35.sp
+            )
+            Text(
+                text = "Answer the following questions based on your usual digestion, appetite, eating habits, bowel habits, and how you generally feel after meals.",
+                color = SoftBlueGray,
+                fontSize = 13.sp,
+                lineHeight = 20.sp
+            )
+            Button(
+                onClick = onStart,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+            ) {
+                Text("Start Agni Assessment", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AgniQuestionnaireContent(
+    currentQuestionIndex: Int,
+    answers: Map<Int, String>,
+    onAnswerSelected: (questionId: Int, optionId: String) -> Unit,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit
+) {
+    val question = agniQuestions[currentQuestionIndex]
+    val selectedOption = answers[question.id]
+    val isLastQuestion = currentQuestionIndex == agniQuestions.lastIndex
+    val canContinue = selectedOption != null
+    val canSubmit = answers.size == agniQuestions.size
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(6.dp, RoundedCornerShape(24.dp), ambientColor = ForestGreen.copy(alpha = 0.08f)),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
+        border = BorderStroke(1.dp, BeigeBorder)
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text(
+                text = "Agni Assessment",
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 27.sp,
+                lineHeight = 32.sp,
+                color = DarkForestGreen
+            )
+            Text(
+                text = "Choose the option that best reflects your usual digestive pattern.",
+                fontSize = 12.5.sp,
+                lineHeight = 19.sp,
+                color = SoftBlueGray
+            )
+        }
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = PureWhite),
+        border = BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.8f))
+    ) {
+        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Question ${currentQuestionIndex + 1} of ${agniQuestions.size}",
+                    color = ForestGreen,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${answers.size}/${agniQuestions.size} answered",
+                    color = SageGreen,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            LinearProgressIndicator(
+                progress = { answers.size.toFloat() / agniQuestions.size.toFloat() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(50)),
+                color = ForestGreen,
+                trackColor = LightSage
+            )
+
+            Text(
+                text = question.text,
+                color = DarkForestGreen,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+                lineHeight = 28.sp
+            )
+
+            question.options.forEach { option ->
+                AgniAnswerCard(
+                    option = option,
+                    selected = selectedOption == option.id,
+                    onClick = { onAnswerSelected(question.id, option.id) }
+                )
+            }
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = onPrevious,
+                    enabled = currentQuestionIndex > 0,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    border = BorderStroke(1.dp, BeigeBorder),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+                ) {
+                    Text("Previous", fontWeight = FontWeight.Bold)
+                }
+
+                Button(
+                    onClick = onNext,
+                    enabled = if (isLastQuestion) canSubmit else canContinue,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ForestGreen,
+                        contentColor = PureWhite,
+                        disabledContainerColor = SageGreen.copy(alpha = 0.32f),
+                        disabledContentColor = PureWhite.copy(alpha = 0.8f)
+                    )
+                ) {
+                    Text(if (isLastQuestion) "View My Agni Result" else "Next", fontWeight = FontWeight.Bold, fontSize = 12.2.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AgniAnswerCard(
+    option: AgniOption,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val borderColor = if (selected) ForestGreen else BeigeBorder.copy(alpha = 0.8f)
+    val background = if (selected) DietMint else Color(0xFFFFFDF8)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(background)
+            .border(BorderStroke(if (selected) 1.6.dp else 1.dp, borderColor), RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
+            .padding(14.dp),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .clip(CircleShape)
+                .background(if (selected) ForestGreen else PureWhite)
+                .border(BorderStroke(1.dp, borderColor), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            if (selected) {
+                Icon(Icons.Filled.Check, contentDescription = null, tint = PureWhite, modifier = Modifier.size(15.dp))
+            }
+        }
+        Text(
+            text = option.text,
+            color = DarkForestGreen,
+            fontSize = 13.5.sp,
+            lineHeight = 19.sp,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun AgniResultContent(
+    result: AgniResult,
+    onRetake: () -> Unit,
+    onViewProfile: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(8.dp, RoundedCornerShape(26.dp), ambientColor = ForestGreen.copy(alpha = 0.1f)),
+        shape = RoundedCornerShape(26.dp),
+        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
+        border = BorderStroke(1.dp, BeigeBorder)
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text("Your Agni Type", color = SageGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
+            Text(
+                text = result.displayResult,
+                color = DarkForestGreen,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 31.sp,
+                lineHeight = 36.sp
+            )
+            Text(
+                text = agniResultMessage(result),
+                color = SoftBlueGray,
+                fontSize = 13.sp,
+                lineHeight = 20.sp
+            )
+
+            AgniType.entries.forEach { type ->
+                AgniScoreRow(
+                    label = type.displayName,
+                    score = result.scores.getValue(type),
+                    highlighted = !result.isMixed && result.dominantAgni == type.displayName || result.mixedAgniTypes.contains(type.displayName)
+                )
+            }
+
+            Text(
+                text = "This is a rule-based Ayurvedic wellness assessment and should not be treated as a medical diagnosis.",
+                color = SoftBlueGray,
+                fontSize = 11.5.sp,
+                lineHeight = 17.sp
+            )
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = onRetake,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    border = BorderStroke(1.dp, BeigeBorder),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+                ) {
+                    Text("Retake", fontWeight = FontWeight.Bold)
+                }
+                Button(
+                    onClick = onViewProfile,
+                    modifier = Modifier
+                        .weight(1.35f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+                ) {
+                    Text("View Combined Result", fontWeight = FontWeight.Bold, fontSize = 12.2.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AgniScoreRow(label: String, score: Int, highlighted: Boolean) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (highlighted) DietMint else PureWhite)
+            .border(BorderStroke(if (highlighted) 1.6.dp else 1.dp, if (highlighted) ForestGreen else BeigeBorder), RoundedCornerShape(16.dp))
+            .padding(14.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, color = DarkForestGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text("$score / ${agniQuestions.size}", color = ForestGreen, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun AyurvedicProfileSummaryContent(
+    prakritiResult: PrakritiResult,
+    vikritiResult: VikritiResult,
+    agniResult: AgniResult,
+    onViewDietPlan: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(8.dp, RoundedCornerShape(26.dp), ambientColor = ForestGreen.copy(alpha = 0.1f)),
+        shape = RoundedCornerShape(26.dp),
+        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
+        border = BorderStroke(1.dp, BeigeBorder)
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text("Your Ayurvedic Profile", color = SageGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
+            ProfileSummaryCard("Prakriti", "Natural Constitution", prakritiResult.prakritiType)
+            ProfileSummaryCard("Vikriti", "Current Balance", vikritiResult.dominantDosha)
+            VikritiSummaryScores(vikritiResult)
+            ProfileSummaryCard("Agni", "Digestive Pattern", agniResult.displayResult)
+            Text(
+                text = "Prakriti represents your natural constitution, Vikriti represents your current state, and Agni reflects your digestive pattern. These results work together to shape your personalized diet guidance.",
+                color = SoftBlueGray,
+                fontSize = 13.sp,
+                lineHeight = 20.sp
+            )
+            Button(
+                onClick = onViewDietPlan,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+            ) {
+                Text("View My Personalized Diet", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun VikritiSummaryScores(result: VikritiResult) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(PureWhite)
+            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(16.dp))
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        VikritiDosha.entries.forEach { dosha ->
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(dosha.displayName, color = DarkForestGreen, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                Text(
+                    "${result.scores.getValue(dosha)} / 35 - ${result.severities.getValue(dosha)}",
+                    color = ForestGreen,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileSummaryCard(label: String, caption: String, value: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(PureWhite)
+            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(18.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(label, color = DarkForestGreen, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+        Text(caption, color = SageGreen, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.1.sp)
+        Text(value, color = ForestGreen, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+    }
+}
+
+@Composable
+private fun PersonalizedDietSourceCard(prakriti: String, vikriti: String, agni: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(PureWhite)
+            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(18.dp))
+            .padding(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        MetricMini("Prakriti", prakriti, Modifier.weight(1f))
+        MetricMini("Vikriti", vikriti, Modifier.weight(1f))
+        MetricMini("Agni", agni, Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun MetricMini(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(label.uppercase(), color = SageGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        Text(value, color = DarkForestGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold, lineHeight = 18.sp)
+    }
+}
+
+@Composable
+private fun PrakritiPercentageBar(label: String, percentage: Double, trackColor: Color) {
+    val barColor = when (label) {
+        "Pitta" -> DietPitta
+        "Kapha" -> DietKapha
+        else -> ForestGreen
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(label, color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Text(String.format("%.1f%%", percentage), color = barColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        }
+        LinearProgressIndicator(
+            progress = { (percentage / 100.0).toFloat() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(10.dp)
+                .clip(RoundedCornerShape(50)),
+            color = barColor,
+            trackColor = trackColor
+        )
+    }
+}
+
+private fun prakritiResultMessage(result: PrakritiResult): String {
+    if (result.prakritiType == "Tridoshic") {
+        return "Your assessment indicates an approximately balanced Vata, Pitta, and Kapha pattern."
+    }
+    val secondary = result.secondaryDosha
+    val base = if (secondary != null) {
+        "Your assessment indicates that ${result.primaryDosha} is your dominant dosha, with $secondary as your secondary influence."
+    } else {
+        "Your assessment indicates that ${result.primaryDosha} is your dominant dosha."
+    }
+    return if (result.borderline) "$base Your score is borderline, so your next strongest dosha may still matter." else base
+}
+
+private fun vikritiResultMessage(result: VikritiResult): String {
+    val others = listOf("Vata", "Pitta", "Kapha").filterNot { it == result.dominantDosha }.joinToString(" and ")
+    return "Your Vikriti result suggests that ${result.dominantDosha}-related characteristics are currently more prominent compared with $others."
+}
+
+private fun agniResultMessage(result: AgniResult): String {
+    if (result.isMixed) {
+        return "Your answers suggest a mixed digestive pattern, with ${result.mixedAgniTypes.joinToString(" and ")} showing the strongest counts."
+    }
+    val subtitle = AgniType.entries.firstOrNull { it.displayName == result.dominantAgni }?.subtitle ?: "Digestive Pattern"
+    return "Your answers suggest ${result.dominantAgni}, a $subtitle. Use this as wellness guidance rather than a diagnosis."
 }
 
 @Composable
@@ -611,11 +1891,11 @@ private fun DietStatusBadge(label: String, value: String, modifier: Modifier = M
 }
 
 @Composable
-private fun BodyAnalysisContent(result: DietResult) {
+private fun BodyAnalysisContent(result: DietResult, vikriti: String, agni: String) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         MetricCard("Constitution (Prakriti)", result.prakriti, "Primary constitutional dosha blueprint.")
-        MetricCard("Metabolic State (Vikriti)", result.vikriti, "Current balance of biological humors.")
-        MetricCard("Digestive Fire (Agni)", result.agni, "Strength and stability of gut enzymes and assimilation.")
+        MetricCard("Metabolic State (Vikriti)", vikriti, "Current balance of biological humors.")
+        MetricCard("Digestive Fire (Agni)", agni, "Strength and stability of gut enzymes and assimilation.")
         MetricCard("Toxin Clearance (Ama)", result.amaStatus, "Indicator of undigested metabolic byproduct clearance.")
 
         Card(
