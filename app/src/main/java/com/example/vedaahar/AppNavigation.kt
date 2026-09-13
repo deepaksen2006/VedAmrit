@@ -38,6 +38,7 @@ import com.example.vedaahar.dosha.RetakeDoshaAssessmentRoute
 import com.example.vedaahar.doctor.ui.DoctorModuleRoute
 import com.example.vedaahar.document.ui.UploadMedicalDocumentScreen
 import com.example.vedaahar.document.ui.MyMedicalDocumentsScreen
+import com.example.vedaahar.symptoms.SymptomsAnalysisModuleScreen
 import com.example.vedaahar.ui.theme.Cream
 import com.example.vedaahar.ui.theme.ForestGreen
 
@@ -717,14 +718,7 @@ fun VedaAhaarNavHost(
                     )
             }
         ) {
-            SymptomsAnalysisScreen(
-                onBack = { navController.popBackStack() },
-                onConsultDoctor = {
-                    navController.navigate(VedaAhaarRoute.CommunityCare) {
-                        launchSingleTop = true
-                    }
-                }
-            )
+            SymptomsAnalysisModuleScreen(onBack = { navController.popBackStack() })
         }
         composable(
             route = VedaAhaarRoute.DoshaRetake,
