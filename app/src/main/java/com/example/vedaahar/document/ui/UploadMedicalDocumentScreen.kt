@@ -1,11 +1,16 @@
 package com.example.vedaahar.document.ui
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -17,6 +22,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -78,8 +84,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -101,6 +109,7 @@ import com.example.vedaahar.ui.theme.VedAmritCtaGreen
 import com.example.vedaahar.ui.theme.VedAmritGreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -260,7 +269,7 @@ fun UploadMedicalDocumentScreen(
     var currentStep by remember { mutableIntStateOf(1) }
     var selectedFile by remember { mutableStateOf<SelectedFileDetails?>(null) }
     var fileValidationError by remember { mutableStateOf<String?>(null) }
-    var showCameraScanner by remember { mutableStateOf(false) }
+    var pendingCameraImageUri by remember { mutableStateOf<Uri?>(null) }
 
     // Form inputs for Step 2
     var documentType by remember { mutableStateOf("Lab Report") }
@@ -297,6 +306,42 @@ fun UploadMedicalDocumentScreen(
                     documentName = details.fileName.substringBeforeLast('.').replace('_', ' ')
                 }
             }
+        }
+    }
+
+    val nativeCameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { captured ->
+        val imageUri = pendingCameraImageUri
+        pendingCameraImageUri = null
+        if (captured && imageUri != null) {
+            val details = parseCapturedPhotoToFileDetails(context, imageUri)
+            selectedFile = details
+            if (details.isTooLarge) {
+                fileValidationError = "File too large: This photo exceeds the 10 MB limit. Please take a smaller photo."
+            } else {
+                fileValidationError = null
+                if (documentName.isBlank()) {
+                    documentName = details.fileName.substringBeforeLast('.').replace('_', ' ')
+                }
+            }
+        }
+    }
+
+    fun openNativeCamera() {
+        val imageUri = createCameraImageUri(context)
+        pendingCameraImageUri = imageUri
+        nativeCameraLauncher.launch(imageUri)
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            openNativeCamera()
+        } else {
+            pendingCameraImageUri = null
+            fileValidationError = "Camera permission is required to take a photo."
         }
     }
 
@@ -393,7 +438,13 @@ fun UploadMedicalDocumentScreen(
                             selectedFile = selectedFile,
                             validationError = fileValidationError,
                             onChooseFile = { filePickerLauncher.launch("*/*") },
-                            onTakePhoto = { showCameraScanner = true },
+                            onTakePhoto = {
+                                if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                    openNativeCamera()
+                                } else {
+                                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                }
+                            },
                             onRemoveFile = {
                                 selectedFile = null
                                 fileValidationError = null
@@ -516,30 +567,6 @@ fun UploadMedicalDocumentScreen(
         }
     }
 
-    // Camera Document Scanner Modal
-    if (showCameraScanner) {
-        MedicalDocumentScannerModal(
-            onDismiss = { showCameraScanner = false },
-            onDocumentScanned = { fileName, _, bytes ->
-                val sizeBytes = bytes.size.toLong()
-                val details = SelectedFileDetails(
-                    fileName = fileName,
-                    fileType = "JPG",
-                    sizeBytes = sizeBytes,
-                    formattedSize = MedicalDocumentStore.formatFileSize(sizeBytes),
-                    bytes = bytes,
-                    isTooLarge = sizeBytes > 10L * 1024 * 1024,
-                    isUnsupported = false
-                )
-                selectedFile = details
-                fileValidationError = null
-                if (documentName.isBlank()) {
-                    documentName = "Scanned Medical Prescription"
-                }
-                documentType = "Prescription"
-            }
-        )
-    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -814,6 +841,8 @@ private fun Step1SelectDocumentView(
                 border = BorderStroke(1.dp, Color(0xFFD8CFBE)),
                 colors = CardDefaults.cardColors(containerColor = PureWhite)
             ) {
+                CapturedImagePreview(selectedFile = selectedFile)
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -900,6 +929,26 @@ private fun Step1SelectDocumentView(
             Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
         }
     }
+}
+
+@Composable
+private fun CapturedImagePreview(selectedFile: SelectedFileDetails) {
+    if (selectedFile.fileType == "PDF" || selectedFile.bytes == null) return
+    val bitmap = remember(selectedFile.bytes) {
+        BitmapFactory.decodeByteArray(selectedFile.bytes, 0, selectedFile.bytes.size)
+    } ?: return
+
+    Image(
+        bitmap = bitmap.asImageBitmap(),
+        contentDescription = "Selected document preview",
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp)
+            .padding(start = 14.dp, top = 14.dp, end = 14.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .border(BorderStroke(1.dp, Color(0xFFD8CFBE)), RoundedCornerShape(14.dp))
+    )
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -1688,5 +1737,26 @@ private fun parseUriToFileDetails(context: Context, uri: Uri): SelectedFileDetai
         bytes = fileBytes,
         isTooLarge = fileSize > maxBytes,
         isUnsupported = isUnsupported
+    )
+}
+
+private fun createCameraImageUri(context: Context): Uri {
+    val directory = File(context.cacheDir, "camera_documents").apply { mkdirs() }
+    val imageFile = File(directory, "Medical_Document_${System.currentTimeMillis()}.jpg")
+    return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
+}
+
+private fun parseCapturedPhotoToFileDetails(context: Context, uri: Uri): SelectedFileDetails {
+    val fileBytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: ByteArray(0)
+    val sizeBytes = fileBytes.size.toLong()
+    val fileName = "Medical_Document_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.jpg"
+    return SelectedFileDetails(
+        fileName = fileName,
+        fileType = "JPG",
+        sizeBytes = sizeBytes,
+        formattedSize = MedicalDocumentStore.formatFileSize(sizeBytes),
+        bytes = fileBytes,
+        isTooLarge = sizeBytes > 10L * 1024 * 1024,
+        isUnsupported = false
     )
 }
