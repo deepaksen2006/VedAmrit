@@ -1,6 +1,7 @@
 package com.example.vedaahar
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -41,6 +42,7 @@ import com.example.vedaahar.document.ui.MyMedicalDocumentsScreen
 import com.example.vedaahar.symptoms.SymptomsAnalysisModuleScreen
 import com.example.vedaahar.ui.theme.Cream
 import com.example.vedaahar.ui.theme.ForestGreen
+import com.google.firebase.auth.FirebaseAuth
 
 private object VedaAhaarRoute {
     const val Loading = "loading"
@@ -132,6 +134,31 @@ fun VedaAhaarNavHost(
         navController.navigate(state.protectedRoute) {
             popUpTo(0)
             launchSingleTop = true
+        }
+    }
+
+    fun logoutToWelcome() {
+        runCatching {
+            FirebaseAuth.getInstance().signOut()
+            preferences.edit()
+                .putBoolean(OnboardingPrefs.IsLoggedIn, false)
+                .putBoolean(OnboardingPrefs.ConsentCompleted, false)
+                .putBoolean(OnboardingPrefs.ProfileCompleted, false)
+                .putBoolean(OnboardingPrefs.DoshaTestCompleted, false)
+                .remove(OnboardingPrefs.PatientFullName)
+                .apply()
+            onboardingState = OnboardingState(loading = false)
+            dashboardTab = "Home"
+            navController.navigate(VedaAhaarRoute.Welcome) {
+                popUpTo(0)
+                launchSingleTop = true
+            }
+        }.onFailure {
+            Toast.makeText(
+                context,
+                "Unable to logout right now. Please try again.",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -572,7 +599,8 @@ fun VedaAhaarNavHost(
                     navController.navigate("${VedaAhaarRoute.MyMedicalDocuments}?docId=${doc.id}") {
                         launchSingleTop = true
                     }
-                }
+                },
+                onLogout = ::logoutToWelcome
             )
         }
 

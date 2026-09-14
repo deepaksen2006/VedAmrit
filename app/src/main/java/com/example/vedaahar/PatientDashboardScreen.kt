@@ -138,6 +138,49 @@ private fun patientDisplayName(fullName: String): String {
     return if (!clean.isNullOrBlank()) clean.replaceFirstChar { it.titlecase() } else "Deepak"
 }
 
+private val LogoutActionIcon: ImageVector = ImageVector.Builder(
+    name = "LogoutActionIcon",
+    defaultWidth = 24.dp,
+    defaultHeight = 24.dp,
+    viewportWidth = 24f,
+    viewportHeight = 24f
+).apply {
+    path(
+        fill = SolidColor(Color.Black),
+        pathFillType = PathFillType.NonZero
+    ) {
+        moveTo(10f, 3f)
+        horizontalLineTo(5f)
+        curveTo(3.9f, 3f, 3f, 3.9f, 3f, 5f)
+        verticalLineTo(19f)
+        curveTo(3f, 20.1f, 3.9f, 21f, 5f, 21f)
+        horizontalLineTo(10f)
+        curveTo(10.55f, 21f, 11f, 20.55f, 11f, 20f)
+        curveTo(11f, 19.45f, 10.55f, 19f, 10f, 19f)
+        horizontalLineTo(5f)
+        verticalLineTo(5f)
+        horizontalLineTo(10f)
+        curveTo(10.55f, 5f, 11f, 4.55f, 11f, 4f)
+        curveTo(11f, 3.45f, 10.55f, 3f, 10f, 3f)
+        close()
+        moveTo(16.59f, 7.59f)
+        curveTo(16.2f, 7.2f, 15.57f, 7.2f, 15.18f, 7.59f)
+        curveTo(14.79f, 7.98f, 14.79f, 8.61f, 15.18f, 9f)
+        lineTo(17.17f, 11f)
+        horizontalLineTo(9f)
+        curveTo(8.45f, 11f, 8f, 11.45f, 8f, 12f)
+        curveTo(8f, 12.55f, 8.45f, 13f, 9f, 13f)
+        horizontalLineTo(17.17f)
+        lineTo(15.18f, 15f)
+        curveTo(14.79f, 15.39f, 14.79f, 16.02f, 15.18f, 16.41f)
+        curveTo(15.57f, 16.8f, 16.2f, 16.8f, 16.59f, 16.41f)
+        lineTo(20.29f, 12.71f)
+        curveTo(20.68f, 12.32f, 20.68f, 11.68f, 20.29f, 11.29f)
+        lineTo(16.59f, 7.59f)
+        close()
+    }
+}.build()
+
 @Composable
 fun PatientDashboardScreen(
     modifier: Modifier = Modifier,
@@ -153,7 +196,8 @@ fun PatientDashboardScreen(
     onSymptomsAnalysisClick: () -> Unit = {},
     onUploadDocumentClick: () -> Unit = {},
     onViewAllDocumentsClick: () -> Unit = {},
-    onViewDocumentClick: (com.example.vedaahar.document.MedicalDocument) -> Unit = {}
+    onViewDocumentClick: (com.example.vedaahar.document.MedicalDocument) -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     var showNotificationDialog by remember { mutableStateOf(false) }
 
@@ -235,7 +279,8 @@ fun PatientDashboardScreen(
                         onViewDocumentsClick = onViewAllDocumentsClick,
                         onUploadDocumentClick = onUploadDocumentClick,
                         onRetakeDoshaClick = onRetakeDoshaClick,
-                        onDietPlanClick = onDietPlanClick
+                        onDietPlanClick = onDietPlanClick,
+                        onLogout = onLogout
                     )
                     else -> VedamritHomeContent(
                         greetingName = greetingName,
@@ -1082,9 +1127,50 @@ private fun ProfileTabContent(
     onViewDocumentsClick: () -> Unit,
     onUploadDocumentClick: () -> Unit,
     onRetakeDoshaClick: () -> Unit,
-    onDietPlanClick: () -> Unit
+    onDietPlanClick: () -> Unit,
+    onLogout: () -> Unit
 ) {
     val dosha = doshaResult?.profileName ?: "Kapha"
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = {
+                Text(
+                    text = "Logout",
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Bold,
+                    color = VedamritDarkGreen,
+                    fontSize = 20.sp
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to logout?",
+                    color = Color(0xFF334438),
+                    fontSize = 14.sp
+                )
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Cancel", color = Color(0xFF647568), fontWeight = FontWeight.Bold)
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        onLogout()
+                    }
+                ) {
+                    Text("Logout", color = Color(0xFFB3261E), fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = Color(0xFFFFFBF4),
+            shape = RoundedCornerShape(20.dp)
+        )
+    }
 
     Text(
         text = "Patient Profile",
@@ -1184,6 +1270,15 @@ private fun ProfileTabContent(
         icon = "🥗",
         onClick = onDietPlanClick
     )
+    Spacer(modifier = Modifier.height(12.dp))
+    Text(
+        text = "ACCOUNT",
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color(0xFF6B7B70),
+        letterSpacing = 2.sp
+    )
+    LogoutActionButton(onClick = { showLogoutDialog = true })
 }
 
 @Composable
@@ -1232,6 +1327,68 @@ private fun ProfileActionButton(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = null,
                 tint = VedamritDarkGreen,
+                modifier = Modifier.size(16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun LogoutActionButton(
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDF8)),
+        border = BorderStroke(1.dp, Color(0xFFF0D4D1))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(RoundedCornerShape(11.dp))
+                        .background(Color(0xFFFFEDEA)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = LogoutActionIcon,
+                        contentDescription = null,
+                        tint = Color(0xFFB3261E),
+                        modifier = Modifier.size(19.dp)
+                    )
+                }
+                Column {
+                    Text(
+                        text = "Logout",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.5.sp,
+                        color = Color(0xFFB3261E)
+                    )
+                    Text(
+                        text = "Sign out of this account",
+                        fontSize = 11.sp,
+                        color = Color(0xFF7B5E5A)
+                    )
+                }
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = Color(0xFFB3261E),
                 modifier = Modifier.size(16.dp)
             )
         }
@@ -1389,3 +1546,4 @@ private fun ShoppingCategoryCard(
         }
     }
 }
+
