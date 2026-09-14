@@ -45,6 +45,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,6 +72,11 @@ import com.example.vedaahar.prakriti.PrakritiOption
 import com.example.vedaahar.prakriti.PrakritiResult
 import com.example.vedaahar.prakriti.generatePrakritiResult
 import com.example.vedaahar.prakriti.prakritiQuestions
+import com.example.vedaahar.symptoms.SymptomFeature
+import com.example.vedaahar.symptoms.SymptomsAnalysisResult
+import com.example.vedaahar.symptoms.SymptomsAnalysisStore
+import com.example.vedaahar.symptoms.generateSymptomsAnalysisResult
+import com.example.vedaahar.symptoms.symptomFeatures
 import com.example.vedaahar.vikriti.VikritiDosha
 import com.example.vedaahar.vikriti.VikritiAnswerOption
 import com.example.vedaahar.vikriti.VikritiResult
@@ -86,6 +92,8 @@ import com.example.vedaahar.ui.theme.LightSage
 import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private val DietWarmCard = Color(0xFFFFFBF4)
 private val DietGreenGlow = Color(0xFF90C987)
@@ -444,6 +452,7 @@ fun DietAssessmentScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val savedDosha = remember { DoshaResultStore.current(context)?.profileName }
     val initialPrakriti = savedDosha?.takeIf { it.isNotBlank() } ?: prakriti
     var currentQuestionIndex by remember { mutableIntStateOf(0) }
@@ -459,8 +468,12 @@ fun DietAssessmentScreen(
     var agniQuestionIndex by remember { mutableIntStateOf(0) }
     var agniAnswers by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
     var agniResult by remember { mutableStateOf<AgniResult?>(null) }
+    var symptomsQuestionIndex by remember { mutableIntStateOf(0) }
+    var symptomsAnswers by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
+    var symptomsResult by remember { mutableStateOf<SymptomsAnalysisResult?>(null) }
     var showAyurvedicProfile by remember { mutableStateOf(false) }
     var showDietPlan by remember { mutableStateOf(false) }
+    var autoAdvanceLocked by remember { mutableStateOf(false) }
 
     if (!showDietPlan) {
         Surface(modifier = modifier.fillMaxSize(), color = Cream) {
@@ -492,9 +505,11 @@ fun DietAssessmentScreen(
                         ) {
                             Text(
                                 text = when {
-                                    showAgniIntro || agniStarted || agniResult != null -> "Agni Assessment"
-                                    showVikritiIntro || vikritiStarted || vikritiResult != null -> "Vikriti Assessment"
-                                    else -> "Prakriti Assessment"
+                                    assessmentResult == null -> "Prakriti Assessment"
+                                    vikritiResult == null -> "Vikriti Assessment"
+                                    agniResult == null -> "Agni Assessment"
+                                    symptomsResult == null -> "Symptoms Analysis"
+                                    else -> "Final Results"
                                 },
                                 color = ForestGreen,
                                 fontWeight = FontWeight.Bold,
@@ -514,136 +529,134 @@ fun DietAssessmentScreen(
                         val completedResult = assessmentResult
                         val completedVikriti = vikritiResult
                         val completedAgni = agniResult
+                        val completedSymptoms = symptomsResult
                         if (completedResult == null) {
                             PrakritiQuestionnaireContent(
                                 currentQuestionIndex = currentQuestionIndex,
                                 answers = answers,
                                 onAnswerSelected = { questionId, optionId ->
-                                    answers = answers + (questionId to optionId)
+                                    if (!autoAdvanceLocked) {
+                                        autoAdvanceLocked = true
+                                        val selectedIndex = currentQuestionIndex
+                                        val updatedAnswers = answers + (questionId to optionId)
+                                        answers = updatedAnswers
+                                        coroutineScope.launch {
+                                            delay(250)
+                                            if (currentQuestionIndex == selectedIndex) {
+                                                if (selectedIndex < prakritiQuestions.lastIndex) {
+                                                    currentQuestionIndex = selectedIndex + 1
+                                                } else if (updatedAnswers.size == prakritiQuestions.size) {
+                                                    assessmentResult = generatePrakritiResult(updatedAnswers)
+                                                }
+                                            }
+                                            autoAdvanceLocked = false
+                                        }
+                                    }
                                 },
                                 onPrevious = {
                                     currentQuestionIndex = (currentQuestionIndex - 1).coerceAtLeast(0)
-                                },
-                                onNext = {
-                                    if (currentQuestionIndex < prakritiQuestions.lastIndex) {
-                                        currentQuestionIndex += 1
-                                    } else if (answers.size == prakritiQuestions.size) {
-                                        assessmentResult = generatePrakritiResult(answers)
-                                    }
                                 }
-                            )
-                        } else if (completedVikriti == null && !showVikritiIntro) {
-                            PrakritiResultContent(
-                                result = completedResult,
-                                onRetake = {
-                                    answers = emptyMap()
-                                    currentQuestionIndex = 0
-                                    assessmentResult = null
-                                    showVikritiIntro = false
-                                    vikritiStarted = false
-                                    vikritiAnswers = emptyMap()
-                                    vikritiQuestionIndex = 0
-                                    vikritiResult = null
-                                    showAgniIntro = false
-                                    agniStarted = false
-                                    agniQuestionIndex = 0
-                                    agniAnswers = emptyMap()
-                                    agniResult = null
-                                    showAyurvedicProfile = false
-                                    showDietPlan = false
-                                },
-                                primaryActionText = "Continue to Vikriti Assessment",
-                                onViewDietPlan = { showVikritiIntro = true }
-                            )
-                        } else if (completedVikriti == null && !vikritiStarted) {
-                            VikritiIntroContent(
-                                onStart = { vikritiStarted = true }
                             )
                         } else if (completedVikriti == null) {
                             VikritiQuestionnaireContent(
                                 currentQuestionIndex = vikritiQuestionIndex,
                                 answers = vikritiAnswers,
                                 onAnswerSelected = { questionId, optionId ->
-                                    vikritiAnswers = vikritiAnswers + (questionId to optionId)
+                                    if (!autoAdvanceLocked) {
+                                        autoAdvanceLocked = true
+                                        val selectedIndex = vikritiQuestionIndex
+                                        val updatedAnswers = vikritiAnswers + (questionId to optionId)
+                                        vikritiAnswers = updatedAnswers
+                                        coroutineScope.launch {
+                                            delay(250)
+                                            if (vikritiQuestionIndex == selectedIndex) {
+                                                if (selectedIndex < vikritiQuestions.lastIndex) {
+                                                    vikritiQuestionIndex = selectedIndex + 1
+                                                } else if (updatedAnswers.size == vikritiQuestions.size) {
+                                                    val generatedVikriti = generateVikritiResult(
+                                                        answers = updatedAnswers,
+                                                        prakritiType = completedResult.prakritiType
+                                                    )
+                                                    VikritiResultStore.save(context, generatedVikriti)
+                                                    vikritiResult = generatedVikriti
+                                                }
+                                            }
+                                            autoAdvanceLocked = false
+                                        }
+                                    }
                                 },
                                 onPrevious = {
                                     vikritiQuestionIndex = (vikritiQuestionIndex - 1).coerceAtLeast(0)
-                                },
-                                onNext = {
-                                    if (vikritiQuestionIndex < vikritiQuestions.lastIndex) {
-                                        vikritiQuestionIndex += 1
-                                    } else if (vikritiAnswers.size == vikritiQuestions.size) {
-                                        val completedVikriti = generateVikritiResult(
-                                            answers = vikritiAnswers,
-                                            prakritiType = completedResult.prakritiType
-                                        )
-                                        VikritiResultStore.save(context, completedVikriti)
-                                        vikritiResult = completedVikriti
-                                    }
                                 }
-                            )
-                        } else if (completedAgni == null && !showAgniIntro) {
-                            VikritiResultContent(
-                                result = completedVikriti,
-                                onRetake = {
-                                    vikritiAnswers = emptyMap()
-                                    vikritiQuestionIndex = 0
-                                    vikritiStarted = false
-                                    showVikritiIntro = true
-                                    vikritiResult = null
-                                    showAgniIntro = false
-                                    agniStarted = false
-                                    agniAnswers = emptyMap()
-                                    agniQuestionIndex = 0
-                                    agniResult = null
-                                    showAyurvedicProfile = false
-                                },
-                                primaryActionText = "Continue to Agni Assessment",
-                                onViewProfile = { showAgniIntro = true }
-                            )
-                        } else if (completedAgni == null && !agniStarted) {
-                            AgniIntroContent(
-                                onStart = { agniStarted = true }
                             )
                         } else if (completedAgni == null) {
                             AgniQuestionnaireContent(
                                 currentQuestionIndex = agniQuestionIndex,
                                 answers = agniAnswers,
                                 onAnswerSelected = { questionId, optionId ->
-                                    agniAnswers = agniAnswers + (questionId to optionId)
+                                    if (!autoAdvanceLocked) {
+                                        autoAdvanceLocked = true
+                                        val selectedIndex = agniQuestionIndex
+                                        val updatedAnswers = agniAnswers + (questionId to optionId)
+                                        agniAnswers = updatedAnswers
+                                        coroutineScope.launch {
+                                            delay(250)
+                                            if (agniQuestionIndex == selectedIndex) {
+                                                if (selectedIndex < agniQuestions.lastIndex) {
+                                                    agniQuestionIndex = selectedIndex + 1
+                                                } else if (updatedAnswers.size == agniQuestions.size) {
+                                                    val generatedAgni = generateAgniResult(updatedAnswers)
+                                                    AgniResultStore.save(context, generatedAgni)
+                                                    agniResult = generatedAgni
+                                                }
+                                            }
+                                            autoAdvanceLocked = false
+                                        }
+                                    }
                                 },
                                 onPrevious = {
                                     agniQuestionIndex = (agniQuestionIndex - 1).coerceAtLeast(0)
-                                },
-                                onNext = {
-                                    if (agniQuestionIndex < agniQuestions.lastIndex) {
-                                        agniQuestionIndex += 1
-                                    } else if (agniAnswers.size == agniQuestions.size) {
-                                        val completedAgniResult = generateAgniResult(agniAnswers)
-                                        AgniResultStore.save(context, completedAgniResult)
-                                        AssessmentProfileStore.save(context, completedResult, completedVikriti, completedAgniResult)
-                                        agniResult = completedAgniResult
-                                    }
                                 }
                             )
-                        } else if (!showAyurvedicProfile) {
-                            AgniResultContent(
-                                result = completedAgni,
-                                onRetake = {
-                                    agniAnswers = emptyMap()
-                                    agniQuestionIndex = 0
-                                    agniStarted = false
-                                    showAgniIntro = true
-                                    agniResult = null
-                                    showAyurvedicProfile = false
+                        } else if (completedSymptoms == null) {
+                            AssessmentSymptomsQuestionnaireContent(
+                                currentQuestionIndex = symptomsQuestionIndex,
+                                answers = symptomsAnswers,
+                                onAnswerSelected = { key, value ->
+                                    if (!autoAdvanceLocked) {
+                                        autoAdvanceLocked = true
+                                        val selectedIndex = symptomsQuestionIndex
+                                        val updatedAnswers = symptomsAnswers + (key to value)
+                                        symptomsAnswers = updatedAnswers
+                                        coroutineScope.launch {
+                                            delay(250)
+                                            if (symptomsQuestionIndex == selectedIndex) {
+                                                if (selectedIndex < symptomFeatures.lastIndex) {
+                                                    symptomsQuestionIndex = selectedIndex + 1
+                                                } else if (updatedAnswers.size == symptomFeatures.size) {
+                                                    val completeInput = symptomFeatures.associate { feature ->
+                                                        feature.key to updatedAnswers.getValue(feature.key)
+                                                    }
+                                                    val generatedSymptoms = generateSymptomsAnalysisResult(completeInput)
+                                                    SymptomsAnalysisStore.save(context, generatedSymptoms)
+                                                    AssessmentProfileStore.save(context, completedResult, completedVikriti, completedAgni, generatedSymptoms)
+                                                    symptomsResult = generatedSymptoms
+                                                }
+                                            }
+                                            autoAdvanceLocked = false
+                                        }
+                                    }
                                 },
-                                onViewProfile = { showAyurvedicProfile = true }
+                                onPrevious = {
+                                    symptomsQuestionIndex = (symptomsQuestionIndex - 1).coerceAtLeast(0)
+                                }
                             )
                         } else {
                             AyurvedicProfileSummaryContent(
                                 prakritiResult = completedResult,
                                 vikritiResult = completedVikriti,
                                 agniResult = completedAgni,
+                                symptomsResult = completedSymptoms,
                                 onViewDietPlan = { showDietPlan = true }
                             )
                         }
@@ -855,14 +868,10 @@ private fun PrakritiQuestionnaireContent(
     currentQuestionIndex: Int,
     answers: Map<Int, String>,
     onAnswerSelected: (questionId: Int, optionId: String) -> Unit,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit
+    onPrevious: () -> Unit
 ) {
     val question = prakritiQuestions[currentQuestionIndex]
     val selectedOption = answers[question.id]
-    val isLastQuestion = currentQuestionIndex == prakritiQuestions.lastIndex
-    val canContinue = selectedOption != null
-    val canSubmit = answers.size == prakritiQuestions.size
 
     Card(
         modifier = Modifier
@@ -920,7 +929,7 @@ private fun PrakritiQuestionnaireContent(
             }
 
             LinearProgressIndicator(
-                progress = { (currentQuestionIndex + 1).toFloat() / prakritiQuestions.size.toFloat() },
+                progress = { answers.size.toFloat() / prakritiQuestions.size.toFloat() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
@@ -946,36 +955,17 @@ private fun PrakritiQuestionnaireContent(
                 )
             }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(
-                    onClick = onPrevious,
-                    enabled = currentQuestionIndex > 0,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp),
-                    shape = RoundedCornerShape(50),
-                    border = BorderStroke(1.dp, BeigeBorder),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
-                ) {
-                    Text("Previous", fontWeight = FontWeight.Bold)
-                }
-
-                Button(
-                    onClick = onNext,
-                    enabled = if (isLastQuestion) canSubmit else canContinue,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp),
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ForestGreen,
-                        contentColor = PureWhite,
-                        disabledContainerColor = SageGreen.copy(alpha = 0.32f),
-                        disabledContentColor = PureWhite.copy(alpha = 0.8f)
-                    )
-                ) {
-                    Text(if (isLastQuestion) "View My Prakriti" else "Next", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                }
+            OutlinedButton(
+                onClick = onPrevious,
+                enabled = currentQuestionIndex > 0,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(50),
+                border = BorderStroke(1.dp, BeigeBorder),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+            ) {
+                Text("Previous", fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -1144,14 +1134,10 @@ private fun VikritiQuestionnaireContent(
     currentQuestionIndex: Int,
     answers: Map<String, String>,
     onAnswerSelected: (questionId: String, optionId: String) -> Unit,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit
+    onPrevious: () -> Unit
 ) {
     val question = vikritiQuestions[currentQuestionIndex]
     val selectedOption = answers[question.id]
-    val isLastQuestion = currentQuestionIndex == vikritiQuestions.lastIndex
-    val canContinue = selectedOption != null
-    val canSubmit = answers.size == vikritiQuestions.size
 
     Card(
         modifier = Modifier
@@ -1228,36 +1214,17 @@ private fun VikritiQuestionnaireContent(
                 )
             }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(
-                    onClick = onPrevious,
-                    enabled = currentQuestionIndex > 0,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp),
-                    shape = RoundedCornerShape(50),
-                    border = BorderStroke(1.dp, BeigeBorder),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
-                ) {
-                    Text("Previous", fontWeight = FontWeight.Bold)
-                }
-
-                Button(
-                    onClick = onNext,
-                    enabled = if (isLastQuestion) canSubmit else canContinue,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp),
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ForestGreen,
-                        contentColor = PureWhite,
-                        disabledContainerColor = SageGreen.copy(alpha = 0.32f),
-                        disabledContentColor = PureWhite.copy(alpha = 0.8f)
-                    )
-                ) {
-                    Text(if (isLastQuestion) "View My Vikriti Result" else "Next", fontWeight = FontWeight.Bold, fontSize = 12.2.sp)
-                }
+            OutlinedButton(
+                onClick = onPrevious,
+                enabled = currentQuestionIndex > 0,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(50),
+                border = BorderStroke(1.dp, BeigeBorder),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+            ) {
+                Text("Previous", fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -1466,14 +1433,10 @@ private fun AgniQuestionnaireContent(
     currentQuestionIndex: Int,
     answers: Map<Int, String>,
     onAnswerSelected: (questionId: Int, optionId: String) -> Unit,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit
+    onPrevious: () -> Unit
 ) {
     val question = agniQuestions[currentQuestionIndex]
     val selectedOption = answers[question.id]
-    val isLastQuestion = currentQuestionIndex == agniQuestions.lastIndex
-    val canContinue = selectedOption != null
-    val canSubmit = answers.size == agniQuestions.size
 
     Card(
         modifier = Modifier
@@ -1550,36 +1513,17 @@ private fun AgniQuestionnaireContent(
                 )
             }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(
-                    onClick = onPrevious,
-                    enabled = currentQuestionIndex > 0,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp),
-                    shape = RoundedCornerShape(50),
-                    border = BorderStroke(1.dp, BeigeBorder),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
-                ) {
-                    Text("Previous", fontWeight = FontWeight.Bold)
-                }
-
-                Button(
-                    onClick = onNext,
-                    enabled = if (isLastQuestion) canSubmit else canContinue,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp),
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ForestGreen,
-                        contentColor = PureWhite,
-                        disabledContainerColor = SageGreen.copy(alpha = 0.32f),
-                        disabledContentColor = PureWhite.copy(alpha = 0.8f)
-                    )
-                ) {
-                    Text(if (isLastQuestion) "View My Agni Result" else "Next", fontWeight = FontWeight.Bold, fontSize = 12.2.sp)
-                }
+            OutlinedButton(
+                onClick = onPrevious,
+                enabled = currentQuestionIndex > 0,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(50),
+                border = BorderStroke(1.dp, BeigeBorder),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+            ) {
+                Text("Previous", fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -1693,10 +1637,153 @@ private fun AgniResultContent(
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
                 ) {
-                    Text("View Combined Result", fontWeight = FontWeight.Bold, fontSize = 12.2.sp)
+                    Text("View Profile", fontWeight = FontWeight.Bold, fontSize = 12.2.sp)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AssessmentSymptomsQuestionnaireContent(
+    currentQuestionIndex: Int,
+    answers: Map<String, Int>,
+    onAnswerSelected: (key: String, value: Int) -> Unit,
+    onPrevious: () -> Unit
+) {
+    val symptom = symptomFeatures[currentQuestionIndex]
+    val selectedValue = answers[symptom.key]
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(6.dp, RoundedCornerShape(24.dp), ambientColor = ForestGreen.copy(alpha = 0.08f)),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
+        border = BorderStroke(1.dp, BeigeBorder)
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text(
+                text = "Symptoms Analysis",
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 27.sp,
+                lineHeight = 32.sp,
+                color = DarkForestGreen
+            )
+            Text(
+                text = "Select the symptoms you are currently experiencing.",
+                fontSize = 12.5.sp,
+                lineHeight = 19.sp,
+                color = SoftBlueGray
+            )
+        }
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = PureWhite),
+        border = BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.8f))
+    ) {
+        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Question ${currentQuestionIndex + 1} of ${symptomFeatures.size}",
+                    color = ForestGreen,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${answers.size}/${symptomFeatures.size} answered",
+                    color = SageGreen,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            LinearProgressIndicator(
+                progress = { answers.size.toFloat() / symptomFeatures.size.toFloat() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(50)),
+                color = ForestGreen,
+                trackColor = LightSage
+            )
+
+            Text(
+                text = "Do you experience ${symptom.label}?",
+                color = DarkForestGreen,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 23.sp,
+                lineHeight = 29.sp
+            )
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                AssessmentSymptomAnswerCard(
+                    label = "No",
+                    selected = selectedValue == 0,
+                    onClick = { onAnswerSelected(symptom.key, 0) },
+                    modifier = Modifier.weight(1f)
+                )
+                AssessmentSymptomAnswerCard(
+                    label = "Yes",
+                    selected = selectedValue == 1,
+                    onClick = { onAnswerSelected(symptom.key, 1) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            OutlinedButton(
+                onClick = onPrevious,
+                enabled = currentQuestionIndex > 0,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(50),
+                border = BorderStroke(1.dp, BeigeBorder),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+            ) {
+                Text("Previous", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AssessmentSymptomAnswerCard(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .height(58.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(if (selected) DietMint else Color(0xFFFFFDF8))
+            .border(BorderStroke(if (selected) 1.7.dp else 1.dp, if (selected) ForestGreen else BeigeBorder), RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(22.dp)
+                .clip(CircleShape)
+                .background(if (selected) ForestGreen else PureWhite)
+                .border(BorderStroke(1.dp, if (selected) ForestGreen else BeigeBorder), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            if (selected) {
+                Icon(Icons.Filled.Check, contentDescription = null, tint = PureWhite, modifier = Modifier.size(14.dp))
+            }
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(label, color = DarkForestGreen, fontSize = 15.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -1722,6 +1809,7 @@ private fun AyurvedicProfileSummaryContent(
     prakritiResult: PrakritiResult,
     vikritiResult: VikritiResult,
     agniResult: AgniResult,
+    symptomsResult: SymptomsAnalysisResult,
     onViewDietPlan: () -> Unit
 ) {
     Card(
@@ -1738,8 +1826,9 @@ private fun AyurvedicProfileSummaryContent(
             ProfileSummaryCard("Vikriti", "Current Balance", vikritiResult.dominantDosha)
             VikritiSummaryScores(vikritiResult)
             ProfileSummaryCard("Agni", "Digestive Pattern", agniResult.displayResult)
+            SymptomsSummaryCard(symptomsResult.reportedSymptoms)
             Text(
-                text = "Prakriti represents your natural constitution, Vikriti represents your current state, and Agni reflects your digestive pattern. These results work together to shape your personalized diet guidance.",
+                text = "Prakriti represents your natural constitution, Vikriti represents your current state, Agni reflects your digestive pattern, and Symptoms Analysis records what you are experiencing now. These independent results work together to shape your final profile.",
                 color = SoftBlueGray,
                 fontSize = 13.sp,
                 lineHeight = 20.sp
@@ -1753,6 +1842,37 @@ private fun AyurvedicProfileSummaryContent(
                 colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
             ) {
                 Text("View My Personalized Diet", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SymptomsSummaryCard(reportedSymptoms: List<SymptomFeature>) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(PureWhite)
+            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(18.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text("Symptoms Analysis", color = DarkForestGreen, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+        Text("Reported Symptoms", color = SageGreen, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.1.sp)
+        if (reportedSymptoms.isEmpty()) {
+            Text("No symptoms were selected as Yes.", color = SoftBlueGray, fontSize = 13.sp, lineHeight = 19.sp)
+        } else {
+            reportedSymptoms.forEach { symptom ->
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(7.dp)
+                            .clip(CircleShape)
+                            .background(ForestGreen)
+                    )
+                    Text(symptom.label, color = DarkForestGreen, fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold)
+                }
             }
         }
     }

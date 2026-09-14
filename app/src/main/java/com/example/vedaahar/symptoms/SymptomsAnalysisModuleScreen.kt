@@ -36,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,6 +58,8 @@ import com.example.vedaahar.ui.theme.LightSage
 import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private val SymptomsWarmCard = Color(0xFFFFFBF4)
 private val SymptomsNoSoft = Color(0xFFF3F7F4)
@@ -69,9 +72,11 @@ fun SymptomsAnalysisModuleScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     var currentQuestionIndex by remember { mutableIntStateOf(0) }
     var answers by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
     var result by remember { mutableStateOf<SymptomsAnalysisResult?>(null) }
+    var autoAdvanceLocked by remember { mutableStateOf(false) }
 
     Surface(modifier = modifier.fillMaxSize(), color = Cream) {
         Box(
@@ -113,22 +118,31 @@ fun SymptomsAnalysisModuleScreen(
                             currentQuestionIndex = currentQuestionIndex,
                             answers = answers,
                             onAnswerSelected = { key, value ->
-                                answers = answers + (key to value)
+                                if (!autoAdvanceLocked) {
+                                    autoAdvanceLocked = true
+                                    val selectedIndex = currentQuestionIndex
+                                    val updatedAnswers = answers + (key to value)
+                                    answers = updatedAnswers
+                                    coroutineScope.launch {
+                                        delay(250)
+                                        if (currentQuestionIndex == selectedIndex) {
+                                            if (selectedIndex < symptomFeatures.lastIndex) {
+                                                currentQuestionIndex = selectedIndex + 1
+                                            } else if (updatedAnswers.size == symptomFeatures.size) {
+                                                val completeInput = symptomFeatures.associate { feature ->
+                                                    feature.key to updatedAnswers.getValue(feature.key)
+                                                }
+                                                val analysis = generateSymptomsAnalysisResult(completeInput)
+                                                SymptomsAnalysisStore.save(context, analysis)
+                                                result = analysis
+                                            }
+                                        }
+                                        autoAdvanceLocked = false
+                                    }
+                                }
                             },
                             onPrevious = {
                                 currentQuestionIndex = (currentQuestionIndex - 1).coerceAtLeast(0)
-                            },
-                            onNext = {
-                                if (currentQuestionIndex < symptomFeatures.lastIndex) {
-                                    currentQuestionIndex += 1
-                                } else if (answers.size == symptomFeatures.size) {
-                                    val completeInput = symptomFeatures.associate { feature ->
-                                        feature.key to answers.getValue(feature.key)
-                                    }
-                                    val analysis = generateSymptomsAnalysisResult(completeInput)
-                                    SymptomsAnalysisStore.save(context, analysis)
-                                    result = analysis
-                                }
                             }
                         )
                     } else {
@@ -153,14 +167,10 @@ private fun SymptomsInputContent(
     currentQuestionIndex: Int,
     answers: Map<String, Int>,
     onAnswerSelected: (key: String, value: Int) -> Unit,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit
+    onPrevious: () -> Unit
 ) {
     val symptom = symptomFeatures[currentQuestionIndex]
     val selectedValue = answers[symptom.key]
-    val isLastQuestion = currentQuestionIndex == symptomFeatures.lastIndex
-    val canContinue = selectedValue != null
-    val canSubmit = answers.size == symptomFeatures.size
 
     Card(
         modifier = Modifier
@@ -246,36 +256,17 @@ private fun SymptomsInputContent(
                 )
             }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(
-                    onClick = onPrevious,
-                    enabled = currentQuestionIndex > 0,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp),
-                    shape = RoundedCornerShape(50),
-                    border = BorderStroke(1.dp, BeigeBorder),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
-                ) {
-                    Text("Previous", fontWeight = FontWeight.Bold)
-                }
-
-                Button(
-                    onClick = onNext,
-                    enabled = if (isLastQuestion) canSubmit else canContinue,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp),
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ForestGreen,
-                        contentColor = PureWhite,
-                        disabledContainerColor = SageGreen.copy(alpha = 0.32f),
-                        disabledContentColor = PureWhite.copy(alpha = 0.8f)
-                    )
-                ) {
-                    Text(if (isLastQuestion) "Analyze Symptoms" else "Next", fontWeight = FontWeight.Bold, fontSize = 12.5.sp)
-                }
+            OutlinedButton(
+                onClick = onPrevious,
+                enabled = currentQuestionIndex > 0,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(50),
+                border = BorderStroke(1.dp, BeigeBorder),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+            ) {
+                Text("Previous", fontWeight = FontWeight.Bold)
             }
         }
     }

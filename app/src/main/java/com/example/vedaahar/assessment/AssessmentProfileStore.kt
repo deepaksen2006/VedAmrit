@@ -3,6 +3,7 @@ package com.example.vedaahar.assessment
 import android.content.Context
 import com.example.vedaahar.agni.AgniResult
 import com.example.vedaahar.prakriti.PrakritiResult
+import com.example.vedaahar.symptoms.SymptomsAnalysisResult
 import com.example.vedaahar.vikriti.VikritiResult
 import org.json.JSONArray
 import org.json.JSONObject
@@ -15,12 +16,14 @@ object AssessmentProfileStore {
         context: Context,
         prakritiResult: PrakritiResult,
         vikritiResult: VikritiResult,
-        agniResult: AgniResult
+        agniResult: AgniResult,
+        symptomsResult: SymptomsAnalysisResult? = null
     ) {
         val profile = JSONObject().apply {
             put("prakriti_result", prakritiResult.toJson())
             put("vikriti_result", vikritiResult.toJson())
             put("agni_result", agniResult.toJson())
+            symptomsResult?.let { put("symptoms_result", it.toJson()) }
         }
         context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
             .edit()
@@ -64,6 +67,15 @@ private fun AgniResult.toJson(): JSONObject {
         put("dominantAgni", dominantAgni)
         put("mixedAgniTypes", JSONArray(mixedAgniTypes))
         put("isMixed", isMixed)
+        put("completedAtMillis", completedAtMillis)
+    }
+}
+
+private fun SymptomsAnalysisResult.toJson(): JSONObject {
+    return JSONObject().apply {
+        put("symptoms", symptoms.toJsonObject())
+        put("reportedSymptoms", JSONArray(reportedSymptoms.map { it.key }))
+        put("possibleCondition", possibleCondition)
         put("completedAtMillis", completedAtMillis)
     }
 }
