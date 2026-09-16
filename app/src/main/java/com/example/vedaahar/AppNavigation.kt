@@ -33,7 +33,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.example.vedaahar.dosha.DoshaAssessmentRoute
 import com.example.vedaahar.dosha.DoshaResultStore
 import com.example.vedaahar.dosha.RetakeDoshaAssessmentRoute
 import com.example.vedaahar.doctor.ui.DoctorModuleRoute
@@ -84,9 +83,6 @@ private data class OnboardingState(
     val protectedRoute: String
         get() = when {
             !isLoggedIn -> VedaAhaarRoute.Welcome
-            !consentCompleted -> VedaAhaarRoute.ConsentPrivacy
-            !profileCompleted -> VedaAhaarRoute.PatientProfile
-            !doshaTestCompleted -> VedaAhaarRoute.DoshaAssessment
             else -> VedaAhaarRoute.PatientDashboard
         }
 }
@@ -197,22 +193,18 @@ fun VedaAhaarNavHost(
         val allowedRoute = onboardingState.protectedRoute
         val routeIsAllowed = currentRoute == allowedRoute ||
             (
-                onboardingState.profileCompleted &&
-                    onboardingState.consentCompleted &&
-                    onboardingState.doshaTestCompleted &&
-                    (
-                        currentRoute == VedaAhaarRoute.Shopping ||
-                            currentRoute == VedaAhaarRoute.DoshaRetake ||
-                            currentRoute == VedaAhaarRoute.DietAssessment ||
-                            currentRoute == VedaAhaarRoute.YogaMeditation ||
-                            currentRoute == VedaAhaarRoute.HealthReminder ||
-                            currentRoute == VedaAhaarRoute.IngredientBook ||
-                            currentRoute == VedaAhaarRoute.SymptomsAnalysis ||
-                            currentRoute == VedaAhaarRoute.CommunityCare ||
-                            currentRoute == VedaAhaarRoute.DoctorModule ||
-                            currentRoute.startsWith(VedaAhaarRoute.UploadMedicalDocument) ||
-                            currentRoute.startsWith(VedaAhaarRoute.MyMedicalDocuments)
-                        )
+                currentRoute == VedaAhaarRoute.DoshaAssessment ||
+                    currentRoute == VedaAhaarRoute.DoshaRetake ||
+                    currentRoute == VedaAhaarRoute.Shopping ||
+                    currentRoute == VedaAhaarRoute.DietAssessment ||
+                    currentRoute == VedaAhaarRoute.YogaMeditation ||
+                    currentRoute == VedaAhaarRoute.HealthReminder ||
+                    currentRoute == VedaAhaarRoute.IngredientBook ||
+                    currentRoute == VedaAhaarRoute.SymptomsAnalysis ||
+                    currentRoute == VedaAhaarRoute.CommunityCare ||
+                    currentRoute == VedaAhaarRoute.DoctorModule ||
+                    currentRoute.startsWith(VedaAhaarRoute.UploadMedicalDocument) ||
+                    currentRoute.startsWith(VedaAhaarRoute.MyMedicalDocuments)
                 )
 
         if (!routeIsAllowed) {
@@ -525,10 +517,12 @@ fun VedaAhaarNavHost(
                     )
             }
         ) {
-            DoshaAssessmentRoute(
-                onBackToWelcome = { navController.popBackStack() },
-                onContinueToDashboard = {
-                    navigateToAllowedRoute(persistAndUpdate(doshaTestCompleted = true))
+            SequentialDoshaTestScreen(
+                onBack = { navController.popBackStack() },
+                onGeneratePersonalizedDiet = {
+                    navController.navigate(VedaAhaarRoute.DietAssessment) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -571,7 +565,7 @@ fun VedaAhaarNavHost(
                     }
                 },
                 onRetakeDoshaClick = {
-                    navController.navigate(VedaAhaarRoute.DoshaRetake) {
+                    navController.navigate(VedaAhaarRoute.DoshaAssessment) {
                         launchSingleTop = true
                     }
                 },
@@ -723,7 +717,12 @@ fun VedaAhaarNavHost(
                 prakriti = currentDosha,
                 onBack = { navController.popBackStack() },
                 onEditPrakriti = {
-                    navController.navigate(VedaAhaarRoute.DoshaRetake) {
+                    navController.navigate(VedaAhaarRoute.DoshaAssessment) {
+                        launchSingleTop = true
+                    }
+                },
+                onTakeDoshaTest = {
+                    navController.navigate(VedaAhaarRoute.DoshaAssessment) {
                         launchSingleTop = true
                     }
                 }

@@ -108,13 +108,6 @@ fun PatientProfileScreen(
     val ageFocus = remember { FocusRequester() }
     val heightFocus = remember { FocusRequester() }
     val weightFocus = remember { FocusRequester() }
-    val phoneFocus = remember { FocusRequester() }
-    val address1Focus = remember { FocusRequester() }
-    val address2Focus = remember { FocusRequester() }
-    val cityFocus = remember { FocusRequester() }
-    val stateFocus = remember { FocusRequester() }
-    val postalFocus = remember { FocusRequester() }
-    val countryFocus = remember { FocusRequester() }
 
     LaunchedEffect(uiState.submitAttempts) {
         if (uiState.submitAttempts > 0 && !uiState.isFormValid) {
@@ -206,105 +199,6 @@ fun PatientProfileScreen(
                             uiState = uiState,
                             keyboardType = KeyboardType.Decimal,
                             focusRequester = weightFocus,
-                            imeAction = ImeAction.Next,
-                            onNext = { phoneFocus.requestFocus() },
-                            modifier = it
-                        )
-                    }
-
-                    ValidatedDropdown(
-                        field = PatientProfileField.BloodGroup,
-                        label = "Blood Group",
-                        value = uiState.bloodGroup,
-                        options = listOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"),
-                        placeholder = "Select blood group",
-                        onValueChange = { viewModel.updateField(PatientProfileField.BloodGroup, it) },
-                        uiState = uiState
-                    )
-
-                    ValidatedField(
-                        field = PatientProfileField.Phone,
-                        label = "Phone Number",
-                        value = uiState.phone,
-                        onValueChange = { viewModel.updateField(PatientProfileField.Phone, it.take(10)) },
-                        placeholder = "Enter your phone number",
-                        uiState = uiState,
-                        keyboardType = KeyboardType.Phone,
-                        focusRequester = phoneFocus,
-                        imeAction = ImeAction.Next,
-                        onNext = { address1Focus.requestFocus() }
-                    )
-
-                    ValidatedField(
-                        field = PatientProfileField.Address1,
-                        label = "Address Line 1",
-                        value = uiState.address1,
-                        onValueChange = { viewModel.updateField(PatientProfileField.Address1, it) },
-                        placeholder = "House number, street, or area",
-                        uiState = uiState,
-                        focusRequester = address1Focus,
-                        imeAction = ImeAction.Next,
-                        onNext = { address2Focus.requestFocus() }
-                    )
-
-                    OptionalField(
-                        field = PatientProfileField.Address2,
-                        label = "Address Line 2",
-                        value = uiState.address2,
-                        onValueChange = { viewModel.updateField(PatientProfileField.Address2, it) },
-                        placeholder = "Landmark, apartment, suite, etc.",
-                        focusRequester = address2Focus,
-                        imeAction = ImeAction.Next,
-                        onNext = { cityFocus.requestFocus() }
-                    )
-
-                    ResponsivePair {
-                        ValidatedField(
-                            field = PatientProfileField.City,
-                            label = "City",
-                            value = uiState.city,
-                            onValueChange = { viewModel.updateField(PatientProfileField.City, it) },
-                            placeholder = "Enter your city",
-                            uiState = uiState,
-                            focusRequester = cityFocus,
-                            imeAction = ImeAction.Next,
-                            onNext = { stateFocus.requestFocus() },
-                            modifier = it
-                        )
-                        ValidatedField(
-                            field = PatientProfileField.State,
-                            label = "State",
-                            value = uiState.state,
-                            onValueChange = { viewModel.updateField(PatientProfileField.State, it) },
-                            placeholder = "Enter your state",
-                            uiState = uiState,
-                            focusRequester = stateFocus,
-                            imeAction = ImeAction.Next,
-                            onNext = { postalFocus.requestFocus() },
-                            modifier = it
-                        )
-                    }
-
-                    ResponsivePair {
-                        OptionalField(
-                            field = PatientProfileField.PostalCode,
-                            label = "Postal Code",
-                            value = uiState.postalCode,
-                            onValueChange = { viewModel.updateField(PatientProfileField.PostalCode, it) },
-                            placeholder = "Enter your postal code",
-                            keyboardType = KeyboardType.Number,
-                            focusRequester = postalFocus,
-                            imeAction = ImeAction.Next,
-                            onNext = { countryFocus.requestFocus() },
-                            modifier = it
-                        )
-                        OptionalField(
-                            field = PatientProfileField.Country,
-                            label = "Country",
-                            value = uiState.country,
-                            onValueChange = { viewModel.updateField(PatientProfileField.Country, it) },
-                            placeholder = "India",
-                            focusRequester = countryFocus,
                             imeAction = ImeAction.Done,
                             onDone = { focusManager.clearFocus() },
                             modifier = it
@@ -334,11 +228,7 @@ private fun scrollTargetFor(field: PatientProfileField?): Int {
         PatientProfileField.FullName -> 0
         PatientProfileField.Age, PatientProfileField.Gender -> 160
         PatientProfileField.Height, PatientProfileField.Weight -> 300
-        PatientProfileField.BloodGroup -> 420
-        PatientProfileField.Phone -> 540
-        PatientProfileField.Address1 -> 660
-        PatientProfileField.City, PatientProfileField.State -> 900
-        else -> 0
+        null -> 0
     }
 }
 

@@ -10,15 +10,7 @@ enum class PatientProfileField {
     Age,
     Gender,
     Height,
-    Weight,
-    BloodGroup,
-    Phone,
-    Address1,
-    Address2,
-    City,
-    State,
-    PostalCode,
-    Country
+    Weight
 }
 
 data class PatientProfileUiState(
@@ -27,14 +19,6 @@ data class PatientProfileUiState(
     val gender: String = "",
     val height: String = "",
     val weight: String = "",
-    val bloodGroup: String = "",
-    val phone: String = "",
-    val address1: String = "",
-    val address2: String = "",
-    val city: String = "",
-    val state: String = "",
-    val postalCode: String = "",
-    val country: String = "India",
     val touchedFields: Set<PatientProfileField> = emptySet(),
     val submitAttempts: Int = 0
 ) {
@@ -44,12 +28,7 @@ data class PatientProfileUiState(
         PatientProfileField.Age,
         PatientProfileField.Gender,
         PatientProfileField.Height,
-        PatientProfileField.Weight,
-        PatientProfileField.BloodGroup,
-        PatientProfileField.Phone,
-        PatientProfileField.Address1,
-        PatientProfileField.City,
-        PatientProfileField.State
+        PatientProfileField.Weight
     )
     val isFormValid: Boolean = requiredFields.none { errors.containsKey(it) }
     val firstInvalidField: PatientProfileField? = requiredFields.firstOrNull { errors.containsKey(it) }
@@ -69,14 +48,6 @@ data class PatientProfileUiState(
             PatientProfileField.Gender -> gender
             PatientProfileField.Height -> height
             PatientProfileField.Weight -> weight
-            PatientProfileField.BloodGroup -> bloodGroup
-            PatientProfileField.Phone -> phone
-            PatientProfileField.Address1 -> address1
-            PatientProfileField.Address2 -> address2
-            PatientProfileField.City -> city
-            PatientProfileField.State -> state
-            PatientProfileField.PostalCode -> postalCode
-            PatientProfileField.Country -> country
         }
     }
 }
@@ -95,14 +66,6 @@ class PatientProfileViewModel : ViewModel() {
                 PatientProfileField.Gender -> state.copy(gender = sanitized, touchedFields = touched)
                 PatientProfileField.Height -> state.copy(height = sanitized, touchedFields = touched)
                 PatientProfileField.Weight -> state.copy(weight = sanitized, touchedFields = touched)
-                PatientProfileField.BloodGroup -> state.copy(bloodGroup = sanitized, touchedFields = touched)
-                PatientProfileField.Phone -> state.copy(phone = sanitized, touchedFields = touched)
-                PatientProfileField.Address1 -> state.copy(address1 = sanitized, touchedFields = touched)
-                PatientProfileField.Address2 -> state.copy(address2 = sanitized, touchedFields = touched)
-                PatientProfileField.City -> state.copy(city = sanitized, touchedFields = touched)
-                PatientProfileField.State -> state.copy(state = sanitized, touchedFields = touched)
-                PatientProfileField.PostalCode -> state.copy(postalCode = sanitized, touchedFields = touched)
-                PatientProfileField.Country -> state.copy(country = sanitized, touchedFields = touched)
             }
         }
     }
@@ -122,12 +85,9 @@ class PatientProfileViewModel : ViewModel() {
 
     private fun sanitize(field: PatientProfileField, value: String): String {
         return when (field) {
-            PatientProfileField.Age,
-            PatientProfileField.Phone,
-            PatientProfileField.PostalCode -> value.filter(Char::isDigit)
+            PatientProfileField.Age -> value.filter(Char::isDigit)
             PatientProfileField.Height,
             PatientProfileField.Weight -> value.filter { it.isDigit() || it == '.' }.take(6)
-            PatientProfileField.BloodGroup -> value.uppercase().replace(" ", "")
             else -> value
         }
     }
@@ -135,8 +95,6 @@ class PatientProfileViewModel : ViewModel() {
 
 object PatientProfileValidators {
     private val nameRegex = Regex("^[A-Za-z ]+$")
-    private val cityStateRegex = Regex("^[A-Za-z ]+$")
-    private val bloodGroups = setOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
 
     fun validate(state: PatientProfileUiState): Map<PatientProfileField, String> {
         val errors = mutableMapOf<PatientProfileField, String>()
@@ -155,21 +113,6 @@ object PatientProfileValidators {
         }
         if (state.weight.toFloatOrNull()?.let { it in 10f..300f } != true) {
             errors[PatientProfileField.Weight] = "Enter valid weight"
-        }
-        if (state.bloodGroup !in bloodGroups) {
-            errors[PatientProfileField.BloodGroup] = "Select valid blood group"
-        }
-        if (!Regex("^\\d{10}$").matches(state.phone)) {
-            errors[PatientProfileField.Phone] = "Enter valid phone number"
-        }
-        if (state.address1.trim().length < 5) {
-            errors[PatientProfileField.Address1] = "Enter complete address"
-        }
-        if (!cityStateRegex.matches(state.city.trim())) {
-            errors[PatientProfileField.City] = "Enter valid city"
-        }
-        if (!cityStateRegex.matches(state.state.trim())) {
-            errors[PatientProfileField.State] = "Enter valid state"
         }
 
         return errors

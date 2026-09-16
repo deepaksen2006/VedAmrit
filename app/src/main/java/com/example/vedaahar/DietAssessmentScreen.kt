@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -70,6 +71,7 @@ import com.example.vedaahar.dosha.DoshaResultStore
 import com.example.vedaahar.prakriti.PrakritiDosha
 import com.example.vedaahar.prakriti.PrakritiOption
 import com.example.vedaahar.prakriti.PrakritiResult
+import com.example.vedaahar.prakriti.PrakritiResultStore
 import com.example.vedaahar.prakriti.generatePrakritiResult
 import com.example.vedaahar.prakriti.prakritiQuestions
 import com.example.vedaahar.symptoms.SymptomFeature
@@ -103,6 +105,21 @@ private val DietDangerSoft = Color(0xFFFFEFE9)
 private val DietDanger = Color(0xFFB85A45)
 private val DietPitta = Color(0xFFE65100)
 private val DietKapha = Color(0xFF2E7D32)
+
+private enum class DoshaHubAssessment {
+    Prakriti,
+    Vikriti,
+    Agni
+}
+
+private enum class DoshaSequentialStep {
+    PrakritiQuestions,
+    PrakritiResult,
+    VikritiQuestions,
+    VikritiResult,
+    AgniQuestions,
+    CompleteResult
+}
 
 data class DietResult(
     val prakriti: String,
@@ -445,236 +462,576 @@ private fun getDietPlanForConstitution(prakriti: String): DietResult {
 }
 
 @Composable
-fun DietAssessmentScreen(
-    prakriti: String = "Vata-Pitta",
+fun DoshaTestHubScreen(
     onBack: () -> Unit,
-    onEditPrakriti: () -> Unit = {},
+    onGeneratePersonalizedDiet: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val savedDosha = remember { DoshaResultStore.current(context)?.profileName }
-    val initialPrakriti = savedDosha?.takeIf { it.isNotBlank() } ?: prakriti
+    var selectedAssessment by remember { mutableStateOf<DoshaHubAssessment?>(null) }
+    var showCombinedResult by remember { mutableStateOf(false) }
     var currentQuestionIndex by remember { mutableIntStateOf(0) }
     var answers by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
-    var assessmentResult by remember { mutableStateOf<PrakritiResult?>(null) }
-    var showVikritiIntro by remember { mutableStateOf(false) }
-    var vikritiStarted by remember { mutableStateOf(false) }
+    var assessmentResult by remember { mutableStateOf(PrakritiResultStore.current(context)) }
     var vikritiQuestionIndex by remember { mutableIntStateOf(0) }
     var vikritiAnswers by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-    var vikritiResult by remember { mutableStateOf<VikritiResult?>(null) }
-    var showAgniIntro by remember { mutableStateOf(false) }
-    var agniStarted by remember { mutableStateOf(false) }
+    var vikritiResult by remember { mutableStateOf(VikritiResultStore.current(context)) }
     var agniQuestionIndex by remember { mutableIntStateOf(0) }
     var agniAnswers by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
-    var agniResult by remember { mutableStateOf<AgniResult?>(null) }
-    var symptomsQuestionIndex by remember { mutableIntStateOf(0) }
-    var symptomsAnswers by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
-    var symptomsResult by remember { mutableStateOf<SymptomsAnalysisResult?>(null) }
-    var showAyurvedicProfile by remember { mutableStateOf(false) }
-    var showDietPlan by remember { mutableStateOf(false) }
+    var agniResult by remember { mutableStateOf(AgniResultStore.current(context)) }
     var autoAdvanceLocked by remember { mutableStateOf(false) }
 
-    if (!showDietPlan) {
-        Surface(modifier = modifier.fillMaxSize(), color = Cream) {
-            Box(
+    fun saveProfileWhenComplete(
+        prakriti: PrakritiResult? = assessmentResult,
+        vikriti: VikritiResult? = vikritiResult,
+        agni: AgniResult? = agniResult
+    ) {
+        if (prakriti != null && vikriti != null && agni != null) {
+            AssessmentProfileStore.save(context, prakriti, vikriti, agni)
+        }
+    }
+
+    Surface(modifier = modifier.fillMaxSize(), color = Cream) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(listOf(Color(0xFFFFF9EE), Cream, LightSage.copy(alpha = 0.55f))))
+        ) {
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Brush.verticalGradient(listOf(Color(0xFFFFF9EE), Cream, LightSage.copy(alpha = 0.55f))))
+                    .statusBarsPadding()
             ) {
-                Column(
+                Row(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .statusBarsPadding()
+                        .fillMaxWidth()
+                        .padding(horizontal = 18.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    BackButton(
+                        onClick = {
+                            when {
+                                showCombinedResult -> showCombinedResult = false
+                                selectedAssessment == null -> onBack()
+                                else -> selectedAssessment = null
+                            }
+                        },
+                        text = if (selectedAssessment == null && !showCombinedResult) "Dashboard" else "Dosha Test"
+                    )
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 18.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                            .clip(RoundedCornerShape(50))
+                            .background(DietMint)
+                            .border(BorderStroke(1.dp, ForestGreen.copy(alpha = 0.4f)), RoundedCornerShape(50))
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        BackButton(onClick = onBack, text = "Dashboard")
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(50))
-                                .background(DietMint)
-                                .border(BorderStroke(1.dp, ForestGreen.copy(alpha = 0.4f)), RoundedCornerShape(50))
-                                .padding(horizontal = 12.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = when {
-                                    assessmentResult == null -> "Prakriti Assessment"
-                                    vikritiResult == null -> "Vikriti Assessment"
-                                    agniResult == null -> "Agni Assessment"
-                                    symptomsResult == null -> "Symptoms Analysis"
-                                    else -> "Final Results"
-                                },
-                                color = ForestGreen,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp,
-                                letterSpacing = 1.1.sp
-                            )
-                        }
+                        Text(
+                            text = when (selectedAssessment) {
+                                DoshaHubAssessment.Prakriti -> "Prakriti Assessment"
+                                DoshaHubAssessment.Vikriti -> "Vikriti Assessment"
+                                DoshaHubAssessment.Agni -> "Agni Assessment"
+                                null -> if (showCombinedResult) "Complete Result" else "Dosha Test"
+                            },
+                            color = ForestGreen,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            letterSpacing = 1.1.sp
+                        )
                     }
+                }
 
-                    Column(
-                        modifier = Modifier
-                            .verticalScroll(rememberScrollState())
-                            .weight(1f)
-                            .padding(horizontal = 18.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        val completedResult = assessmentResult
-                        val completedVikriti = vikritiResult
-                        val completedAgni = agniResult
-                        val completedSymptoms = symptomsResult
-                        if (completedResult == null) {
-                            PrakritiQuestionnaireContent(
-                                currentQuestionIndex = currentQuestionIndex,
-                                answers = answers,
-                                onAnswerSelected = { questionId, optionId ->
-                                    if (!autoAdvanceLocked) {
-                                        autoAdvanceLocked = true
-                                        val selectedIndex = currentQuestionIndex
-                                        val updatedAnswers = answers + (questionId to optionId)
-                                        answers = updatedAnswers
-                                        coroutineScope.launch {
-                                            delay(250)
-                                            if (currentQuestionIndex == selectedIndex) {
-                                                if (selectedIndex < prakritiQuestions.lastIndex) {
-                                                    currentQuestionIndex = selectedIndex + 1
-                                                } else if (updatedAnswers.size == prakritiQuestions.size) {
-                                                    assessmentResult = generatePrakritiResult(updatedAnswers)
-                                                }
-                                            }
-                                            autoAdvanceLocked = false
-                                        }
-                                    }
-                                },
-                                onPrevious = {
-                                    currentQuestionIndex = (currentQuestionIndex - 1).coerceAtLeast(0)
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .weight(1f)
+                        .padding(horizontal = 18.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    if (showCombinedResult) {
+                        CombinedAssessmentResultContent(
+                            prakritiResult = assessmentResult,
+                            vikritiResult = vikritiResult,
+                            agniResult = agniResult,
+                            onGeneratePersonalizedDiet = {
+                                saveProfileWhenComplete()
+                                onGeneratePersonalizedDiet()
+                            }
+                        )
+                    } else {
+                        when (selectedAssessment) {
+                            null -> DoshaTestHubContent(
+                                prakritiResult = assessmentResult,
+                                vikritiResult = vikritiResult,
+                                agniResult = agniResult,
+                                prakritiInProgress = answers.isNotEmpty(),
+                                vikritiInProgress = vikritiAnswers.isNotEmpty(),
+                                agniInProgress = agniAnswers.isNotEmpty(),
+                                onSelect = { selectedAssessment = it },
+                                onViewCompleteResult = {
+                                    saveProfileWhenComplete()
+                                    showCombinedResult = true
                                 }
                             )
-                        } else if (completedVikriti == null) {
-                            VikritiQuestionnaireContent(
-                                currentQuestionIndex = vikritiQuestionIndex,
-                                answers = vikritiAnswers,
-                                onAnswerSelected = { questionId, optionId ->
-                                    if (!autoAdvanceLocked) {
-                                        autoAdvanceLocked = true
-                                        val selectedIndex = vikritiQuestionIndex
-                                        val updatedAnswers = vikritiAnswers + (questionId to optionId)
-                                        vikritiAnswers = updatedAnswers
-                                        coroutineScope.launch {
-                                            delay(250)
-                                            if (vikritiQuestionIndex == selectedIndex) {
-                                                if (selectedIndex < vikritiQuestions.lastIndex) {
-                                                    vikritiQuestionIndex = selectedIndex + 1
-                                                } else if (updatedAnswers.size == vikritiQuestions.size) {
-                                                    val generatedVikriti = generateVikritiResult(
-                                                        answers = updatedAnswers,
-                                                        prakritiType = completedResult.prakritiType
-                                                    )
-                                                    VikritiResultStore.save(context, generatedVikriti)
-                                                    vikritiResult = generatedVikriti
-                                                }
-                                            }
-                                            autoAdvanceLocked = false
-                                        }
-                                    }
-                                },
-                                onPrevious = {
-                                    vikritiQuestionIndex = (vikritiQuestionIndex - 1).coerceAtLeast(0)
-                                }
-                            )
-                        } else if (completedAgni == null) {
-                            AgniQuestionnaireContent(
-                                currentQuestionIndex = agniQuestionIndex,
-                                answers = agniAnswers,
-                                onAnswerSelected = { questionId, optionId ->
-                                    if (!autoAdvanceLocked) {
-                                        autoAdvanceLocked = true
-                                        val selectedIndex = agniQuestionIndex
-                                        val updatedAnswers = agniAnswers + (questionId to optionId)
-                                        agniAnswers = updatedAnswers
-                                        coroutineScope.launch {
-                                            delay(250)
-                                            if (agniQuestionIndex == selectedIndex) {
-                                                if (selectedIndex < agniQuestions.lastIndex) {
-                                                    agniQuestionIndex = selectedIndex + 1
-                                                } else if (updatedAnswers.size == agniQuestions.size) {
-                                                    val generatedAgni = generateAgniResult(updatedAnswers)
-                                                    AgniResultStore.save(context, generatedAgni)
-                                                    agniResult = generatedAgni
-                                                }
-                                            }
-                                            autoAdvanceLocked = false
-                                        }
-                                    }
-                                },
-                                onPrevious = {
-                                    agniQuestionIndex = (agniQuestionIndex - 1).coerceAtLeast(0)
-                                }
-                            )
-                        } else if (completedSymptoms == null) {
-                            AssessmentSymptomsQuestionnaireContent(
-                                currentQuestionIndex = symptomsQuestionIndex,
-                                answers = symptomsAnswers,
-                                onAnswerSelected = { key, value ->
-                                    if (!autoAdvanceLocked) {
-                                        autoAdvanceLocked = true
-                                        val selectedIndex = symptomsQuestionIndex
-                                        val updatedAnswers = symptomsAnswers + (key to value)
-                                        symptomsAnswers = updatedAnswers
-                                        coroutineScope.launch {
-                                            delay(250)
-                                            if (symptomsQuestionIndex == selectedIndex) {
-                                                if (selectedIndex < symptomFeatures.lastIndex) {
-                                                    symptomsQuestionIndex = selectedIndex + 1
-                                                } else if (updatedAnswers.size == symptomFeatures.size) {
-                                                    val completeInput = symptomFeatures.associate { feature ->
-                                                        feature.key to updatedAnswers.getValue(feature.key)
+
+                            DoshaHubAssessment.Prakriti -> {
+                            val completedResult = assessmentResult
+                            if (completedResult == null) {
+                                PrakritiQuestionnaireContent(
+                                    currentQuestionIndex = currentQuestionIndex,
+                                    answers = answers,
+                                    onAnswerSelected = { questionId, optionId ->
+                                        if (!autoAdvanceLocked) {
+                                            autoAdvanceLocked = true
+                                            val selectedIndex = currentQuestionIndex
+                                            val updatedAnswers = answers + (questionId to optionId)
+                                            answers = updatedAnswers
+                                            coroutineScope.launch {
+                                                delay(250)
+                                                if (currentQuestionIndex == selectedIndex) {
+                                                    if (selectedIndex < prakritiQuestions.lastIndex) {
+                                                        currentQuestionIndex = selectedIndex + 1
+                                                    } else if (updatedAnswers.size == prakritiQuestions.size) {
+                                                        val generatedPrakriti = generatePrakritiResult(updatedAnswers)
+                                                        PrakritiResultStore.save(context, generatedPrakriti)
+                                                        assessmentResult = generatedPrakriti
+                                                        saveProfileWhenComplete(prakriti = generatedPrakriti)
+                                                        selectedAssessment = null
                                                     }
-                                                    val generatedSymptoms = generateSymptomsAnalysisResult(completeInput)
-                                                    SymptomsAnalysisStore.save(context, generatedSymptoms)
-                                                    AssessmentProfileStore.save(context, completedResult, completedVikriti, completedAgni, generatedSymptoms)
-                                                    symptomsResult = generatedSymptoms
                                                 }
+                                                autoAdvanceLocked = false
                                             }
-                                            autoAdvanceLocked = false
                                         }
+                                    },
+                                    onPrevious = {
+                                        currentQuestionIndex = (currentQuestionIndex - 1).coerceAtLeast(0)
                                     }
-                                },
-                                onPrevious = {
-                                    symptomsQuestionIndex = (symptomsQuestionIndex - 1).coerceAtLeast(0)
-                                }
-                            )
-                        } else {
-                            AyurvedicProfileSummaryContent(
-                                prakritiResult = completedResult,
-                                vikritiResult = completedVikriti,
-                                agniResult = completedAgni,
-                                symptomsResult = completedSymptoms,
-                                onViewDietPlan = { showDietPlan = true }
-                            )
+                                )
+                            } else {
+                                PrakritiResultContent(
+                                    result = completedResult,
+                                    onRetake = {
+                                        answers = emptyMap()
+                                        currentQuestionIndex = 0
+                                        assessmentResult = null
+                                    },
+                                    primaryActionText = "Return to Dosha Test",
+                                    onViewDietPlan = { selectedAssessment = null }
+                                )
+                            }
                         }
-                        Spacer(modifier = Modifier.height(32.dp).navigationBarsPadding())
+
+                            DoshaHubAssessment.Vikriti -> {
+                            val completedVikriti = vikritiResult
+                            if (completedVikriti == null) {
+                                VikritiQuestionnaireContent(
+                                    currentQuestionIndex = vikritiQuestionIndex,
+                                    answers = vikritiAnswers,
+                                    onAnswerSelected = { questionId, optionId ->
+                                        if (!autoAdvanceLocked) {
+                                            autoAdvanceLocked = true
+                                            val selectedIndex = vikritiQuestionIndex
+                                            val updatedAnswers = vikritiAnswers + (questionId to optionId)
+                                            vikritiAnswers = updatedAnswers
+                                            coroutineScope.launch {
+                                                delay(250)
+                                                if (vikritiQuestionIndex == selectedIndex) {
+                                                    if (selectedIndex < vikritiQuestions.lastIndex) {
+                                                        vikritiQuestionIndex = selectedIndex + 1
+                                                    } else if (updatedAnswers.size == vikritiQuestions.size) {
+                                                        val generatedVikriti = generateVikritiResult(
+                                                            answers = updatedAnswers,
+                                                            prakritiType = assessmentResult?.prakritiType ?: "Not assessed"
+                                                        )
+                                                        VikritiResultStore.save(context, generatedVikriti)
+                                                        vikritiResult = generatedVikriti
+                                                        saveProfileWhenComplete(vikriti = generatedVikriti)
+                                                        selectedAssessment = null
+                                                    }
+                                                }
+                                                autoAdvanceLocked = false
+                                            }
+                                        }
+                                    },
+                                    onPrevious = {
+                                        vikritiQuestionIndex = (vikritiQuestionIndex - 1).coerceAtLeast(0)
+                                    }
+                                )
+                            } else {
+                                VikritiResultContent(
+                                    result = completedVikriti,
+                                    onRetake = {
+                                        vikritiAnswers = emptyMap()
+                                        vikritiQuestionIndex = 0
+                                        vikritiResult = null
+                                    },
+                                    primaryActionText = "Return to Dosha Test",
+                                    onViewProfile = { selectedAssessment = null }
+                                )
+                            }
+                        }
+
+                            DoshaHubAssessment.Agni -> {
+                            val completedAgni = agniResult
+                            if (completedAgni == null) {
+                                AgniQuestionnaireContent(
+                                    currentQuestionIndex = agniQuestionIndex,
+                                    answers = agniAnswers,
+                                    onAnswerSelected = { questionId, optionId ->
+                                        if (!autoAdvanceLocked) {
+                                            autoAdvanceLocked = true
+                                            val selectedIndex = agniQuestionIndex
+                                            val updatedAnswers = agniAnswers + (questionId to optionId)
+                                            agniAnswers = updatedAnswers
+                                            coroutineScope.launch {
+                                                delay(250)
+                                                if (agniQuestionIndex == selectedIndex) {
+                                                    if (selectedIndex < agniQuestions.lastIndex) {
+                                                        agniQuestionIndex = selectedIndex + 1
+                                                    } else if (updatedAnswers.size == agniQuestions.size) {
+                                                        val generatedAgni = generateAgniResult(updatedAnswers)
+                                                        AgniResultStore.save(context, generatedAgni)
+                                                        agniResult = generatedAgni
+                                                        saveProfileWhenComplete(agni = generatedAgni)
+                                                        selectedAssessment = null
+                                                    }
+                                                }
+                                                autoAdvanceLocked = false
+                                            }
+                                        }
+                                    },
+                                    onPrevious = {
+                                        agniQuestionIndex = (agniQuestionIndex - 1).coerceAtLeast(0)
+                                    }
+                                )
+                            } else {
+                                AgniResultContent(
+                                    result = completedAgni,
+                                    onRetake = {
+                                        agniAnswers = emptyMap()
+                                        agniQuestionIndex = 0
+                                        agniResult = null
+                                    },
+                                    primaryActionText = "Return to Dosha Test",
+                                    onViewProfile = { selectedAssessment = null }
+                                )
+                            }
+                        }
+                        }
                     }
+                    Spacer(modifier = Modifier.height(32.dp).navigationBarsPadding())
                 }
             }
         }
+    }
+}
+
+@Composable
+fun SequentialDoshaTestScreen(
+    onBack: () -> Unit,
+    onGeneratePersonalizedDiet: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var currentQuestionIndex by remember { mutableIntStateOf(0) }
+    var answers by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
+    var prakritiResult by remember { mutableStateOf(PrakritiResultStore.current(context)) }
+    var vikritiQuestionIndex by remember { mutableIntStateOf(0) }
+    var vikritiAnswers by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var vikritiResult by remember { mutableStateOf(VikritiResultStore.current(context)) }
+    var agniQuestionIndex by remember { mutableIntStateOf(0) }
+    var agniAnswers by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
+    var agniResult by remember { mutableStateOf(AgniResultStore.current(context)) }
+    var autoAdvanceLocked by remember { mutableStateOf(false) }
+    var currentStep by remember {
+        mutableStateOf(
+            when {
+                prakritiResult == null -> DoshaSequentialStep.PrakritiQuestions
+                vikritiResult == null -> DoshaSequentialStep.VikritiQuestions
+                agniResult == null -> DoshaSequentialStep.AgniQuestions
+                else -> DoshaSequentialStep.CompleteResult
+            }
+        )
+    }
+
+    fun saveProfileWhenComplete(
+        prakriti: PrakritiResult? = prakritiResult,
+        vikriti: VikritiResult? = vikritiResult,
+        agni: AgniResult? = agniResult
+    ) {
+        if (prakriti != null && vikriti != null && agni != null) {
+            AssessmentProfileStore.save(context, prakriti, vikriti, agni)
+        }
+    }
+
+    fun stepLabel(): String {
+        return when (currentStep) {
+            DoshaSequentialStep.PrakritiQuestions, DoshaSequentialStep.PrakritiResult -> "Prakriti Assessment"
+            DoshaSequentialStep.VikritiQuestions, DoshaSequentialStep.VikritiResult -> "Vikriti Assessment"
+            DoshaSequentialStep.AgniQuestions -> "Agni Assessment"
+            DoshaSequentialStep.CompleteResult -> "Complete Dosha Result"
+        }
+    }
+
+    Surface(modifier = modifier.fillMaxSize(), color = Cream) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(listOf(Color(0xFFFFF9EE), Cream, LightSage.copy(alpha = 0.55f))))
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 18.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BackButton(onClick = onBack, text = "Dashboard")
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .background(DietMint)
+                            .border(BorderStroke(1.dp, ForestGreen.copy(alpha = 0.4f)), RoundedCornerShape(50))
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stepLabel(),
+                            color = ForestGreen,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            letterSpacing = 1.1.sp
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .weight(1f)
+                        .padding(horizontal = 18.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    when (currentStep) {
+                        DoshaSequentialStep.PrakritiQuestions -> {
+                            if (prakritiResult == null) {
+                                PrakritiQuestionnaireContent(
+                                    currentQuestionIndex = currentQuestionIndex,
+                                    answers = answers,
+                                    onAnswerSelected = { questionId, optionId ->
+                                        if (!autoAdvanceLocked) {
+                                            autoAdvanceLocked = true
+                                            val selectedIndex = currentQuestionIndex
+                                            val updatedAnswers = answers + (questionId to optionId)
+                                            answers = updatedAnswers
+                                            coroutineScope.launch {
+                                                delay(250)
+                                                if (currentQuestionIndex == selectedIndex) {
+                                                    if (selectedIndex < prakritiQuestions.lastIndex) {
+                                                        currentQuestionIndex = selectedIndex + 1
+                                                    } else if (updatedAnswers.size == prakritiQuestions.size) {
+                                                        val generatedPrakriti = generatePrakritiResult(updatedAnswers)
+                                                        PrakritiResultStore.save(context, generatedPrakriti)
+                                                        prakritiResult = generatedPrakriti
+                                                        currentStep = DoshaSequentialStep.PrakritiResult
+                                                    }
+                                                }
+                                                autoAdvanceLocked = false
+                                            }
+                                        }
+                                    },
+                                    onPrevious = {
+                                        currentQuestionIndex = (currentQuestionIndex - 1).coerceAtLeast(0)
+                                    }
+                                )
+                            } else {
+                                currentStep = DoshaSequentialStep.PrakritiResult
+                            }
+                        }
+
+                        DoshaSequentialStep.PrakritiResult -> {
+                            prakritiResult?.let { completedPrakriti ->
+                                PrakritiResultContent(
+                                    result = completedPrakriti,
+                                    onRetake = {
+                                        answers = emptyMap()
+                                        currentQuestionIndex = 0
+                                        prakritiResult = null
+                                        currentStep = DoshaSequentialStep.PrakritiQuestions
+                                    },
+                                    primaryActionText = "Continue to Vikriti Assessment",
+                                    onViewDietPlan = { currentStep = DoshaSequentialStep.VikritiQuestions }
+                                )
+                            } ?: run {
+                                currentStep = DoshaSequentialStep.PrakritiQuestions
+                            }
+                        }
+
+                        DoshaSequentialStep.VikritiQuestions -> {
+                            when {
+                                prakritiResult == null -> currentStep = DoshaSequentialStep.PrakritiQuestions
+                                vikritiResult == null -> {
+                                    VikritiQuestionnaireContent(
+                                        currentQuestionIndex = vikritiQuestionIndex,
+                                        answers = vikritiAnswers,
+                                        onAnswerSelected = { questionId, optionId ->
+                                            if (!autoAdvanceLocked) {
+                                                autoAdvanceLocked = true
+                                                val selectedIndex = vikritiQuestionIndex
+                                                val updatedAnswers = vikritiAnswers + (questionId to optionId)
+                                                vikritiAnswers = updatedAnswers
+                                                coroutineScope.launch {
+                                                    delay(250)
+                                                    if (vikritiQuestionIndex == selectedIndex) {
+                                                        if (selectedIndex < vikritiQuestions.lastIndex) {
+                                                            vikritiQuestionIndex = selectedIndex + 1
+                                                        } else if (updatedAnswers.size == vikritiQuestions.size) {
+                                                            val generatedVikriti = generateVikritiResult(
+                                                                answers = updatedAnswers,
+                                                                prakritiType = prakritiResult?.prakritiType ?: "Not assessed"
+                                                            )
+                                                            VikritiResultStore.save(context, generatedVikriti)
+                                                            vikritiResult = generatedVikriti
+                                                            currentStep = DoshaSequentialStep.VikritiResult
+                                                        }
+                                                    }
+                                                    autoAdvanceLocked = false
+                                                }
+                                            }
+                                        },
+                                        onPrevious = {
+                                            vikritiQuestionIndex = (vikritiQuestionIndex - 1).coerceAtLeast(0)
+                                        }
+                                    )
+                                }
+                                else -> currentStep = DoshaSequentialStep.VikritiResult
+                            }
+                        }
+
+                        DoshaSequentialStep.VikritiResult -> {
+                            vikritiResult?.let { completedVikriti ->
+                                VikritiResultContent(
+                                    result = completedVikriti,
+                                    onRetake = {
+                                        vikritiAnswers = emptyMap()
+                                        vikritiQuestionIndex = 0
+                                        vikritiResult = null
+                                        currentStep = DoshaSequentialStep.VikritiQuestions
+                                    },
+                                    primaryActionText = "Continue to Agni Assessment",
+                                    onViewProfile = { currentStep = DoshaSequentialStep.AgniQuestions }
+                                )
+                            } ?: run {
+                                currentStep = DoshaSequentialStep.VikritiQuestions
+                            }
+                        }
+
+                        DoshaSequentialStep.AgniQuestions -> {
+                            when {
+                                prakritiResult == null -> currentStep = DoshaSequentialStep.PrakritiQuestions
+                                vikritiResult == null -> currentStep = DoshaSequentialStep.VikritiQuestions
+                                agniResult == null -> {
+                                    AgniQuestionnaireContent(
+                                        currentQuestionIndex = agniQuestionIndex,
+                                        answers = agniAnswers,
+                                        onAnswerSelected = { questionId, optionId ->
+                                            if (!autoAdvanceLocked) {
+                                                autoAdvanceLocked = true
+                                                val selectedIndex = agniQuestionIndex
+                                                val updatedAnswers = agniAnswers + (questionId to optionId)
+                                                agniAnswers = updatedAnswers
+                                                coroutineScope.launch {
+                                                    delay(250)
+                                                    if (agniQuestionIndex == selectedIndex) {
+                                                        if (selectedIndex < agniQuestions.lastIndex) {
+                                                            agniQuestionIndex = selectedIndex + 1
+                                                        } else if (updatedAnswers.size == agniQuestions.size) {
+                                                            val generatedAgni = generateAgniResult(updatedAnswers)
+                                                            AgniResultStore.save(context, generatedAgni)
+                                                            agniResult = generatedAgni
+                                                            saveProfileWhenComplete(agni = generatedAgni)
+                                                            currentStep = DoshaSequentialStep.CompleteResult
+                                                        }
+                                                    }
+                                                    autoAdvanceLocked = false
+                                                }
+                                            }
+                                        },
+                                        onPrevious = {
+                                            agniQuestionIndex = (agniQuestionIndex - 1).coerceAtLeast(0)
+                                        }
+                                    )
+                                }
+                                else -> currentStep = DoshaSequentialStep.CompleteResult
+                            }
+                        }
+
+                        DoshaSequentialStep.CompleteResult -> {
+                            if (prakritiResult != null && vikritiResult != null && agniResult != null) {
+                                saveProfileWhenComplete()
+                                CombinedAssessmentResultContent(
+                                    prakritiResult = prakritiResult,
+                                    vikritiResult = vikritiResult,
+                                    agniResult = agniResult,
+                                    onGeneratePersonalizedDiet = {
+                                        saveProfileWhenComplete()
+                                        onGeneratePersonalizedDiet()
+                                    }
+                                )
+                            } else {
+                                currentStep = when {
+                                    prakritiResult == null -> DoshaSequentialStep.PrakritiQuestions
+                                    vikritiResult == null -> DoshaSequentialStep.VikritiQuestions
+                                    else -> DoshaSequentialStep.AgniQuestions
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(32.dp).navigationBarsPadding())
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DietAssessmentScreen(
+    prakriti: String = "Vata-Pitta",
+    onBack: () -> Unit,
+    onEditPrakriti: () -> Unit = {},
+    onTakeDoshaTest: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val savedPrakriti = remember { PrakritiResultStore.current(context) }
+    val savedVikriti = remember { VikritiResultStore.current(context) }
+    val savedAgni = remember { AgniResultStore.current(context) }
+    val finalAssessmentReport = remember { AssessmentProfileStore.currentRaw(context) }
+
+    if (savedPrakriti == null || savedVikriti == null || savedAgni == null || finalAssessmentReport == null) {
+        MissingDoshaTestDietScreen(
+            onBack = onBack,
+            onTakeDoshaTest = onTakeDoshaTest,
+            modifier = modifier
+        )
         return
     }
 
-    val assessmentPrakriti = assessmentResult?.prakritiType ?: initialPrakriti
-    var selectedPrakriti by remember(assessmentPrakriti) { mutableStateOf(assessmentPrakriti) }
+    val assessmentPrakriti = savedPrakriti.prakritiType.ifBlank { prakriti }
+    val selectedPrakriti = assessmentPrakriti
     var activeTabIndex by remember { mutableIntStateOf(0) }
     val result = remember(selectedPrakriti) { getDietPlanForConstitution(selectedPrakriti) }
-    val currentVikriti = vikritiResult?.dominantDosha ?: result.vikriti
-    val currentAgni = agniResult?.displayResult ?: result.agni
-    val tabs = listOf("Body Analysis", "Foods To Eat", "Foods To Avoid", "Meal Plan", "Lifestyle Tips", "Ayurvedic Dravya")
+    val currentVikriti = savedVikriti.dominantDosha
+    val currentAgni = savedAgni.displayResult
+    val tabs = listOf("Body Analysis", "Foods To Eat", "Foods To Avoid", "7-Day Diet Plan", "Lifestyle Tips", "Ayurvedic Dravya")
 
     Surface(modifier = modifier.fillMaxSize(), color = Cream) {
         Box(
@@ -779,47 +1136,11 @@ fun DietAssessmentScreen(
                         }
                     }
 
-                    if (assessmentResult == null) {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                text = "SELECT CONSTITUTION FOR PLAN",
-                                color = SageGreen,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.8.sp
-                            )
-
-                            ScrollableTabRow(
-                                selectedTabIndex = constitutionOptions.indexOf(selectedPrakriti).coerceAtLeast(0),
-                                containerColor = Color.Transparent,
-                                contentColor = ForestGreen,
-                                edgePadding = 0.dp,
-                                divider = {}
-                            ) {
-                                constitutionOptions.forEach { option ->
-                                    val isSelected = option == selectedPrakriti
-                                    Tab(
-                                        selected = isSelected,
-                                        onClick = { selectedPrakriti = option },
-                                        text = {
-                                            Text(
-                                                text = option,
-                                                color = if (isSelected) ForestGreen else SoftBlueGray,
-                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                                fontSize = 12.sp
-                                            )
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    } else {
-                        PersonalizedDietSourceCard(
-                            prakriti = result.prakriti,
-                            vikriti = currentVikriti,
-                            agni = currentAgni
-                        )
-                    }
+                    PersonalizedDietSourceCard(
+                        prakriti = result.prakriti,
+                        vikriti = currentVikriti,
+                        agni = currentAgni
+                    )
 
                     // 6 Comprehensive Feature Tabs
                     ScrollableTabRow(
@@ -856,6 +1177,350 @@ fun DietAssessmentScreen(
                         else -> AyurvedicDravyaContent(result.ayurvedicTips)
                     }
 
+                    Spacer(modifier = Modifier.height(32.dp).navigationBarsPadding())
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DoshaTestHubContent(
+    prakritiResult: PrakritiResult?,
+    vikritiResult: VikritiResult?,
+    agniResult: AgniResult?,
+    prakritiInProgress: Boolean,
+    vikritiInProgress: Boolean,
+    agniInProgress: Boolean,
+    onSelect: (DoshaHubAssessment) -> Unit,
+    onViewCompleteResult: () -> Unit
+) {
+    val allCompleted = prakritiResult != null && vikritiResult != null && agniResult != null
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(6.dp, RoundedCornerShape(24.dp), ambientColor = ForestGreen.copy(alpha = 0.08f)),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
+        border = BorderStroke(1.dp, BeigeBorder)
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                text = "DOSHA TEST",
+                color = SageGreen,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.4.sp
+            )
+            Text(
+                text = "Assessment Hub",
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 30.sp,
+                lineHeight = 35.sp,
+                color = DarkForestGreen
+            )
+            Text(
+                text = "Complete or review your Prakriti, Vikriti, and Agni assessments. Your latest results power personalized diet recommendations.",
+                fontSize = 12.5.sp,
+                lineHeight = 19.sp,
+                color = SoftBlueGray
+            )
+        }
+    }
+
+    DoshaTestAssessmentCard(
+        title = "Prakriti Assessment",
+        questions = "21 questions",
+        status = assessmentStatus(prakritiResult != null, prakritiInProgress),
+        result = prakritiResult?.prakritiType,
+        onClick = { onSelect(DoshaHubAssessment.Prakriti) }
+    )
+    DoshaTestAssessmentCard(
+        title = "Vikriti Assessment",
+        questions = "21 questions",
+        status = assessmentStatus(vikritiResult != null, vikritiInProgress),
+        result = vikritiResult?.dominantDosha,
+        onClick = { onSelect(DoshaHubAssessment.Vikriti) }
+    )
+    DoshaTestAssessmentCard(
+        title = "Agni Assessment",
+        questions = "11 questions",
+        status = assessmentStatus(agniResult != null, agniInProgress),
+        result = agniResult?.displayResult,
+        onClick = { onSelect(DoshaHubAssessment.Agni) }
+    )
+
+    Button(
+        onClick = onViewCompleteResult,
+        enabled = allCompleted,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(54.dp),
+        shape = RoundedCornerShape(50),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = ForestGreen,
+            contentColor = PureWhite,
+            disabledContainerColor = ForestGreen.copy(alpha = 0.36f),
+            disabledContentColor = PureWhite.copy(alpha = 0.72f)
+        )
+    ) {
+        Text("View Complete Assessment Result", fontWeight = FontWeight.Bold)
+    }
+}
+
+private fun assessmentStatus(completed: Boolean, inProgress: Boolean): String {
+    return when {
+        completed -> "Completed"
+        inProgress -> "In Progress"
+        else -> "Not Started"
+    }
+}
+
+@Composable
+private fun DoshaTestAssessmentCard(
+    title: String,
+    questions: String,
+    status: String,
+    result: String?,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = PureWhite),
+        border = BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.8f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .background(DietMint)
+                    .border(BorderStroke(1.dp, ForestGreen.copy(alpha = 0.28f)), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Filled.Check, contentDescription = null, tint = ForestGreen, modifier = Modifier.size(20.dp))
+            }
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(title, color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                Text(questions, color = SageGreen, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                Text("Status: $status", color = if (status == "Completed") ForestGreen else SoftBlueGray, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                result?.let {
+                    Text("Latest result: $it", color = SoftBlueGray, fontSize = 12.sp, lineHeight = 17.sp)
+                }
+            }
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = ForestGreen, modifier = Modifier.size(22.dp))
+        }
+    }
+}
+
+@Composable
+private fun CombinedAssessmentResultContent(
+    prakritiResult: PrakritiResult?,
+    vikritiResult: VikritiResult?,
+    agniResult: AgniResult?,
+    onGeneratePersonalizedDiet: () -> Unit
+) {
+    if (prakritiResult == null || vikritiResult == null || agniResult == null) {
+        return
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(6.dp, RoundedCornerShape(24.dp), ambientColor = ForestGreen.copy(alpha = 0.08f)),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
+        border = BorderStroke(1.dp, BeigeBorder)
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("COMBINED ASSESSMENT RESULT", color = SageGreen, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.4.sp)
+            Text(
+                text = "Ayurvedic Assessment / Evaluation",
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 28.sp,
+                lineHeight = 34.sp,
+                color = DarkForestGreen
+            )
+            Text(
+                text = "Your final assessment report combines Prakriti, Vikriti, and Agni without merging their scoring algorithms.",
+                fontSize = 12.5.sp,
+                lineHeight = 19.sp,
+                color = SoftBlueGray
+            )
+        }
+    }
+
+    CombinedResultCard(title = "PRAKRITI RESULT") {
+        Text("Prakriti type: ${prakritiResult.prakritiType}", color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        PrakritiPercentageBar("Vata", prakritiResult.percentages.getValue(PrakritiDosha.Vata), DietSky)
+        Text("Vata score: ${prakritiResult.scores.getValue(PrakritiDosha.Vata)}", color = SoftBlueGray, fontSize = 12.sp)
+        PrakritiPercentageBar("Pitta", prakritiResult.percentages.getValue(PrakritiDosha.Pitta), DietDangerSoft)
+        Text("Pitta score: ${prakritiResult.scores.getValue(PrakritiDosha.Pitta)}", color = SoftBlueGray, fontSize = 12.sp)
+        PrakritiPercentageBar("Kapha", prakritiResult.percentages.getValue(PrakritiDosha.Kapha), DietMint)
+        Text("Kapha score: ${prakritiResult.scores.getValue(PrakritiDosha.Kapha)}", color = SoftBlueGray, fontSize = 12.sp)
+    }
+
+    CombinedResultCard(title = "VIKRITI RESULT") {
+        Text("Current imbalance: ${vikritiResult.dominantDosha}", color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        VikritiDosha.entries.forEach { dosha ->
+            Text(
+                text = "${dosha.displayName}: ${vikritiResult.scores.getValue(dosha)} / 35 - ${vikritiResult.percentages.getValue(dosha)}% - ${vikritiResult.severities.getValue(dosha)}",
+                color = SoftBlueGray,
+                fontSize = 12.5.sp,
+                lineHeight = 18.sp
+            )
+        }
+    }
+
+    CombinedResultCard(title = "AGNI RESULT") {
+        Text("Agni type: ${agniResult.displayResult}", color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        AgniType.entries.forEach { type ->
+            Text(
+                text = "${type.displayName}: ${agniResult.scores.getValue(type)}",
+                color = SoftBlueGray,
+                fontSize = 12.5.sp,
+                lineHeight = 18.sp
+            )
+        }
+    }
+
+    CombinedResultCard(title = "FINAL ASSESSMENT REPORT") {
+        Text(
+            text = "Constitution: ${prakritiResult.prakritiType}\nCurrent balance: ${vikritiResult.dominantDosha}\nDigestive fire: ${agniResult.displayResult}",
+            color = DarkForestGreen,
+            fontSize = 14.sp,
+            lineHeight = 21.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = "This structured report is saved and sent to Personalized Diet to generate the user's 7-day diet plan.",
+            color = SoftBlueGray,
+            fontSize = 12.5.sp,
+            lineHeight = 19.sp
+        )
+        Button(
+            onClick = onGeneratePersonalizedDiet,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            shape = RoundedCornerShape(50),
+            colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+        ) {
+            Text("Generate Personalized Diet", fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun CombinedResultCard(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = PureWhite),
+        border = BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.8f))
+    ) {
+        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(title, color = SageGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.4.sp)
+            content()
+        }
+    }
+}
+
+@Composable
+private fun MissingDoshaTestDietScreen(
+    onBack: () -> Unit,
+    onTakeDoshaTest: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(modifier = modifier.fillMaxSize(), color = Cream) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(listOf(Color(0xFFFFF9EE), Cream, LightSage.copy(alpha = 0.55f))))
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 18.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BackButton(onClick = onBack, text = "Dashboard")
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .background(DietMint)
+                            .border(BorderStroke(1.dp, ForestGreen.copy(alpha = 0.4f)), RoundedCornerShape(50))
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Pathya Apathya",
+                            color = ForestGreen,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            letterSpacing = 1.1.sp
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .weight(1f)
+                        .padding(horizontal = 18.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(8.dp, RoundedCornerShape(26.dp), ambientColor = ForestGreen.copy(alpha = 0.1f)),
+                        shape = RoundedCornerShape(26.dp),
+                        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
+                        border = BorderStroke(1.dp, BeigeBorder)
+                    ) {
+                        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Text("PERSONALISED DIET", color = SageGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
+                            Text(
+                                text = "Complete your Dosha Test to generate your personalized diet plan.",
+                                color = DarkForestGreen,
+                                fontFamily = FontFamily.Serif,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 28.sp,
+                                lineHeight = 34.sp
+                            )
+                            Button(
+                                onClick = onTakeDoshaTest,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(52.dp),
+                                shape = RoundedCornerShape(50),
+                                colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+                            ) {
+                                Text("Complete Dosha Test", fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
                     Spacer(modifier = Modifier.height(32.dp).navigationBarsPadding())
                 }
             }
@@ -1575,6 +2240,7 @@ private fun AgniAnswerCard(
 private fun AgniResultContent(
     result: AgniResult,
     onRetake: () -> Unit,
+    primaryActionText: String = "View Profile",
     onViewProfile: () -> Unit
 ) {
     Card(
@@ -1637,7 +2303,7 @@ private fun AgniResultContent(
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
                 ) {
-                    Text("View Profile", fontWeight = FontWeight.Bold, fontSize = 12.2.sp)
+                    Text(primaryActionText, fontWeight = FontWeight.Bold, fontSize = 12.2.sp)
                 }
             }
         }
