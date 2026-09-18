@@ -2,6 +2,7 @@ package com.example.vedaahar
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,7 +36,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +49,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -62,13 +65,13 @@ import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
 
-private val IngredientBackground = Color(0xFFFAF7EF)
-private val IngredientCardSurface = Color(0xFFFFFCF5)
-private val IngredientMint = Color(0xFFDDEED5)
-private val IngredientFresh = Color(0xFF78A96A)
-private val IngredientDeep = Color(0xFF1F3A24)
-private val IngredientLine = Color(0xFFCFE0C8)
-private val IngredientGold = Color(0xFFE5C66D)
+private val IngredientBackground = Color(0xFFFFFFFF)
+private val IngredientCardSurface = Color(0xFFFFFFFF)
+private val IngredientMint = Color(0xFFE7F2EC)
+private val IngredientFresh = Color(0xFF7A4E32)
+private val IngredientDeep = Color(0xFF26332D)
+private val IngredientLine = Color(0xFFE7F2EC)
+private val IngredientGold = Color(0xFFF1E6DC)
 
 private data class IngredientBookItem(
     val classic: String,
@@ -85,7 +88,7 @@ private val ingredientBookItems = listOf(
         name = "Turmeric",
         description = "A warming household staple used in face packs, soothing drinks, and daily cooking.",
         tags = listOf("Skin", "Hair", "Health"),
-        accent = Color(0xFFA9CF77),
+        accent = Color(0xFFF1E6DC),
         uses = listOf("Add a pinch to warm milk", "Mix with gram flour for a simple face mask", "Use in daily cooking for gentle support")
     ),
     IngredientBookItem(
@@ -93,7 +96,7 @@ private val ingredientBookItems = listOf(
         name = "Neem",
         description = "Purifying leaf for scalp care, skin rituals, and traditional cleansing routines.",
         tags = listOf("Skin", "Hair"),
-        accent = Color(0xFF8EC394),
+        accent = Color(0xFFF1E6DC),
         uses = listOf("Use neem water as a scalp rinse", "Apply diluted paste on oily skin", "Add to cleansing bath water")
     ),
     IngredientBookItem(
@@ -101,7 +104,7 @@ private val ingredientBookItems = listOf(
         name = "Aloe Vera",
         description = "Cooling gel for skin calm, soft hair, and soothing daily care rituals.",
         tags = listOf("Skin", "Hair", "Health"),
-        accent = Color(0xFF8FD6B3),
+        accent = Color(0xFFE7F2EC),
         uses = listOf("Apply fresh gel after sun exposure", "Use as a hair mask base", "Mix into simple hydrating face packs")
     ),
     IngredientBookItem(
@@ -109,7 +112,7 @@ private val ingredientBookItems = listOf(
         name = "Amla",
         description = "Vitamin-rich fruit for radiance, scalp rituals, and everyday vitality.",
         tags = listOf("Skin", "Hair", "Health"),
-        accent = Color(0xFFB8D978),
+        accent = Color(0xFFF1E6DC),
         uses = listOf("Use amla oil for scalp massage", "Add powder to hair packs", "Take with guidance for daily wellness")
     ),
     IngredientBookItem(
@@ -117,7 +120,7 @@ private val ingredientBookItems = listOf(
         name = "Tulsi",
         description = "Aromatic household herb used in tea, steam rituals, and simple topical blends.",
         tags = listOf("Health"),
-        accent = Color(0xFF80B76B),
+        accent = Color(0xFF7A4E32),
         uses = listOf("Brew as a gentle herbal tea", "Use steam for seasonal comfort", "Add to simple home rituals")
     ),
     IngredientBookItem(
@@ -125,7 +128,7 @@ private val ingredientBookItems = listOf(
         name = "Fenugreek",
         description = "Common kitchen seed for hair masks, warm meals, and soaked wellness routines.",
         tags = listOf("Hair", "Health"),
-        accent = Color(0xFFC7D989),
+        accent = Color(0xFFF1E6DC),
         uses = listOf("Soak seeds overnight", "Use paste as hair mask base", "Add lightly to warm recipes")
     )
 )
@@ -155,7 +158,7 @@ fun IngredientBookScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(IngredientBackground, Color(0xFFF4FAF1), Cream)))
+                .background(Color(0xFFFFFFFF))
         ) {
             Column(
                 modifier = Modifier
@@ -201,6 +204,16 @@ private fun IngredientBookHero(selectedIngredient: IngredientBookItem) {
         border = BorderStroke(1.dp, IngredientLine)
     ) {
         Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Image(
+                painter = painterResource(id = R.drawable.ingredient_book_logo),
+                contentDescription = "Ayurvedic ingredient book logo",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(148.dp)
+                    .clip(RoundedCornerShape(22.dp))
+                    .border(BorderStroke(1.dp, IngredientLine), RoundedCornerShape(22.dp)),
+                contentScale = ContentScale.Crop
+            )
             Text(
                 text = "AYURVEDIC INGREDIENT BOOK",
                 color = SageGreen,
@@ -237,7 +250,7 @@ private fun IngredientStat(label: String, value: String, modifier: Modifier = Mo
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFFF8FBF4))
+            .background(Color(0xFFFFFFFF))
             .border(BorderStroke(1.dp, IngredientLine), RoundedCornerShape(14.dp))
             .padding(horizontal = 10.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -265,7 +278,7 @@ private fun FeaturedIngredientShelf(ingredient: IngredientBookItem) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(22.dp))
-            .background(Brush.linearGradient(listOf(Color(0xFFF0F8E8), Color(0xFFFFFCF5))))
+            .background(Brush.linearGradient(listOf(Color(0xFFE7F2EC), Color(0xFFFFFFFF))))
             .border(BorderStroke(1.dp, IngredientLine), RoundedCornerShape(22.dp))
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -293,7 +306,7 @@ private fun IngredientFilterRow(
                 text = label,
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(if (isSelected) ForestGreen else Color(0xFFF8FBF4))
+                    .background(if (isSelected) ForestGreen else Color(0xFFFFFFFF))
                     .border(BorderStroke(1.dp, IngredientLine), RoundedCornerShape(50))
                     .clickable { onSelectFilter(label) }
                     .padding(horizontal = 12.dp, vertical = 7.dp),
@@ -355,7 +368,7 @@ private fun IngredientChapterCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = if (selected) Color(0xFFF4FBF0) else IngredientCardSurface),
+        colors = CardDefaults.cardColors(containerColor = if (selected) Color(0xFFFFFFFF) else IngredientCardSurface),
         border = BorderStroke(1.dp, if (selected) ingredient.accent else IngredientLine)
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
@@ -401,7 +414,7 @@ private fun IngredientTag(tag: String) {
         text = tag,
         modifier = Modifier
             .clip(RoundedCornerShape(50))
-            .background(Color(0xFFF8FBF4))
+            .background(Color(0xFFFFFFFF))
             .border(BorderStroke(1.dp, IngredientLine), RoundedCornerShape(50))
             .padding(horizontal = 9.dp, vertical = 4.dp),
         color = ForestGreen,
@@ -469,7 +482,7 @@ private fun ChapterNote(index: Int, text: String, accent: Color) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFFF8FBF4))
+            .background(Color(0xFFFFFFFF))
             .border(BorderStroke(1.dp, IngredientLine), RoundedCornerShape(14.dp))
             .padding(11.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -493,7 +506,7 @@ private fun IngredientIllustration(accent: Color, modifier: Modifier = Modifier)
     Canvas(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
-            .background(Brush.linearGradient(listOf(Color(0xFFF2FAE9), Color(0xFFFFF8E8))))
+            .background(Brush.linearGradient(listOf(Color(0xFFE7F2EC), Color(0xFFFFFFFF))))
             .border(BorderStroke(1.dp, IngredientLine), RoundedCornerShape(18.dp))
     ) {
         drawCircle(accent.copy(alpha = 0.18f), radius = size.minDimension * 0.34f, center = Offset(size.width * 0.34f, size.height * 0.48f))
@@ -513,3 +526,5 @@ private fun IngredientIllustration(accent: Color, modifier: Modifier = Modifier)
         )
     }
 }
+
+

@@ -36,7 +36,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -62,10 +62,10 @@ import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
 
-private val SymptomsCardBg = Color(0xFFFCFAF5)
-private val SymptomsBlueSoft = Color(0xFFEDF5FC)
-private val SymptomsGreenSoft = Color(0xFFEBF5EA)
-private val SymptomsAmberSoft = Color(0xFFFFF7E6)
+private val SymptomsCardBg = Color(0xFFFFFFFF)
+private val SymptomsBlueSoft = Color(0xFFE7F2EC)
+private val SymptomsGreenSoft = Color(0xFFE7F2EC)
+private val SymptomsAmberSoft = Color(0xFFFFFFFF)
 
 data class SymptomEntry(
     val name: String,
@@ -93,7 +93,7 @@ private val symptomCategories = listOf(
                 name = "Acidity & Sour Reflux",
                 classicalName = "Amlapitta",
                 doshaTag = "Pitta Aggravation",
-                doshaColor = Color(0xFFD97736),
+                doshaColor = Color(0xFF7A4E32),
                 rootCause = "Elevated Ushna (hot) and Tikshna (sharp) gunas in Pachaka Pitta, caused by spicy food, skipped meals, or stress.",
                 kitchenRemedy = "Drink cooling fennel (saunf) and coriander seed infusion twice daily after meals.",
                 dietAdjustment = "Favor cooling sweet fruits, cucumber, and coconut water. Strictly avoid excessive chilies, vinegar, and deep-fried items.",
@@ -103,7 +103,7 @@ private val symptomCategories = listOf(
                 name = "Bloating & Gas",
                 classicalName = "Adhmana / Anaha",
                 doshaTag = "Vata Aggravation",
-                doshaColor = Color(0xFF5B8CA8),
+                doshaColor = Color(0xFF1F6B4F),
                 rootCause = "Disturbed Samana and Apana Vata causing irregular digestive fire (Vishama Agni) and air accumulation.",
                 kitchenRemedy = "Warm water with a pinch of roasted cumin, asafoetida (hing), and rock salt (saindhava).",
                 dietAdjustment = "Favor warm, freshly cooked soupy foods cooked with ghee. Avoid raw salads, dry snacks, and carbonated drinks.",
@@ -113,7 +113,7 @@ private val symptomCategories = listOf(
                 name = "Sluggish Digestion & Heaviness",
                 classicalName = "Alasaka / Mandagni",
                 doshaTag = "Kapha Aggravation",
-                doshaColor = Color(0xFF6B9B76),
+                doshaColor = Color(0xFF1F6B4F),
                 rootCause = "Sluggish digestive fire (Manda Agni) smothered by heavy, oily, cold food or prolonged inactivity.",
                 kitchenRemedy = "Chew a thin slice of fresh ginger with a drop of lemon juice and rock salt 10 minutes before meals.",
                 dietAdjustment = "Favor light grains like barley and millets, steamed greens, and warming spices (black pepper, cinnamon).",
@@ -123,7 +123,7 @@ private val symptomCategories = listOf(
                 name = "Irregular Bowel Movement",
                 classicalName = "Vibandha",
                 doshaTag = "Apana Vata",
-                doshaColor = Color(0xFF5B8CA8),
+                doshaColor = Color(0xFF1F6B4F),
                 rootCause = "Dryness (Ruksha guna) in the colon obstructing the natural downward movement of Apana Vata.",
                 kitchenRemedy = "Drink a cup of warm milk or warm water with 1 teaspoon of pure cow's ghee at bedtime.",
                 dietAdjustment = "Increase warm hydration, soaked raisins, prunes, and well-cooked fibrous vegetables.",
@@ -139,7 +139,7 @@ private val symptomCategories = listOf(
                 name = "Restlessness & Overthinking",
                 classicalName = "Chitta Anavastha",
                 doshaTag = "Prana Vata",
-                doshaColor = Color(0xFF5B8CA8),
+                doshaColor = Color(0xFF1F6B4F),
                 rootCause = "Hyperactive Chala (mobile) guna of Vata agitating mental channels (Mano Vaha Srotas).",
                 kitchenRemedy = "Warm spiced almond or oat milk with a pinch of nutmeg and crushed cardamom before bed.",
                 dietAdjustment = "Avoid caffeine, energy drinks, and erratic fasting. Eat grounding, warm meals with healthy fats.",
@@ -149,7 +149,7 @@ private val symptomCategories = listOf(
                 name = "Irritability & Mental Burnout",
                 classicalName = "Krodha / Pitta Manas",
                 doshaTag = "Sadhaka Pitta",
-                doshaColor = Color(0xFFD97736),
+                doshaColor = Color(0xFF7A4E32),
                 rootCause = "Excess mental heat, intense goal-orientation, and lack of parasympathetic cooling time.",
                 kitchenRemedy = "Rose water infused herbal tea or fresh coconut water with mint sprigs.",
                 dietAdjustment = "Reduce pungent spices, fermented condiments, and salty snacks. Favor sweet, bitter, and astringent flavors.",
@@ -159,7 +159,7 @@ private val symptomCategories = listOf(
                 name = "Morning Brain Fog & Lethargy",
                 classicalName = "Tandra / Mano Manda",
                 doshaTag = "Tamas & Kapha",
-                doshaColor = Color(0xFF6B9B76),
+                doshaColor = Color(0xFF1F6B4F),
                 rootCause = "Excess Kapha and Tamas stagnating mental alertness, often linked with late heavy dinners.",
                 kitchenRemedy = "Warm water with fresh tulsi leaves, crushed black pepper, and a drop of organic honey.",
                 dietAdjustment = "Keep dinners extremely light (mung soup or roasted vegetables). Stop eating after 7:30 PM.",
@@ -175,7 +175,7 @@ private val symptomCategories = listOf(
                 name = "Flushed Skin & Heat Sensitivity",
                 classicalName = "Daha / Raktapitta",
                 doshaTag = "Bhrajaka Pitta",
-                doshaColor = Color(0xFFD97736),
+                doshaColor = Color(0xFF7A4E32),
                 rootCause = "Excess internal heat manifesting in the blood tissue (Rakta Dhatu) and surface micro-capillaries.",
                 kitchenRemedy = "Fresh aloe vera pulp mixed with a pinch of turmeric applied topically or 15ml fresh juice on empty stomach.",
                 dietAdjustment = "Favor bitter gourd, zucchini, leafy greens, pomegranate, and coriander. Avoid red chili and alcohol.",
@@ -185,7 +185,7 @@ private val symptomCategories = listOf(
                 name = "Dry & Flaky Skin",
                 classicalName = "Rukshata",
                 doshaTag = "Vata Dryness",
-                doshaColor = Color(0xFF5B8CA8),
+                doshaColor = Color(0xFF1F6B4F),
                 rootCause = "Depletion of bodily unctuousness (Sneha) and moisture in Rasa and Rakta channels.",
                 kitchenRemedy = "Daily intake of 1-2 teaspoons of A2 ghee in warm meals, plus warm sesame oil Abhyanga before bath.",
                 dietAdjustment = "Incorporate soaked walnuts, chia seeds, avocados, and warm broths into the weekly routine.",
@@ -201,7 +201,7 @@ private val symptomCategories = listOf(
                 name = "Post-Meal Heaviness & Drowsiness",
                 classicalName = "Gaurava",
                 doshaTag = "Kledaka Kapha",
-                doshaColor = Color(0xFF6B9B76),
+                doshaColor = Color(0xFF1F6B4F),
                 rootCause = "Excessive moisture and heaviness in upper stomach coating Agni and slowing metabolic exchange.",
                 kitchenRemedy = "Sip warm cumin-ginger water throughout the afternoon instead of cold plain water.",
                 dietAdjustment = "Reduce portion sizes by 25%. Leave one-third of the stomach empty for digestive air and fire.",
@@ -211,7 +211,7 @@ private val symptomCategories = listOf(
                 name = "Seasonal Nasal Congestion",
                 classicalName = "Pratishyaya",
                 doshaTag = "Shleshaka Kapha",
-                doshaColor = Color(0xFF6B9B76),
+                doshaColor = Color(0xFF1F6B4F),
                 rootCause = "Mucus build-up in respiratory passages triggered by cold winds, ice, or excessive dairy products.",
                 kitchenRemedy = "Steam inhalation with 2 drops of eucalyptus oil and a pinch of turmeric powder.",
                 dietAdjustment = "Avoid yogurt, cheese, banana, and chilled beverages at night. Favor warm spiced rasam.",
@@ -227,7 +227,7 @@ private val symptomCategories = listOf(
                 name = "Coated White Tongue & Bad Breath",
                 classicalName = "Jihwa Lepa / Ama",
                 doshaTag = "Metabolic Toxins (Ama)",
-                doshaColor = Color(0xFF9E7740),
+                doshaColor = Color(0xFF7A4E32),
                 rootCause = "Undigested food residues fermenting in the gut and circulating as sticky systemic Ama.",
                 kitchenRemedy = "Daily copper or stainless steel tongue scraping followed by warm water gargle with a pinch of rock salt.",
                 dietAdjustment = "Follow a 24-hour digestive reset: light mung bean soup (kitchari) and boiled water with ginger slices.",
@@ -237,7 +237,7 @@ private val symptomCategories = listOf(
                 name = "Unexplained Fatigue with Stiffness",
                 classicalName = "Aalasya / Sandhi Stambha",
                 doshaTag = "Ama in Tissues",
-                doshaColor = Color(0xFF9E7740),
+                doshaColor = Color(0xFF7A4E32),
                 rootCause = "Ama settling in joints and muscular channels, creating a feeling of heaviness without physical labor.",
                 kitchenRemedy = "Drink Trikatu powder (equal parts dry ginger, black pepper, long pepper) with warm water before meals.",
                 dietAdjustment = "Avoid heavy sweets, deep-fried snacks, and nightshades until digestive fire normalizes.",
@@ -262,7 +262,7 @@ fun SymptomsAnalysisScreen(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color(0xFFFFF9EE), Cream, LightSage.copy(alpha = 0.55f))
+                        listOf(Color(0xFFFFFFFF), Cream, LightSage.copy(alpha = 0.55f))
                     )
                 )
         ) {
@@ -284,13 +284,13 @@ fun SymptomsAnalysisScreen(
                         modifier = Modifier
                             .clip(RoundedCornerShape(50))
                             .background(SymptomsBlueSoft)
-                            .border(BorderStroke(1.dp, Color(0xFFC7DDF0)), RoundedCornerShape(50))
+                            .border(BorderStroke(1.dp, Color(0xFFE7F2EC)), RoundedCornerShape(50))
                             .padding(horizontal = 12.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = "AI Clinical Guide",
-                            color = Color(0xFF1E527D),
+                            color = Color(0xFF1F6B4F),
                             fontWeight = FontWeight.Bold,
                             fontSize = 11.sp,
                             letterSpacing = 1.1.sp
@@ -522,7 +522,7 @@ private fun SymptomDetailCard(symptom: SymptomEntry) {
             SymptomSectionBlock(
                 title = "Lifestyle Rhythm (Vihara)",
                 content = symptom.lifestyleTip,
-                accent = Color(0xFF5B8CA8)
+                accent = Color(0xFF1F6B4F)
             )
         }
     }
@@ -538,7 +538,7 @@ private fun SymptomSectionBlock(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFFF9FBF7))
+            .background(Color(0xFFFFFFFF))
             .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.6f)), RoundedCornerShape(14.dp))
             .padding(12.dp),
         verticalAlignment = Alignment.Top
@@ -568,7 +568,7 @@ private fun SymptomSectionBlock(
             )
             Text(
                 text = content,
-                color = Color(0xFF334438),
+                color = Color(0xFF26332D),
                 fontSize = 12.sp,
                 lineHeight = 18.sp
             )
@@ -581,7 +581,7 @@ private fun DoctorAdvisoryCard(onConsultDoctor: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF2F7F2)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFE7F2EC)),
         border = BorderStroke(1.dp, LightSage)
     ) {
         Column(
@@ -629,3 +629,5 @@ private fun DoctorAdvisoryCard(onConsultDoctor: () -> Unit) {
         }
     }
 }
+
+

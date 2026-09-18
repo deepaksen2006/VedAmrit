@@ -35,7 +35,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -68,11 +68,11 @@ import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
 
-private val YogaGold = Color(0xFFD8AE2E)
-private val YogaCard = Color(0xFFFFFBF2)
-private val YogaDeep = Color(0xFF014331)
-private val YogaBorder = Color(0xFFE3D3A4)
-private val YogaInk = Color(0xFF1B3325)
+private val YogaGold = Color(0xFF7A4E32)
+private val YogaCard = Color(0xFFFFFFFF)
+private val YogaDeep = Color(0xFF124A38)
+private val YogaBorder = Color(0xFFF1E6DC)
+private val YogaInk = Color(0xFF26332D)
 private val Cinzel = FontFamily(Font(R.font.cinzel_decorative_regular))
 private val YogaHeaderHeight = 72.dp
 
@@ -85,7 +85,7 @@ fun YogaMeditationScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(Color(0xFFFFF8EC), Color(0xFFFFFCF5), Cream)))
+                .background(Color(0xFFFFFFFF))
         ) {
             ParchmentPattern()
             Column(
@@ -156,7 +156,7 @@ private fun YogaTopBar(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .size(38.dp)
                 .clip(CircleShape)
-                .background(Color(0xFFF5ECD2)),
+                .background(Color(0xFFF1E6DC)),
             contentAlignment = Alignment.Center
         ) {
             Icon(Icons.Filled.Notifications, contentDescription = null, tint = YogaGold, modifier = Modifier.size(18.dp))
@@ -315,7 +315,7 @@ private fun AsanaCard(label: String, pose: Int, modifier: Modifier = Modifier) {
                     .fillMaxWidth()
                     .height(74.dp)
                     .clip(RoundedCornerShape(7.dp))
-                    .background(Brush.verticalGradient(listOf(Color(0xFF173F31), Color(0xFFEFE2BE)))),
+                    .background(Brush.verticalGradient(listOf(Color(0xFF124A38), Color(0xFFF1E6DC)))),
                 contentAlignment = Alignment.Center
             ) {
                 AsanaPose(pose = pose)
@@ -334,7 +334,7 @@ private fun CalmMindSection() {
             .fillMaxWidth()
             .height(86.dp),
         background = YogaDeep,
-        border = Color(0xFF0B6049)
+        border = Color(0xFF1F6B4F)
     ) {
         Row(
             modifier = Modifier
@@ -494,3 +494,5 @@ private fun ParchmentPattern() {
         }
     }
 }
+
+

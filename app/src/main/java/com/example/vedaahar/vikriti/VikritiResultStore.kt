@@ -19,6 +19,13 @@ object VikritiResultStore {
             ?: return null
         return runCatching { raw.toVikritiResult() }.getOrNull()
     }
+
+    fun clear(context: Context) {
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .clear()
+            .apply()
+    }
 }
 
 private fun VikritiResult.toJson(): JSONObject {

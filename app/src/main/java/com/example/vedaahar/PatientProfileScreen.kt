@@ -45,7 +45,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -85,13 +85,13 @@ import com.example.vedaahar.ui.theme.SoftBlueGray
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-private val ProfileGreen = Color(0xFF5D7F3E)
-private val ProfileDeepGreen = Color(0xFF21482F)
-private val ProfileCard = Color(0xFFFFFCF6)
-private val ProfileFieldTint = Color(0xFFF8FBF3)
-private val ProfileGold = Color(0xFFE7C66B)
-private val ProfileBorder = Color(0xFFC9D8BA)
-private val ProfileError = Color(0xFFC65348)
+private val ProfileGreen = Color(0xFF7A4E32)
+private val ProfileDeepGreen = Color(0xFF26332D)
+private val ProfileCard = Color(0xFFFFFFFF)
+private val ProfileFieldTint = Color(0xFFFFFFFF)
+private val ProfileGold = Color(0xFFF1E6DC)
+private val ProfileBorder = Color(0xFFF1E6DC)
+private val ProfileError = Color(0xFF7A4E32)
 
 @Composable
 fun PatientProfileScreen(
@@ -643,7 +643,7 @@ private fun SaveContinueButton(formValid: Boolean, onClick: () -> Unit) {
 @Composable
 private fun ProfileBackground() {
     Canvas(modifier = Modifier.fillMaxSize()) {
-        drawRect(Brush.verticalGradient(listOf(Cream, Color(0xFFFFFCF6), Color(0xFFF1E8D8))))
+        drawRect(Color(0xFFFFFFFF))
         drawCircle(
             brush = Brush.radialGradient(listOf(ProfileGold.copy(alpha = 0.18f), Color.Transparent)),
             radius = size.width * 0.58f,
@@ -693,3 +693,5 @@ private fun FloatingProfileLeaves(modifier: Modifier = Modifier, alpha: Float) {
 private fun PatientProfileScreenPreview() {
     PatientProfileScreen(onSaveContinue = { _ -> })
 }
+
+

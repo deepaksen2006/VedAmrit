@@ -30,7 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -58,13 +58,15 @@ import com.example.vedaahar.ui.theme.LightSage
 import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
+import com.example.vedaahar.voice.AssessmentQuestionVoiceEffect
+import com.example.vedaahar.voice.LocalVoiceAssistantController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private val SymptomsWarmCard = Color(0xFFFFFBF4)
-private val SymptomsNoSoft = Color(0xFFF3F7F4)
-private val SymptomsYesSoft = Color(0xFFE6F4EC)
-private val SymptomsNoticeSoft = Color(0xFFFFF7E6)
+private val SymptomsWarmCard = Color(0xFFFFFFFF)
+private val SymptomsNoSoft = Color(0xFFFFFFFF)
+private val SymptomsYesSoft = Color(0xFFE7F2EC)
+private val SymptomsNoticeSoft = Color(0xFFFFFFFF)
 
 @Composable
 fun SymptomsAnalysisModuleScreen(
@@ -82,7 +84,7 @@ fun SymptomsAnalysisModuleScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(Color(0xFFFFF9EE), Cream, LightSage.copy(alpha = 0.52f))))
+                .background(Color(0xFFFFFFFF))
         ) {
             Column(
                 modifier = Modifier
@@ -171,6 +173,13 @@ private fun SymptomsInputContent(
 ) {
     val symptom = symptomFeatures[currentQuestionIndex]
     val selectedValue = answers[symptom.key]
+    AssessmentQuestionVoiceEffect(
+        screenKey = "symptoms-module",
+        currentQuestion = currentQuestionIndex + 1,
+        totalQuestions = symptomFeatures.size,
+        question = "Do you experience ${symptom.label}?",
+        options = listOf("No", "Yes")
+    )
 
     Card(
         modifier = Modifier
@@ -280,13 +289,17 @@ private fun SymptomYesNoCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val voiceAssistant = LocalVoiceAssistantController.current
     Row(
         modifier = modifier
             .height(58.dp)
             .clip(RoundedCornerShape(18.dp))
-            .background(if (selected) background else Color(0xFFFFFDF8))
+            .background(if (selected) background else Color(0xFFFFFFFF))
             .border(BorderStroke(if (selected) 1.7.dp else 1.dp, if (selected) ForestGreen else BeigeBorder), RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick)
+            .clickable {
+                voiceAssistant?.stopSpeaking()
+                onClick()
+            }
             .padding(horizontal = 14.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
@@ -380,3 +393,5 @@ private fun ReportedSymptomsCard(reportedSymptoms: List<SymptomFeature>) {
         }
     }
 }
+
+

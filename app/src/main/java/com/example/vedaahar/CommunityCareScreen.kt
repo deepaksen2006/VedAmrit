@@ -41,7 +41,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -69,25 +69,25 @@ import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
 
-private val CommunityBackground = Color(0xFFF5FAF1)
-private val CommunityCard = Color(0xFFFFFEFA)
-private val CommunityPanel = Color(0xFFFDF8EF)
-private val CareBlue = Color(0xFF265E9F)
-private val CareRed = Color(0xFFC93333)
-private val CareMint = Color(0xFF0C7F47)
-private val SearchBorder = Color(0xFFD8E4F0)
-private val WarningBackground = Color(0xFFFFF8DB)
-private val WarningBorder = Color(0xFFE7B83E)
-private val WarningText = Color(0xFF8C5A00)
-private val EmergencyRed = Color(0xFFB3261E)
-private val SoftGold = Color(0xFFE4BF65)
+private val CommunityBackground = Color(0xFFFFFFFF)
+private val CommunityCard = Color(0xFFFFFFFF)
+private val CommunityPanel = Color(0xFFFFFFFF)
+private val CareBlue = Color(0xFF1F6B4F)
+private val CareRed = Color(0xFF7A4E32)
+private val CareMint = Color(0xFF1F6B4F)
+private val SearchBorder = Color(0xFFE7F2EC)
+private val WarningBackground = Color(0xFFFFFFFF)
+private val WarningBorder = Color(0xFF7A4E32)
+private val WarningText = Color(0xFF7A4E32)
+private val EmergencyRed = Color(0xFF7A4E32)
+private val SoftGold = Color(0xFFF1E6DC)
 
 private enum class CareCategory(val label: String, val query: String, val color: Color) {
     All("All", "hospital clinic ngo pharmacy ayurvedic emergency", ForestGreen),
     Hospital("Hospital", "hospital", CareRed),
     Clinic("Clinic", "clinic doctors", CareBlue),
-    Ngo("NGO", "ngo healthcare", Color(0xFF7356A6)),
-    Pharmacy("Pharmacy", "pharmacy", Color(0xFF0C7F77)),
+    Ngo("NGO", "ngo healthcare", Color(0xFF7A4E32)),
+    Pharmacy("Pharmacy", "pharmacy", Color(0xFF1F6B4F)),
     Ayurveda("Ayurvedic Center", "ayurvedic clinic", CareMint),
     Emergency("Emergency", "emergency hospital", EmergencyRed)
 }
@@ -210,7 +210,7 @@ fun CommunityCareScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(CommunityBackground, Cream, LightSage.copy(alpha = 0.5f))))
+                .background(Color(0xFFFFFFFF))
                 .statusBarsPadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 14.dp),
@@ -374,8 +374,8 @@ private fun CommunityMapPanel(
     Card(
         modifier = modifier.heightIn(min = 280.dp),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFEFF5FA)),
-        border = BorderStroke(1.dp, Color(0xFFD5E3EF))
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFE7F2EC)),
+        border = BorderStroke(1.dp, Color(0xFFE7F2EC))
     ) {
         Box(modifier = Modifier.fillMaxSize().padding(10.dp)) {
             if (hasMapKey) {
@@ -635,7 +635,7 @@ private fun HealthcareDetailsPreview(place: HealthcarePlace, hasMapKey: Boolean)
                 MiniActionButton("Share", SageGreen)
             }
             Box(
-                modifier = Modifier.fillMaxWidth().height(110.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFEFF5FA)),
+                modifier = Modifier.fillMaxWidth().height(110.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFE7F2EC)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -690,7 +690,7 @@ private fun LocatorSearchField(
         textStyle = TextStyle(color = DarkForestGreen, fontSize = 13.sp),
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF8FBFF))
+            .background(Color(0xFFFFFFFF))
             .border(1.dp, SearchBorder, RoundedCornerShape(12.dp)),
         decorationBox = { innerTextField ->
             Row(
@@ -718,7 +718,7 @@ private fun FilterPill(text: String) {
         modifier = Modifier
             .height(46.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF8FBFF))
+            .background(Color(0xFFFFFFFF))
             .border(1.dp, SearchBorder, RoundedCornerShape(12.dp))
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -776,7 +776,7 @@ private fun EmptyMapPlaceholder(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFFEFF5FA)),
+            .background(Color(0xFFE7F2EC)),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -850,12 +850,12 @@ private fun communityCareMapHtml(apiKey: String, canUseLocation: Boolean): Strin
           <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
           <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
           <style>
-            html, body, #map { height: 100%; margin: 0; background: #eff5fa; font-family: system-ui, -apple-system, Segoe UI, sans-serif; }
+            html, body, #map { height: 100%; margin: 0; background: #ffffff; font-family: system-ui, -apple-system, Segoe UI, sans-serif; }
             .status {
               position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 1000;
-              background: rgba(20,46,31,.9); color: #fffefa; border-radius: 14px;
+              background: rgba(18,74,56,.9); color: #ffffff; border-radius: 14px;
               padding: 9px 12px; font-size: 12px; line-height: 1.35;
-              box-shadow: 0 10px 30px rgba(20,46,31,.16);
+              box-shadow: 0 10px 30px rgba(18,74,56,.16);
             }
             .leaflet-popup-content { font-size: 13px; line-height: 1.35; }
           </style>
@@ -889,7 +889,7 @@ private fun communityCareMapHtml(apiKey: String, canUseLocation: Boolean): Strin
 
             function addUserMarker() {
               L.circleMarker([userLat, userLon], {
-                radius: 8, color: '#142e1f', fillColor: '#6a8a6d', fillOpacity: 1, weight: 3
+                radius: 8, color: '#124a38', fillColor: '#1f6b4f', fillOpacity: 1, weight: 3
               }).addTo(map).bindPopup('Your location');
             }
 
@@ -949,3 +949,5 @@ private fun communityCareMapHtml(apiKey: String, canUseLocation: Boolean): Strin
         </html>
     """.trimIndent()
 }
+
+

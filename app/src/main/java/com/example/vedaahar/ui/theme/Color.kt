@@ -2,68 +2,84 @@ package com.example.vedaahar.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Cream = Color(0xFFF6EFE4)
-val SoftBeige = Color(0xFFE8DCC8)
-val BeigeBorder = Color(0xFFDCCCB8)
-val ForestGreen = Color(0xFF21482F)
-val DarkForestGreen = Color(0xFF142E1F)
-val SageGreen = Color(0xFF6A8A6D)
-val LightSage = Color(0xFFEAF3EA)
-val SoftBlueGray = Color(0xFF4F5962)
-val PureWhite = Color(0xFFFFFFFF)
+// Core VedAmrit green + brown design system.
+val VedamritBrandGreen = Color(0xFF1F6B4F)
+val VedamritDarkGreen = Color(0xFF124A38)
+val VedamritLightGreen = Color(0xFFE7F2EC)
+val VedamritBrandBrown = Color(0xFF7A4E32)
+val VedamritDarkBrown = Color(0xFF513321)
+val VedamritLightBrown = Color(0xFFF1E6DC)
+val VedamritSurface = Color(0xFFFFFFFF)
+val VedamritCream = VedamritSurface
+val VedamritReadable = Color(0xFF26332D)
 
-// VedAmrit Brand Palette
-val WarmIvory = Color(0xFFFBF7EC)
-val VedAmritGreen = Color(0xFF0F3826)
-val VedAmritCtaGreen = Color(0xFF0C4A31)
-val MutedCharcoal = Color(0xFF5A665E)
-val SoftOliveGreen = Color(0xFF3F6A48)
-val AntiqueGold = Color(0xFFC5A866)
-val CrimsonMaroon = Color(0xFF73181C)
+// Accessible aliases used across existing screens.
+val VedamritGreenDark = VedamritDarkGreen
+val VedamritGreenSoft = VedamritLightGreen
+val VedamritGreenMist = VedamritLightGreen
+val VedamritBrownDark = VedamritDarkBrown
+val VedamritBrownSoft = VedamritLightBrown
+val VedamritBrownMist = VedamritLightBrown
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val Cream = VedamritCream
+val SoftBeige = VedamritBrownSoft
+val BeigeBorder = VedamritBrownMist
+val ForestGreen = VedamritBrandGreen
+val DarkForestGreen = VedamritGreenDark
+val SageGreen = VedamritBrandGreen.copy(alpha = 0.72f)
+val LightSage = VedamritGreenSoft
+val SoftBlueGray = VedamritReadable.copy(alpha = 0.76f)
+val PureWhite = VedamritSurface
 
-// Vedamrit Redesign Color Tokens
-val VedamritCanvas = Color(0xFFFAF7F0)
-val VedamritDarkGreen = Color(0xFF133826)
-val VedamritTagline = Color(0xFF496253)
-val VedamritAvatarBg = Color(0xFFCDE5D2)
-val VedamritAvatarIcon = Color(0xFF1B402B)
-val VedamritNotificationRed = Color(0xFFE53935)
+// Legacy names intentionally remapped to the VedAmrit green + brown system.
+val WarmIvory = VedamritCream
+val VedAmritGreen = VedamritGreenDark
+val VedAmritCtaGreen = VedamritDarkGreen
+val MutedCharcoal = VedamritReadable
+val SoftOliveGreen = VedamritBrandGreen
+val AntiqueGold = VedamritBrandBrown
+val CrimsonMaroon = VedamritBrandBrown
 
-val VedamritMintCard = Color(0xFFDCEEE2)
-val VedamritMintCta = Color(0xFF124B28)
-val VedamritMintText = Color(0xFF11261B)
-val VedamritMintSubtext = Color(0xFF4C5B52)
+val Purple80 = VedamritBrownSoft
+val PurpleGrey80 = VedamritBrownSoft
+val Pink80 = VedamritBrownSoft
+val Purple40 = VedamritBrandBrown
+val PurpleGrey40 = VedamritReadable
+val Pink40 = VedamritBrandBrown
 
-val VedamritPeachCard = Color(0xFFFDE9D4)
-val VedamritPeachCta = Color(0xFFE65100)
-val VedamritPeachText = Color(0xFF2B1B15)
-val VedamritPeachSubtext = Color(0xFF5C4D44)
+val VedamritCanvas = VedamritCream
+val VedamritTagline = VedamritBrandBrown
+val VedamritAvatarBg = VedamritGreenSoft
+val VedamritAvatarIcon = VedamritBrandGreen
+val VedamritNotificationRed = VedamritBrandBrown
 
-val VedamritDietCard = Color(0xFFDAECE0)
-val VedamritDietCta = Color(0xFF1E5E35)
+val VedamritMintCard = VedamritGreenSoft
+val VedamritMintCta = VedamritBrandGreen
+val VedamritMintText = VedamritGreenDark
+val VedamritMintSubtext = VedamritReadable
 
-val VedamritBlueCard = Color(0xFFD9EAF7)
-val VedamritBlueCta = Color(0xFF0D6FA5)
-val VedamritBlueText = Color(0xFF122230)
-val VedamritBlueSubtext = Color(0xFF465866)
+val VedamritPeachCard = VedamritBrownSoft
+val VedamritPeachCta = VedamritBrandBrown
+val VedamritPeachText = VedamritBrownDark
+val VedamritPeachSubtext = VedamritReadable
 
-val VedamritPurpleCard = Color(0xFFE9DEF5)
-val VedamritPurpleCta = Color(0xFF6A3EA1)
-val VedamritPurpleText = Color(0xFF261533)
-val VedamritPurpleSubtext = Color(0xFF584A63)
+val VedamritDietCard = VedamritGreenSoft
+val VedamritDietCta = VedamritBrandGreen
 
-val VedamritYellowCard = Color(0xFFFDF1C9)
-val VedamritYellowCta = Color(0xFFD98218)
-val VedamritYellowText = Color(0xFF241B10)
-val VedamritYellowSubtext = Color(0xFF5C5243)
+val VedamritBlueCard = VedamritBrownSoft
+val VedamritBlueCta = VedamritBrandBrown
+val VedamritBlueText = VedamritBrownDark
+val VedamritBlueSubtext = VedamritReadable
 
-val VedamritNavSurface = Color(0xFFFFFFFF)
-val VedamritNavInactive = Color(0xFF3C4A40)
+val VedamritPurpleCard = VedamritBrownSoft
+val VedamritPurpleCta = VedamritBrandBrown
+val VedamritPurpleText = VedamritBrownDark
+val VedamritPurpleSubtext = VedamritReadable
 
+val VedamritYellowCard = VedamritBrownSoft
+val VedamritYellowCta = VedamritBrandBrown
+val VedamritYellowText = VedamritBrownDark
+val VedamritYellowSubtext = VedamritReadable
+
+val VedamritNavSurface = VedamritSurface
+val VedamritNavInactive = VedamritReadable

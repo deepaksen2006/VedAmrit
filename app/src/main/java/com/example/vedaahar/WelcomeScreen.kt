@@ -31,7 +31,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -487,8 +487,8 @@ private fun ValuePropCard(item: ValuePropData, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier.height(106.dp),
         shape = RoundedCornerShape(18.dp),
-        border = BorderStroke(1.dp, Color(0xFFE8E0D2).copy(alpha = 0.85f)),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDF8)),
+        border = BorderStroke(1.dp, Color(0xFFF1E6DC).copy(alpha = 0.85f)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
@@ -547,9 +547,9 @@ private fun AuthCtaCard(
                 onClick = onClick
             ),
         shape = RoundedCornerShape(20.dp),
-        border = if (isPrimary) null else BorderStroke(1.dp, Color(0xFFE8E0D2)),
+        border = if (isPrimary) null else BorderStroke(1.dp, Color(0xFFF1E6DC)),
         colors = CardDefaults.cardColors(
-            containerColor = if (isPrimary) VedAmritCtaGreen else Color(0xFFFFFDF8)
+            containerColor = if (isPrimary) VedAmritCtaGreen else Color(0xFFFFFFFF)
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (isPrimary) 2.5.dp else 1.dp
@@ -565,7 +565,7 @@ private fun AuthCtaCard(
                 modifier = Modifier
                     .size(42.dp)
                     .background(
-                        color = if (isPrimary) Color.White.copy(alpha = 0.15f) else Color(0xFFEFF5ED),
+                        color = if (isPrimary) Color.White.copy(alpha = 0.15f) else Color(0xFFE7F2EC),
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -611,3 +611,5 @@ private fun AuthCtaCard(
 fun WelcomeScreenPreview() {
     WelcomeScreen()
 }
+
+

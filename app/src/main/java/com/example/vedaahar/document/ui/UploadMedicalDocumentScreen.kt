@@ -67,7 +67,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -117,12 +117,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private val BrandGold = Color(0xFFE8C97B)
-private val BrandGoldDark = Color(0xFF9B762B)
-private val ErrorRed = Color(0xFFC62828)
-private val SuccessGreen = Color(0xFF2E7D32)
-private val CardBorderColor = Color(0xFFE8E0D2)
-private val CardBgWarm = Color(0xFFFFFDF8)
+private val BrandGold = Color(0xFFF1E6DC)
+private val BrandGoldDark = Color(0xFF7A4E32)
+private val ErrorRed = Color(0xFF7A4E32)
+private val SuccessGreen = Color(0xFF1F6B4F)
+private val CardBorderColor = Color(0xFFF1E6DC)
+private val CardBgWarm = Color(0xFFFFFFFF)
 
 // Custom crisp vector icons
 private val DocUploadAreaIcon: ImageVector = ImageVector.Builder(
@@ -554,7 +554,7 @@ private fun UploadMedicalDocumentBackground() {
             size = Size(size.width * 0.86f, size.height * 0.26f)
         )
         drawOval(
-            color = Color(0xFFD8F0DF).copy(alpha = 0.46f),
+            color = Color(0xFFE7F2EC).copy(alpha = 0.46f),
             topLeft = Offset(size.width * 0.66f, size.height * 0.88f),
             size = Size(size.width * 0.5f, size.height * 0.18f)
         )
@@ -581,9 +581,9 @@ private fun UploadDocumentSelectionContent(
             badge = "PDF, JPG, JPEG, PNG | Max 10 MB",
             icon = DocUploadAreaIcon,
             iconTint = VedAmritGreen,
-            containerColor = Color(0xFFFBFFFB),
-            accentColor = Color(0xFFDFF3E5),
-            borderColor = Color(0xFFD5EADD),
+            containerColor = Color(0xFFFFFFFF),
+            accentColor = Color(0xFFE7F2EC),
+            borderColor = Color(0xFFE7F2EC),
             onClick = onChooseFile
         )
 
@@ -592,10 +592,10 @@ private fun UploadDocumentSelectionContent(
             subtitle = "Take a photo of your document",
             badge = null,
             icon = CameraCaptureIcon,
-            iconTint = Color(0xFF1565A9),
-            containerColor = Color(0xFFF1FAFF),
-            accentColor = Color(0xFFDDEFFF),
-            borderColor = Color(0xFFC9E6FA),
+            iconTint = Color(0xFF1F6B4F),
+            containerColor = Color(0xFFFFFFFF),
+            accentColor = Color(0xFFE7F2EC),
+            borderColor = Color(0xFFE7F2EC),
             onClick = onTakePhoto
         )
 
@@ -721,7 +721,7 @@ private fun UploadSourceCard(
                         Row(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(50))
-                                .background(Color(0xFFE9F6EC))
+                                .background(Color(0xFFE7F2EC))
                                 .padding(horizontal = 12.dp, vertical = 7.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -762,7 +762,7 @@ private fun SelectedDocumentPreviewCard(
             .fillMaxWidth()
             .shadow(8.dp, RoundedCornerShape(24.dp), ambientColor = VedAmritGreen.copy(alpha = 0.08f), spotColor = VedAmritGreen.copy(alpha = 0.08f)),
         shape = RoundedCornerShape(24.dp),
-        border = BorderStroke(1.dp, Color(0xFFD8E8DB)),
+        border = BorderStroke(1.dp, Color(0xFFE7F2EC)),
         colors = CardDefaults.cardColors(containerColor = PureWhite)
     ) {
         CapturedImagePreview(selectedFile = selectedFile)
@@ -777,12 +777,12 @@ private fun SelectedDocumentPreviewCard(
                 modifier = Modifier
                     .size(46.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(if (selectedFile.fileType == "PDF") Color(0xFFFFEBEE) else Color(0xFFE8F5E9)),
+                    .background(if (selectedFile.fileType == "PDF") Color(0xFFF1E6DC) else Color(0xFFE7F2EC)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = selectedFile.fileType,
-                    color = if (selectedFile.fileType == "PDF") Color(0xFFC62828) else Color(0xFF2E7D32),
+                    color = if (selectedFile.fileType == "PDF") Color(0xFF7A4E32) else Color(0xFF1F6B4F),
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp
                 )
@@ -835,8 +835,8 @@ private fun UploadMessageCard(message: String, error: Boolean) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = if (error) Color(0xFFFFEBEE) else Color(0xFFE8F5E9)),
-        border = BorderStroke(1.dp, if (error) Color(0xFFFFCDD2) else Color(0xFFCDE8D1))
+        colors = CardDefaults.cardColors(containerColor = if (error) Color(0xFFF1E6DC) else Color(0xFFE7F2EC)),
+        border = BorderStroke(1.dp, if (error) Color(0xFFF1E6DC) else Color(0xFFE7F2EC))
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -879,7 +879,7 @@ private fun SecurityFooter() {
             modifier = Modifier
                 .width(1.dp)
                 .height(34.dp)
-                .background(Color(0xFFD7E8D9))
+                .background(Color(0xFFE7F2EC))
         )
         Spacer(modifier = Modifier.width(14.dp))
         Text(
@@ -907,7 +907,7 @@ private fun CapturedImagePreview(selectedFile: SelectedFileDetails) {
             .height(180.dp)
             .padding(start = 14.dp, top = 14.dp, end = 14.dp)
             .clip(RoundedCornerShape(14.dp))
-            .border(BorderStroke(1.dp, Color(0xFFD8CFBE)), RoundedCornerShape(14.dp))
+            .border(BorderStroke(1.dp, Color(0xFFF1E6DC)), RoundedCornerShape(14.dp))
     )
 }
 
@@ -935,7 +935,7 @@ private fun UploadProgressView(
                 modifier = Modifier
                     .size(64.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFEAF4E8)),
+                    .background(Color(0xFFE7F2EC)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -974,7 +974,7 @@ private fun UploadProgressView(
                     .height(10.dp)
                     .clip(RoundedCornerShape(50)),
                 color = VedAmritCtaGreen,
-                trackColor = Color(0xFFE8E0D2)
+                trackColor = Color(0xFFF1E6DC)
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -1032,7 +1032,7 @@ private fun Step5SuccessView(
                 modifier = Modifier
                     .size(64.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFE8F5E9)),
+                    .background(Color(0xFFE7F2EC)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -1071,7 +1071,7 @@ private fun Step5SuccessView(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
-                    border = BorderStroke(1.dp, Color(0xFFE8E0D2)),
+                    border = BorderStroke(1.dp, Color(0xFFF1E6DC)),
                     colors = CardDefaults.cardColors(containerColor = PureWhite)
                 ) {
                     Row(
@@ -1085,14 +1085,14 @@ private fun Step5SuccessView(
                                 .size(42.dp)
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(
-                                    if (document.fileType == "PDF") Color(0xFFFFEBEE)
-                                    else Color(0xFFE8F5E9)
+                                    if (document.fileType == "PDF") Color(0xFFF1E6DC)
+                                    else Color(0xFFE7F2EC)
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = document.fileType,
-                                color = if (document.fileType == "PDF") Color(0xFFC62828) else Color(0xFF2E7D32),
+                                color = if (document.fileType == "PDF") Color(0xFF7A4E32) else Color(0xFF1F6B4F),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 12.sp
                             )
@@ -1148,7 +1148,7 @@ private fun Step5SuccessView(
                         .weight(1f)
                         .height(46.dp),
                     shape = RoundedCornerShape(50),
-                    border = BorderStroke(1.dp, Color(0xFFD2C7B8))
+                    border = BorderStroke(1.dp, Color(0xFFF1E6DC))
                 ) {
                     Text("Upload Another", fontSize = 13.sp, color = DarkForestGreen)
                 }
@@ -1159,7 +1159,7 @@ private fun Step5SuccessView(
                         .weight(1f)
                         .height(46.dp),
                     shape = RoundedCornerShape(50),
-                    border = BorderStroke(1.dp, Color(0xFFD2C7B8))
+                    border = BorderStroke(1.dp, Color(0xFFF1E6DC))
                 ) {
                     Text("Back to My Documents", fontSize = 13.sp, color = DarkForestGreen)
                 }
@@ -1241,5 +1241,7 @@ private fun parseCapturedPhotoToFileDetails(context: Context, uri: Uri): Selecte
         isUnsupported = false
     )
 }
+
+
 
 

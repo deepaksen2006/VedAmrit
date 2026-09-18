@@ -55,7 +55,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -90,6 +90,7 @@ import com.example.vedaahar.doctor.data.DoctorRepository
 import com.example.vedaahar.doctor.ui.PatientVerifiedDoctorsSection
 import com.example.vedaahar.dosha.DoshaResultStore
 import com.example.vedaahar.dosha.SavedDoshaAssessment
+import com.example.vedaahar.i18n.LanguageSelector
 import com.example.vedaahar.ui.CircularArrowCta
 import com.example.vedaahar.ui.DoshaTestIllustration
 import com.example.vedaahar.ui.HealthyMealBowlIllustration
@@ -227,17 +228,17 @@ fun PatientDashboardScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
                         "• Time for your warm herbal water ritual.",
-                        color = Color(0xFF334438),
+                        color = Color(0xFF26332D),
                         fontSize = 14.sp
                     )
                     Text(
                         "• Dosha rhythm: Afternoon Pitta digestion peak active.",
-                        color = Color(0xFF334438),
+                        color = Color(0xFF26332D),
                         fontSize = 14.sp
                     )
                     Text(
                         "• Document storage is secure and encrypted.",
-                        color = Color(0xFF334438),
+                        color = Color(0xFF26332D),
                         fontSize = 14.sp
                     )
                 }
@@ -247,7 +248,7 @@ fun PatientDashboardScreen(
                     Text("Got it", color = VedamritMintCta, fontWeight = FontWeight.Bold)
                 }
             },
-            containerColor = Color(0xFFFFFBF4),
+            containerColor = Color(0xFFFFFFFF),
             shape = RoundedCornerShape(20.dp)
         )
     }
@@ -430,7 +431,7 @@ private fun VedamritHeader(
                 Icon(
                     imageVector = Icons.Filled.Notifications,
                     contentDescription = "Notifications",
-                    tint = Color(0xFF2C3E30),
+                    tint = Color(0xFF26332D),
                     modifier = Modifier.size(23.dp)
                 )
                 // Red badge
@@ -481,7 +482,7 @@ private fun VedamritGreeting(name: String) {
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp,
-                color = Color(0xFF1E2A22)
+                color = Color(0xFF26332D)
             )
             Text(
                 text = name,
@@ -496,7 +497,7 @@ private fun VedamritGreeting(name: String) {
             text = "Your health journey starts here",
             fontSize = 15.sp,
             fontWeight = FontWeight.Normal,
-            color = Color(0xFF556559)
+            color = Color(0xFF1F6B4F)
         )
     }
 }
@@ -520,7 +521,7 @@ private fun UploadDocumentCard(
             ),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = VedamritMintCard),
-        border = BorderStroke(1.dp, Color(0xFFCFE3D5)),
+        border = BorderStroke(1.dp, Color(0xFFE7F2EC)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Box(
@@ -591,7 +592,7 @@ private fun DoshaTestCard(
             ),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = VedamritPeachCard),
-        border = BorderStroke(1.dp, Color(0xFFF7D6B9)),
+        border = BorderStroke(1.dp, Color(0xFFF1E6DC)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Box(
@@ -671,7 +672,7 @@ private fun PersonalisedDietCard(
             ),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = VedamritDietCard),
-        border = BorderStroke(1.dp, Color(0xFFCCE2D4)),
+        border = BorderStroke(1.dp, Color(0xFFE7F2EC)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
@@ -694,14 +695,14 @@ private fun PersonalisedDietCard(
                         fontFamily = FontFamily.Serif,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = Color(0xFF11291C)
+                        color = Color(0xFF124A38)
                     )
                     Spacer(modifier = Modifier.height(5.dp))
                     Text(
                         text = "Get AI-powered diet plans\nbased on your body type\nand health goals",
                         fontSize = 12.5.sp,
                         lineHeight = 17.sp,
-                        color = Color(0xFF425648)
+                        color = Color(0xFF1F6B4F)
                     )
                 }
 
@@ -752,7 +753,7 @@ private fun SymptomsAnalysisCard(
             ),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = VedamritBlueCard),
-        border = BorderStroke(1.dp, Color(0xFFC7DDF0)),
+        border = BorderStroke(1.dp, Color(0xFFE7F2EC)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Box(
@@ -823,7 +824,7 @@ private fun IngredientBookCard(
             ),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = VedamritPurpleCard),
-        border = BorderStroke(1.dp, Color(0xFFDBCBEF)),
+        border = BorderStroke(1.dp, Color(0xFFF1E6DC)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Box(
@@ -894,7 +895,7 @@ private fun LifestyleCalculatorCard(
             ),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = VedamritYellowCard),
-        border = BorderStroke(1.dp, Color(0xFFF3E1A6)),
+        border = BorderStroke(1.dp, Color(0xFFF1E6DC)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
@@ -962,7 +963,7 @@ private fun WellnessTabContent(
     Text(
         text = "Daily Ayurvedic rituals and calming movement.",
         fontSize = 14.sp,
-        color = Color(0xFF5A665E)
+        color = Color(0xFF7A4E32)
     )
     Spacer(modifier = Modifier.height(4.dp))
 
@@ -970,21 +971,21 @@ private fun WellnessTabContent(
         title = "Yoga & Meditation",
         description = "Practice guided breathwork, pranayama, and calming movement.",
         icon = "🧘",
-        accent = Color(0xFF5E8B52),
+        accent = Color(0xFF1F6B4F),
         onClick = onYogaMeditationClick
     )
     WellnessToolCard(
         title = "Ingredient Book",
         description = "Browse 240+ natural herbs, rituals, and safe usage guides.",
         icon = "🌿",
-        accent = Color(0xFFA07850),
+        accent = Color(0xFF7A4E32),
         onClick = onIngredientBookClick
     )
     WellnessToolCard(
         title = "Health Reminder",
         description = "Manage diet timings, medicine intake, hydration, and yoga alarms.",
         icon = "🔔",
-        accent = Color(0xFF527B8B),
+        accent = Color(0xFF1F6B4F),
         onClick = onHealthReminderClick
     )
 }
@@ -1003,7 +1004,7 @@ private fun WellnessToolCard(
             .height(118.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDF8)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
         border = BorderStroke(1.dp, accent.copy(alpha = 0.35f))
     ) {
         Row(
@@ -1033,14 +1034,14 @@ private fun WellnessToolCard(
                         fontFamily = FontFamily.Serif,
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp,
-                        color = Color(0xFF1E2A22)
+                        color = Color(0xFF26332D)
                     )
                     Spacer(modifier = Modifier.height(3.dp))
                     Text(
                         text = description,
                         fontSize = 11.5.sp,
                         lineHeight = 16.sp,
-                        color = Color(0xFF5A665E),
+                        color = Color(0xFF7A4E32),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -1081,7 +1082,7 @@ private fun ConsultTabContent(onCommunityCareClick: () -> Unit) {
     Text(
         text = "Connect with certified Ayurvedic Vaidyas and healthcare centers.",
         fontSize = 14.sp,
-        color = Color(0xFF5A665E)
+        color = Color(0xFF7A4E32)
     )
     Spacer(modifier = Modifier.height(4.dp))
 
@@ -1092,7 +1093,7 @@ private fun ConsultTabContent(onCommunityCareClick: () -> Unit) {
             .clickable(onClick = onCommunityCareClick),
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = VedamritMintCard),
-        border = BorderStroke(1.dp, Color(0xFFC7DEC9))
+        border = BorderStroke(1.dp, Color(0xFFE7F2EC))
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
             Text(
@@ -1107,7 +1108,7 @@ private fun ConsultTabContent(onCommunityCareClick: () -> Unit) {
                 "Find verified Ayurvedic clinics, botanical hospitals, and community centers nearby.",
                 fontSize = 13.sp,
                 lineHeight = 18.sp,
-                color = Color(0xFF3B5643)
+                color = Color(0xFF1F6B4F)
             )
         }
     }
@@ -1148,13 +1149,13 @@ private fun ProfileTabContent(
             text = {
                 Text(
                     text = "Are you sure you want to logout?",
-                    color = Color(0xFF334438),
+                    color = Color(0xFF26332D),
                     fontSize = 14.sp
                 )
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancel", color = Color(0xFF647568), fontWeight = FontWeight.Bold)
+                    Text("Cancel", color = Color(0xFF7A4E32), fontWeight = FontWeight.Bold)
                 }
             },
             confirmButton = {
@@ -1164,10 +1165,10 @@ private fun ProfileTabContent(
                         onLogout()
                     }
                 ) {
-                    Text("Logout", color = Color(0xFFB3261E), fontWeight = FontWeight.Bold)
+                    Text("Logout", color = Color(0xFF7A4E32), fontWeight = FontWeight.Bold)
                 }
             },
-            containerColor = Color(0xFFFFFBF4),
+            containerColor = Color(0xFFFFFFFF),
             shape = RoundedCornerShape(20.dp)
         )
     }
@@ -1184,8 +1185,8 @@ private fun ProfileTabContent(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDF8)),
-        border = BorderStroke(1.dp, Color(0xFFE2E9E2))
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
+        border = BorderStroke(1.dp, Color(0xFFE7F2EC))
     ) {
         Row(
             modifier = Modifier
@@ -1215,7 +1216,7 @@ private fun ProfileTabContent(
                     fontFamily = FontFamily.Serif,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
-                    color = Color(0xFF1E2A22)
+                    color = Color(0xFF26332D)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1242,7 +1243,7 @@ private fun ProfileTabContent(
         text = "QUICK ACTIONS",
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
-        color = Color(0xFF6B7B70),
+        color = Color(0xFF7A4E32),
         letterSpacing = 2.sp
     )
 
@@ -1275,10 +1276,45 @@ private fun ProfileTabContent(
         text = "ACCOUNT",
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
-        color = Color(0xFF6B7B70),
+        color = Color(0xFF7A4E32),
         letterSpacing = 2.sp
     )
+    LanguageSettingCard()
+    Spacer(modifier = Modifier.height(6.dp))
     LogoutActionButton(onClick = { showLogoutDialog = true })
+}
+
+@Composable
+private fun LanguageSettingCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
+        border = BorderStroke(1.dp, Color(0xFFE7F2EC))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Language",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.5.sp,
+                    color = Color(0xFF26332D)
+                )
+                Text(
+                    text = "Change app language",
+                    fontSize = 11.sp,
+                    color = Color(0xFF7A4E32)
+                )
+            }
+            LanguageSelector()
+        }
+    }
 }
 
 @Composable
@@ -1293,8 +1329,8 @@ private fun ProfileActionButton(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDF8)),
-        border = BorderStroke(1.dp, Color(0xFFE8EDE8))
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
+        border = BorderStroke(1.dp, Color(0xFFE7F2EC))
     ) {
         Row(
             modifier = Modifier
@@ -1314,12 +1350,12 @@ private fun ProfileActionButton(
                         text = title,
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.5.sp,
-                        color = Color(0xFF1E2A22)
+                        color = Color(0xFF26332D)
                     )
                     Text(
                         text = subtitle,
                         fontSize = 11.sp,
-                        color = Color(0xFF647568)
+                        color = Color(0xFF7A4E32)
                     )
                 }
             }
@@ -1342,8 +1378,8 @@ private fun LogoutActionButton(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDF8)),
-        border = BorderStroke(1.dp, Color(0xFFF0D4D1))
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
+        border = BorderStroke(1.dp, Color(0xFFF1E6DC))
     ) {
         Row(
             modifier = Modifier
@@ -1361,13 +1397,13 @@ private fun LogoutActionButton(
                     modifier = Modifier
                         .size(34.dp)
                         .clip(RoundedCornerShape(11.dp))
-                        .background(Color(0xFFFFEDEA)),
+                        .background(Color(0xFFF1E6DC)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = LogoutActionIcon,
                         contentDescription = null,
-                        tint = Color(0xFFB3261E),
+                        tint = Color(0xFF7A4E32),
                         modifier = Modifier.size(19.dp)
                     )
                 }
@@ -1376,19 +1412,19 @@ private fun LogoutActionButton(
                         text = "Logout",
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.5.sp,
-                        color = Color(0xFFB3261E)
+                        color = Color(0xFF7A4E32)
                     )
                     Text(
                         text = "Sign out of this account",
                         fontSize = 11.sp,
-                        color = Color(0xFF7B5E5A)
+                        color = Color(0xFF7A4E32)
                     )
                 }
             }
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = null,
-                tint = Color(0xFFB3261E),
+                tint = Color(0xFF7A4E32),
                 modifier = Modifier.size(16.dp)
             )
         }
@@ -1413,7 +1449,7 @@ private fun ShoppingTabContent(
     Text(
         text = "Authentic herbal formulations, oils, and dosha teas.",
         fontSize = 14.sp,
-        color = Color(0xFF5A665E)
+        color = Color(0xFF7A4E32)
     )
     Spacer(modifier = Modifier.height(4.dp))
 
@@ -1421,7 +1457,7 @@ private fun ShoppingTabContent(
         title = "Supplements & Tonics",
         description = "Pure organic Ashwagandha, Triphala, Brahmi, and Chyawanprash.",
         icon = "🌿",
-        accent = Color(0xFF3F6A48),
+        accent = Color(0xFF1F6B4F),
         onClick = onOpenFullStoreClick
     )
 
@@ -1429,7 +1465,7 @@ private fun ShoppingTabContent(
         title = "Dosha Teas & Elixirs",
         description = "Blended herbal infusions crafted specifically for Vata, Pitta, and Kapha balance.",
         icon = "🍵",
-        accent = Color(0xFFC5A866),
+        accent = Color(0xFF7A4E32),
         onClick = onOpenFullStoreClick
     )
 
@@ -1437,7 +1473,7 @@ private fun ShoppingTabContent(
         title = "Medicinal Oils & Skincare",
         description = "Kumkumadi Tailam, Bhringraj hair nectar, and pure sesame massage oil.",
         icon = "✨",
-        accent = Color(0xFF73181C),
+        accent = Color(0xFF513321),
         onClick = onOpenFullStoreClick
     )
 
@@ -1485,7 +1521,7 @@ private fun ShoppingCategoryCard(
             .height(118.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDF8)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
         border = BorderStroke(1.dp, accent.copy(alpha = 0.35f))
     ) {
         Row(
@@ -1515,14 +1551,14 @@ private fun ShoppingCategoryCard(
                         fontFamily = FontFamily.Serif,
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp,
-                        color = Color(0xFF1E2A22)
+                        color = Color(0xFF26332D)
                     )
                     Spacer(modifier = Modifier.height(3.dp))
                     Text(
                         text = description,
                         fontSize = 11.5.sp,
                         lineHeight = 16.sp,
-                        color = Color(0xFF5A665E),
+                        color = Color(0xFF7A4E32),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -1546,4 +1582,7 @@ private fun ShoppingCategoryCard(
         }
     }
 }
+
+
+
 

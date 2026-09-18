@@ -20,6 +20,13 @@ object AgniResultStore {
             ?: return null
         return runCatching { raw.toAgniResult() }.getOrNull()
     }
+
+    fun clear(context: Context) {
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .clear()
+            .apply()
+    }
 }
 
 private fun AgniResult.toJson(): JSONObject {

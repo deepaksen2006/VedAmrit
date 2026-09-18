@@ -34,7 +34,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,11 +60,11 @@ import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
 
-private val ReminderBackground = Color(0xFFFAF6EC)
-private val ReminderCard = Color(0xFFFFFCF5)
-private val ReminderGold = Color(0xFFE4BF65)
-private val ReminderAmber = Color(0xFFA07850)
-private val ReminderBlue = Color(0xFF527B8B)
+private val ReminderBackground = Color(0xFFFFFFFF)
+private val ReminderCard = Color(0xFFFFFFFF)
+private val ReminderGold = Color(0xFFF1E6DC)
+private val ReminderAmber = Color(0xFF7A4E32)
+private val ReminderBlue = Color(0xFF1F6B4F)
 
 private data class HealthReminderUi(
     val type: String,
@@ -93,7 +93,7 @@ fun HealthReminderScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(ReminderBackground, Cream, LightSage.copy(alpha = 0.35f))))
+                .background(Color(0xFFFFFFFF))
         ) {
             Column(
                 modifier = Modifier
@@ -287,3 +287,5 @@ private fun ReminderListCard(reminder: HealthReminderUi) {
         }
     }
 }
+
+

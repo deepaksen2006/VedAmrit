@@ -40,7 +40,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -74,8 +74,8 @@ import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
 
-private val DoctorGold = Color(0xFFE8C97B)
-private val DoctorWarmCard = Color(0xFFFFFBF4)
+private val DoctorGold = Color(0xFFF1E6DC)
+private val DoctorWarmCard = Color(0xFFFFFFFF)
 
 @Composable
 fun DoctorModuleRoute(
@@ -407,7 +407,7 @@ private fun DoctorSurface(modifier: Modifier = Modifier, content: @Composable ()
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(Color(0xFFFFF8ED), Cream, LightSage.copy(alpha = 0.5f))))
+                .background(Color(0xFFFFFFFF))
         ) {
             content()
         }
@@ -511,3 +511,5 @@ private fun FlowLabels(items: List<String>) {
 private fun SectionTitle(text: String) {
     Text(text.uppercase(), color = SageGreen, fontWeight = FontWeight.Bold, fontSize = 11.sp, letterSpacing = 1.7.sp)
 }
+
+

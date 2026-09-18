@@ -59,11 +59,11 @@ fun VedamritMortarLogo(modifier: Modifier = Modifier) {
             lineTo(w * 0.36f, h * 0.44f)
             close()
         }
-        drawPath(pestlePath, color = Color(0xFFA26B38))
+        drawPath(pestlePath, color = Color(0xFF7A4E32))
 
         // Pestle rounded top tip
         drawCircle(
-            color = Color(0xFFBD8249),
+            color = Color(0xFF7A4E32),
             radius = w * 0.065f,
             center = Offset(w * 0.51f, h * 0.05f)
         )
@@ -78,11 +78,11 @@ fun VedamritMortarLogo(modifier: Modifier = Modifier) {
             )
             close()
         }
-        drawPath(bowlPath, color = Color(0xFF134828))
+        drawPath(bowlPath, color = Color(0xFF124A38))
 
         // Mortar base foot
         drawRoundRect(
-            color = Color(0xFF0F3A20),
+            color = Color(0xFF124A38),
             topLeft = Offset(w * 0.30f, h * 0.86f),
             size = Size(w * 0.40f, h * 0.08f),
             cornerRadius = CornerRadius(2.dp.toPx(), 2.dp.toPx())
@@ -90,13 +90,13 @@ fun VedamritMortarLogo(modifier: Modifier = Modifier) {
 
         // Mortar top lip/rim
         drawOval(
-            color = Color(0xFF1D5C35),
+            color = Color(0xFF1F6B4F),
             topLeft = Offset(rimX, rimTop),
             size = Size(rimW, rimH)
         )
         // Mortar inner depth
         drawOval(
-            color = Color(0xFF0E331B),
+            color = Color(0xFF124A38),
             topLeft = Offset(rimX + w * 0.04f, rimTop + h * 0.02f),
             size = Size(rimW - w * 0.08f, rimH * 0.7f)
         )
@@ -108,7 +108,7 @@ fun VedamritMortarLogo(modifier: Modifier = Modifier) {
             cubicTo(w * 0.40f, h * 0.22f, w * 0.36f, rimTop, w * 0.34f, rimTop + h * 0.04f)
             close()
         }
-        drawPath(leafPath, color = Color(0xFF4CAF50))
+        drawPath(leafPath, color = Color(0xFF1F6B4F))
     }
 }
 
@@ -167,7 +167,7 @@ fun UploadDocIllustration(modifier: Modifier = Modifier) {
         drawPath(sheetPath, color = PureWhite)
         drawPath(
             sheetPath,
-            color = Color(0xFFC7DEC9),
+            color = Color(0xFFE7F2EC),
             style = Stroke(width = 1.2.dp.toPx(), join = StrokeJoin.Round)
         )
 
@@ -178,10 +178,10 @@ fun UploadDocIllustration(modifier: Modifier = Modifier) {
             lineTo(docX + docW, docY + foldSize)
             close()
         }
-        drawPath(foldPath, color = Color(0xFFE2EFE4))
+        drawPath(foldPath, color = Color(0xFFE7F2EC))
         drawPath(
             foldPath,
-            color = Color(0xFFB5D4BA),
+            color = Color(0xFFF1E6DC),
             style = Stroke(width = 1.dp.toPx(), join = StrokeJoin.Round)
         )
 
@@ -194,7 +194,7 @@ fun UploadDocIllustration(modifier: Modifier = Modifier) {
         repeat(3) { i ->
             val curW = if (i == 2) lineMaxW * 0.55f else lineMaxW
             drawRoundRect(
-                color = Color(0xFF88A892),
+                color = Color(0xFFF1E6DC),
                 topLeft = Offset(lineX, startLineY + i * lineSpacing),
                 size = Size(curW, 2.8.dp.toPx()),
                 cornerRadius = CornerRadius(1.5.dp.toPx(), 1.5.dp.toPx())
@@ -213,7 +213,7 @@ fun UploadDocIllustration(modifier: Modifier = Modifier) {
         )
         // Badge background
         drawCircle(
-            color = Color(0xFF124B28),
+            color = Color(0xFF124A38),
             radius = badgeRadius,
             center = badgeCenter
         )
@@ -265,14 +265,14 @@ fun DoshaTestIllustration(modifier: Modifier = Modifier) {
 
         // Connecting circular orbit ring
         drawCircle(
-            color = Color(0xFFE8C8AE).copy(alpha = 0.45f),
+            color = Color(0xFFF1E6DC).copy(alpha = 0.45f),
             radius = w * 0.34f,
             center = Offset(centerX, centerY - h * 0.04f),
             style = Stroke(width = 1.2.dp.toPx())
         )
 
         // Meditating Human Silhouette (Lotus Posture)
-        val figureColor = Color(0xFF2C221D).copy(alpha = 0.82f)
+        val figureColor = Color(0xFF513321).copy(alpha = 0.82f)
         val headY = centerY - h * 0.22f
 
         // Head
@@ -295,18 +295,18 @@ fun DoshaTestIllustration(modifier: Modifier = Modifier) {
 
         // Three Chakra Points on spine
         // Crown/Throat (Light Blue)
-        drawCircle(color = Color(0xFF4FC3F7), radius = 2.4.dp.toPx(), center = Offset(centerX, centerY - h * 0.06f))
+        drawCircle(color = Color(0xFFE7F2EC), radius = 2.4.dp.toPx(), center = Offset(centerX, centerY - h * 0.06f))
         // Heart (Green)
-        drawCircle(color = Color(0xFF66BB6A), radius = 2.4.dp.toPx(), center = Offset(centerX, centerY + h * 0.04f))
+        drawCircle(color = Color(0xFF1F6B4F), radius = 2.4.dp.toPx(), center = Offset(centerX, centerY + h * 0.04f))
         // Solar / Sacral (Orange)
-        drawCircle(color = Color(0xFFFF9800), radius = 2.4.dp.toPx(), center = Offset(centerX, centerY + h * 0.14f))
+        drawCircle(color = Color(0xFF7A4E32), radius = 2.4.dp.toPx(), center = Offset(centerX, centerY + h * 0.14f))
 
         // Badge 1: VATA (Top)
         val vataCenter = Offset(centerX, h * 0.15f)
         val badgeRadius = w * 0.125f
 
-        drawCircle(color = Color(0xFFE1F0F8), radius = badgeRadius, center = vataCenter)
-        drawCircle(color = Color(0xFFB3E0F2), radius = badgeRadius, center = vataCenter, style = Stroke(width = 1.dp.toPx()))
+        drawCircle(color = Color(0xFFE7F2EC), radius = badgeRadius, center = vataCenter)
+        drawCircle(color = Color(0xFFE7F2EC), radius = badgeRadius, center = vataCenter, style = Stroke(width = 1.dp.toPx()))
 
         // Wind swirl icon inside Vata
         val swirlPath = Path().apply {
@@ -322,15 +322,15 @@ fun DoshaTestIllustration(modifier: Modifier = Modifier) {
                 vataCenter.x - badgeRadius * 0.1f, vataCenter.y
             )
         }
-        drawPath(swirlPath, color = Color(0xFF0288D1), style = Stroke(width = 1.8.dp.toPx(), cap = StrokeCap.Round))
+        drawPath(swirlPath, color = Color(0xFF1F6B4F), style = Stroke(width = 1.8.dp.toPx(), cap = StrokeCap.Round))
 
-        val vataMeasure = textMeasurer.measure("VATA", style = TextStyle(fontSize = 7.5.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0277BD)))
+        val vataMeasure = textMeasurer.measure("VATA", style = TextStyle(fontSize = 7.5.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F6B4F)))
         drawText(vataMeasure, topLeft = Offset(vataCenter.x - vataMeasure.size.width / 2f, vataCenter.y + badgeRadius + 1.dp.toPx()))
 
         // Badge 2: PITTA (Left)
         val pittaCenter = Offset(w * 0.18f, h * 0.48f)
-        drawCircle(color = Color(0xFFFEE7D6), radius = badgeRadius, center = pittaCenter)
-        drawCircle(color = Color(0xFFF8CFB0), radius = badgeRadius, center = pittaCenter, style = Stroke(width = 1.dp.toPx()))
+        drawCircle(color = Color(0xFFF1E6DC), radius = badgeRadius, center = pittaCenter)
+        drawCircle(color = Color(0xFFF1E6DC), radius = badgeRadius, center = pittaCenter, style = Stroke(width = 1.dp.toPx()))
 
         // Flame icon inside Pitta
         val flamePath = Path().apply {
@@ -347,15 +347,15 @@ fun DoshaTestIllustration(modifier: Modifier = Modifier) {
             )
             close()
         }
-        drawPath(flamePath, color = Color(0xFFE65100))
+        drawPath(flamePath, color = Color(0xFF7A4E32))
 
-        val pittaMeasure = textMeasurer.measure("PITTA", style = TextStyle(fontSize = 7.5.sp, fontWeight = FontWeight.Bold, color = Color(0xFFD84315)))
+        val pittaMeasure = textMeasurer.measure("PITTA", style = TextStyle(fontSize = 7.5.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A4E32)))
         drawText(pittaMeasure, topLeft = Offset(pittaCenter.x - pittaMeasure.size.width / 2f, pittaCenter.y + badgeRadius + 1.dp.toPx()))
 
         // Badge 3: KAPHA (Right)
         val kaphaCenter = Offset(w * 0.82f, h * 0.48f)
-        drawCircle(color = Color(0xFFE4F3DB), radius = badgeRadius, center = kaphaCenter)
-        drawCircle(color = Color(0xFFC7E4B7), radius = badgeRadius, center = kaphaCenter, style = Stroke(width = 1.dp.toPx()))
+        drawCircle(color = Color(0xFFE7F2EC), radius = badgeRadius, center = kaphaCenter)
+        drawCircle(color = Color(0xFFF1E6DC), radius = badgeRadius, center = kaphaCenter, style = Stroke(width = 1.dp.toPx()))
 
         // Leaf icon inside Kapha
         val kaphaLeaf = Path().apply {
@@ -372,9 +372,9 @@ fun DoshaTestIllustration(modifier: Modifier = Modifier) {
             )
             close()
         }
-        drawPath(kaphaLeaf, color = Color(0xFF2E7D32))
+        drawPath(kaphaLeaf, color = Color(0xFF1F6B4F))
 
-        val kaphaMeasure = textMeasurer.measure("KAPHA", style = TextStyle(fontSize = 7.5.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1B5E20)))
+        val kaphaMeasure = textMeasurer.measure("KAPHA", style = TextStyle(fontSize = 7.5.sp, fontWeight = FontWeight.Bold, color = Color(0xFF124A38)))
         drawText(kaphaMeasure, topLeft = Offset(kaphaCenter.x - kaphaMeasure.size.width / 2f, kaphaCenter.y + badgeRadius + 1.dp.toPx()))
     }
 }
@@ -403,12 +403,12 @@ fun HealthyMealBowlIllustration(modifier: Modifier = Modifier) {
 
         // Outer white ceramic bowl rim
         drawCircle(
-            color = Color(0xFFFBFBFA),
+            color = Color(0xFFFFFFFF),
             radius = bowlRadius,
             center = Offset(bowlCenterX, bowlCenterY)
         )
         drawCircle(
-            color = Color(0xFFD6DFD9),
+            color = Color(0xFFE7F2EC),
             radius = bowlRadius,
             center = Offset(bowlCenterX, bowlCenterY),
             style = Stroke(width = 1.4.dp.toPx())
@@ -417,7 +417,7 @@ fun HealthyMealBowlIllustration(modifier: Modifier = Modifier) {
         // Inner bowl depth gradient
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(Color(0xFFEDEAE1), Color(0xFFDFDACF)),
+                colors = listOf(Color(0xFFF1E6DC), Color(0xFFE7F2EC)),
                 center = Offset(bowlCenterX, bowlCenterY),
                 radius = bowlRadius * 0.90f
             ),
@@ -432,15 +432,15 @@ fun HealthyMealBowlIllustration(modifier: Modifier = Modifier) {
             val gx = riceLeft + (i % 4) * (bowlRadius * 0.18f) + (i / 4) * 2f
             val gy = riceTop + (i / 4) * (bowlRadius * 0.22f)
             drawOval(
-                color = if (i % 2 == 0) Color(0xFFD8B986) else Color(0xFFC79E65),
+                color = if (i % 2 == 0) Color(0xFFF1E6DC) else Color(0xFF7A4E32),
                 topLeft = Offset(gx, gy),
                 size = Size(7.dp.toPx(), 4.dp.toPx())
             )
         }
 
         // Food Section 2: Fresh Steamed Broccoli Florets (Top / Center-Right area)
-        val broccoliColor1 = Color(0xFF2E7D32)
-        val broccoliColor2 = Color(0xFF43A047)
+        val broccoliColor1 = Color(0xFF1F6B4F)
+        val broccoliColor2 = Color(0xFF1F6B4F)
         val brocCenters = listOf(
             Offset(bowlCenterX + bowlRadius * 0.05f, bowlCenterY - bowlRadius * 0.45f),
             Offset(bowlCenterX + bowlRadius * 0.26f, bowlCenterY - bowlRadius * 0.40f),
@@ -450,7 +450,7 @@ fun HealthyMealBowlIllustration(modifier: Modifier = Modifier) {
         brocCenters.forEachIndexed { idx, pt ->
             drawCircle(color = if (idx % 2 == 0) broccoliColor1 else broccoliColor2, radius = bowlRadius * 0.16f, center = pt)
             // Floret textures
-            drawCircle(color = Color(0xFF66BB6A), radius = bowlRadius * 0.06f, center = pt + Offset(-2f, -3f))
+            drawCircle(color = Color(0xFF1F6B4F), radius = bowlRadius * 0.06f, center = pt + Offset(-2f, -3f))
         }
 
         // Food Section 3: Sliced Fresh Cucumbers (Far Right area)
@@ -461,16 +461,16 @@ fun HealthyMealBowlIllustration(modifier: Modifier = Modifier) {
         )
         cucumberCenters.forEach { pt ->
             // Cucumber skin
-            drawCircle(color = Color(0xFF2E7D32), radius = bowlRadius * 0.14f, center = pt)
+            drawCircle(color = Color(0xFF1F6B4F), radius = bowlRadius * 0.14f, center = pt)
             // Cucumber flesh
-            drawCircle(color = Color(0xFFC8E6C9), radius = bowlRadius * 0.11f, center = pt)
+            drawCircle(color = Color(0xFFE7F2EC), radius = bowlRadius * 0.11f, center = pt)
             // Seeds center
-            drawCircle(color = Color(0xFFA5D6A7), radius = bowlRadius * 0.05f, center = pt)
+            drawCircle(color = Color(0xFFF1E6DC), radius = bowlRadius * 0.05f, center = pt)
         }
 
         // Food Section 4: Golden Spiced Paneer / Tofu Cubes (Bottom / Center-Left area)
-        val paneerColor = Color(0xFFE89A3C)
-        val paneerShadow = Color(0xFFC87820)
+        val paneerColor = Color(0xFF7A4E32)
+        val paneerShadow = Color(0xFF7A4E32)
         val paneerPoints = listOf(
             Offset(bowlCenterX - bowlRadius * 0.38f, bowlCenterY + bowlRadius * 0.05f),
             Offset(bowlCenterX - bowlRadius * 0.15f, bowlCenterY + bowlRadius * 0.18f),
@@ -500,13 +500,13 @@ fun HealthyMealBowlIllustration(modifier: Modifier = Modifier) {
             Offset(bowlCenterX + bowlRadius * 0.22f, bowlCenterY + bowlRadius * 0.10f)
         )
         tomatoCenters.forEach { pt ->
-            drawCircle(color = Color(0xFFD32F2F), radius = bowlRadius * 0.11f, center = pt)
+            drawCircle(color = Color(0xFF7A4E32), radius = bowlRadius * 0.11f, center = pt)
             // White glossy reflection
             drawCircle(color = PureWhite.copy(alpha = 0.65f), radius = bowlRadius * 0.035f, center = pt + Offset(-2f, -2.5f))
         }
 
         // Fresh coriander herb sprig on top
-        drawCircle(color = Color(0xFF4CAF50), radius = 2.dp.toPx(), center = Offset(bowlCenterX, bowlCenterY - 2.dp.toPx()))
+        drawCircle(color = Color(0xFF1F6B4F), radius = 2.dp.toPx(), center = Offset(bowlCenterX, bowlCenterY - 2.dp.toPx()))
     }
 }
 
@@ -535,7 +535,7 @@ fun SymptomsClipboardIllustration(modifier: Modifier = Modifier) {
 
         // Clipboard body (Blue backing)
         drawRoundRect(
-            color = Color(0xFF2980B9),
+            color = Color(0xFF1F6B4F),
             topLeft = Offset(boardX, boardY),
             size = Size(boardW, boardH),
             cornerRadius = CornerRadius(8.dp.toPx(), 8.dp.toPx())
@@ -545,7 +545,7 @@ fun SymptomsClipboardIllustration(modifier: Modifier = Modifier) {
         val clipW = boardW * 0.44f
         val clipH = boardH * 0.14f
         drawRoundRect(
-            color = Color(0xFF1F618D),
+            color = Color(0xFF1F6B4F),
             topLeft = Offset(boardX + (boardW - clipW) / 2f, boardY - clipH * 0.35f),
             size = Size(clipW, clipH),
             cornerRadius = CornerRadius(4.dp.toPx(), 4.dp.toPx())
@@ -583,13 +583,13 @@ fun SymptomsClipboardIllustration(modifier: Modifier = Modifier) {
         }
         drawPath(
             ecgPath,
-            color = Color(0xFF1976D2),
+            color = Color(0xFF1F6B4F),
             style = Stroke(width = 2.2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
         )
 
         // Subtle bottom paper text lines
         drawLine(
-            color = Color(0xFFCFD8DC),
+            color = Color(0xFFE7F2EC),
             start = Offset(paperX + paperW * 0.12f, paperY + paperH * 0.72f),
             end = Offset(paperX + paperW * 0.55f, paperY + paperH * 0.72f),
             strokeWidth = 2.dp.toPx(),
@@ -636,7 +636,7 @@ fun SymptomsClipboardIllustration(modifier: Modifier = Modifier) {
         drawPath(
             heartPath,
             brush = Brush.radialGradient(
-                colors = listOf(Color(0xFFFF5252), Color(0xFFD32F2F), Color(0xFFB71C1C)),
+                colors = listOf(Color(0xFF7A4E32), Color(0xFF7A4E32), Color(0xFF7A4E32)),
                 center = Offset(heartCenterX - hr * 0.2f, heartCenterY - hr * 0.2f),
                 radius = hr * 1.2f
             )
@@ -676,7 +676,7 @@ fun IngredientBookIllustration(modifier: Modifier = Modifier) {
             lineTo(bookX, bookY + bookH + 4.dp.toPx())
             close()
         }
-        drawPath(coverPath, color = Color(0xFF6A3EA1))
+        drawPath(coverPath, color = Color(0xFF7A4E32))
 
         // Open Pages Left (White Sheet)
         val leftPage = Path().apply {
@@ -695,7 +695,7 @@ fun IngredientBookIllustration(modifier: Modifier = Modifier) {
             close()
         }
         drawPath(leftPage, color = PureWhite)
-        drawPath(leftPage, color = Color(0xFFD6C8E8), style = Stroke(width = 1.dp.toPx()))
+        drawPath(leftPage, color = Color(0xFFE7F2EC), style = Stroke(width = 1.dp.toPx()))
 
         // Open Pages Right (White Sheet)
         val rightPage = Path().apply {
@@ -714,7 +714,7 @@ fun IngredientBookIllustration(modifier: Modifier = Modifier) {
             close()
         }
         drawPath(rightPage, color = PureWhite)
-        drawPath(rightPage, color = Color(0xFFD6C8E8), style = Stroke(width = 1.dp.toPx()))
+        drawPath(rightPage, color = Color(0xFFE7F2EC), style = Stroke(width = 1.dp.toPx()))
 
         // Text lines on Left Page
         val leftStartX = bookX + bookW * 0.10f
@@ -724,7 +724,7 @@ fun IngredientBookIllustration(modifier: Modifier = Modifier) {
 
         repeat(4) { i ->
             drawLine(
-                color = Color(0xFFB39DDB),
+                color = Color(0xFF7A4E32),
                 start = Offset(leftStartX, textStartY + i * lineSpacing),
                 end = Offset(leftStartX + if (i == 3) leftLineW * 0.6f else leftLineW, textStartY + i * lineSpacing),
                 strokeWidth = 2.dp.toPx(),
@@ -736,7 +736,7 @@ fun IngredientBookIllustration(modifier: Modifier = Modifier) {
         val rightStartX = spineX + bookW * 0.10f
         repeat(4) { i ->
             drawLine(
-                color = Color(0xFFB39DDB),
+                color = Color(0xFF7A4E32),
                 start = Offset(rightStartX, textStartY + i * lineSpacing),
                 end = Offset(rightStartX + if (i == 3) leftLineW * 0.5f else leftLineW, textStartY + i * lineSpacing),
                 strokeWidth = 2.dp.toPx(),
@@ -755,7 +755,7 @@ fun IngredientBookIllustration(modifier: Modifier = Modifier) {
             lineTo(spineX - bookmarkW / 2f, bookY + bookmarkH)
             close()
         }
-        drawPath(bookmarkPath, color = Color(0xFF7E57C2))
+        drawPath(bookmarkPath, color = Color(0xFF7A4E32))
     }
 }
 
@@ -773,7 +773,7 @@ fun RunnerFitnessIllustration(modifier: Modifier = Modifier) {
         val runnerY = h * 0.48f
 
         // Horizontal speed / motion lines behind runner (on left)
-        val speedColor = Color(0xFF81C784)
+        val speedColor = Color(0xFFF1E6DC)
         drawLine(
             color = speedColor,
             start = Offset(w * 0.08f, h * 0.36f),
@@ -789,7 +789,7 @@ fun RunnerFitnessIllustration(modifier: Modifier = Modifier) {
             cap = StrokeCap.Round
         )
         drawLine(
-            color = Color(0xFFFFB74D),
+            color = Color(0xFF7A4E32),
             start = Offset(w * 0.12f, h * 0.66f),
             end = Offset(w * 0.24f, h * 0.66f),
             strokeWidth = 2.dp.toPx(),
@@ -800,9 +800,9 @@ fun RunnerFitnessIllustration(modifier: Modifier = Modifier) {
         val headCenter = Offset(runnerX + w * 0.12f, h * 0.18f)
         val headRadius = w * 0.085f
         // Hair
-        drawCircle(color = Color(0xFF2C221D), radius = headRadius * 1.05f, center = headCenter)
+        drawCircle(color = Color(0xFF513321), radius = headRadius * 1.05f, center = headCenter)
         // Face skin
-        drawCircle(color = Color(0xFFF0B384), radius = headRadius * 0.85f, center = headCenter + Offset(1.5f, 1f))
+        drawCircle(color = Color(0xFF7A4E32), radius = headRadius * 0.85f, center = headCenter + Offset(1.5f, 1f))
 
         // Torso / Green Athletic Shirt
         val torsoPath = Path().apply {
@@ -812,11 +812,11 @@ fun RunnerFitnessIllustration(modifier: Modifier = Modifier) {
             lineTo(runnerX - w * 0.06f, h * 0.52f)
             close()
         }
-        drawPath(torsoPath, color = Color(0xFF2E7D32))
+        drawPath(torsoPath, color = Color(0xFF1F6B4F))
 
         // Skin neck
         drawLine(
-            color = Color(0xFFF0B384),
+            color = Color(0xFF7A4E32),
             start = headCenter,
             end = Offset(runnerX + w * 0.06f, h * 0.28f),
             strokeWidth = 3.dp.toPx()
@@ -830,19 +830,19 @@ fun RunnerFitnessIllustration(modifier: Modifier = Modifier) {
             lineTo(runnerX - w * 0.10f, h * 0.65f)
             close()
         }
-        drawPath(shortsPath, color = Color(0xFF263238))
+        drawPath(shortsPath, color = Color(0xFF26332D))
 
         // Arms in sprint stride
         // Forward Arm
         drawLine(
-            color = Color(0xFF2E7D32),
+            color = Color(0xFF1F6B4F),
             start = Offset(runnerX + w * 0.10f, h * 0.32f),
             end = Offset(runnerX + w * 0.22f, h * 0.40f),
             strokeWidth = 3.dp.toPx(),
             cap = StrokeCap.Round
         )
         drawLine(
-            color = Color(0xFFF0B384),
+            color = Color(0xFF7A4E32),
             start = Offset(runnerX + w * 0.22f, h * 0.40f),
             end = Offset(runnerX + w * 0.28f, h * 0.32f),
             strokeWidth = 2.6.dp.toPx(),
@@ -851,7 +851,7 @@ fun RunnerFitnessIllustration(modifier: Modifier = Modifier) {
 
         // Back Arm
         drawLine(
-            color = Color(0xFFF0B384),
+            color = Color(0xFF7A4E32),
             start = Offset(runnerX - w * 0.02f, h * 0.34f),
             end = Offset(runnerX - w * 0.14f, h * 0.42f),
             strokeWidth = 2.6.dp.toPx(),
@@ -861,14 +861,14 @@ fun RunnerFitnessIllustration(modifier: Modifier = Modifier) {
         // Legs in athletic stride
         // Front Right Leg (Forward knee bent)
         drawLine(
-            color = Color(0xFFF0B384),
+            color = Color(0xFF7A4E32),
             start = Offset(runnerX + w * 0.04f, h * 0.64f),
             end = Offset(runnerX + w * 0.16f, h * 0.74f),
             strokeWidth = 3.2.dp.toPx(),
             cap = StrokeCap.Round
         )
         drawLine(
-            color = Color(0xFFF0B384),
+            color = Color(0xFF7A4E32),
             start = Offset(runnerX + w * 0.16f, h * 0.74f),
             end = Offset(runnerX + w * 0.12f, h * 0.90f),
             strokeWidth = 3.dp.toPx(),
@@ -876,21 +876,21 @@ fun RunnerFitnessIllustration(modifier: Modifier = Modifier) {
         )
         // Front Sneaker (Orange/dark)
         drawOval(
-            color = Color(0xFFE65100),
+            color = Color(0xFF7A4E32),
             topLeft = Offset(runnerX + w * 0.06f, h * 0.88f),
             size = Size(10.dp.toPx(), 4.5.dp.toPx())
         )
 
         // Back Left Leg (Extending backward)
         drawLine(
-            color = Color(0xFFF0B384),
+            color = Color(0xFF7A4E32),
             start = Offset(runnerX - w * 0.08f, h * 0.62f),
             end = Offset(runnerX - w * 0.18f, h * 0.72f),
             strokeWidth = 3.dp.toPx(),
             cap = StrokeCap.Round
         )
         drawLine(
-            color = Color(0xFFF0B384),
+            color = Color(0xFF7A4E32),
             start = Offset(runnerX - w * 0.18f, h * 0.72f),
             end = Offset(runnerX - w * 0.20f, h * 0.86f),
             strokeWidth = 2.8.dp.toPx(),
@@ -898,7 +898,7 @@ fun RunnerFitnessIllustration(modifier: Modifier = Modifier) {
         )
         // Back Sneaker
         drawOval(
-            color = Color(0xFF263238),
+            color = Color(0xFF26332D),
             topLeft = Offset(runnerX - w * 0.26f, h * 0.84f),
             size = Size(8.dp.toPx(), 4.dp.toPx())
         )
@@ -939,3 +939,4 @@ fun CircularArrowCta(
         )
     }
 }
+

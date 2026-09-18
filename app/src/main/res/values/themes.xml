@@ -3,7 +3,7 @@
 
     <style name="Theme.VedAahar" parent="android:style/Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/cream</item>
-        <item name="android:colorAccent">#5D7F3E</item>
+        <item name="android:colorAccent">#1F6B4F</item>
         <item name="android:fontFamily">sans</item>
         <item name="android:forceDarkAllowed">false</item>
         <item name="android:windowNoTitle">true</item>

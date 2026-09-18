@@ -34,6 +34,13 @@ object AssessmentProfileStore {
     fun currentRaw(context: Context): String? {
         return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).getString(KEY_PROFILE, null)
     }
+
+    fun clear(context: Context) {
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .clear()
+            .apply()
+    }
 }
 
 private fun PrakritiResult.toJson(): JSONObject {

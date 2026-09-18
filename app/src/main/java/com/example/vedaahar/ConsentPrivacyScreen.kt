@@ -30,7 +30,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,14 +57,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.vedaahar.ui.theme.PureWhite
 
-private val ConsentBackground = Color(0xFFFAF8F2)
-private val ConsentCardBg = Color(0xFFFCFAF5)
-private val ConsentBorder = Color(0xFFE2DCD0)
-private val ConsentStripBg = Color(0xFFEDE9DE)
-private val ConsentTextPrimary = Color(0xFF143324)
-private val ConsentTextSecondary = Color(0xFF45554B)
-private val ConsentTextMuted = Color(0xFF6F7C74)
-private val ConsentButtonGreen = Color(0xFF183B2B)
+private val ConsentBackground = Color(0xFFFFFFFF)
+private val ConsentCardBg = Color(0xFFFFFFFF)
+private val ConsentBorder = Color(0xFFF1E6DC)
+private val ConsentStripBg = Color(0xFFF1E6DC)
+private val ConsentTextPrimary = Color(0xFF124A38)
+private val ConsentTextSecondary = Color(0xFF1F6B4F)
+private val ConsentTextMuted = Color(0xFF7A4E32)
+private val ConsentButtonGreen = Color(0xFF124A38)
 private val CinzelDecorative = FontFamily(Font(R.font.cinzel_decorative_regular))
 
 @Composable
@@ -380,7 +380,7 @@ private fun ConsentCheckbox(
                 .border(
                     BorderStroke(
                         if (checked) 0.dp else 1.6.dp,
-                        if (checked) ConsentButtonGreen else Color(0xFF8E9C93)
+                        if (checked) ConsentButtonGreen else Color(0xFF7A4E32)
                     ),
                     RoundedCornerShape(5.dp)
                 ),
@@ -414,7 +414,7 @@ private fun AbdmLogoBadge(modifier: Modifier = Modifier) {
             .size(76.dp)
             .clip(CircleShape)
             .background(PureWhite)
-            .border(BorderStroke(1.dp, Color(0xFFDFD9CC)), CircleShape),
+            .border(BorderStroke(1.dp, Color(0xFFE7F2EC)), CircleShape),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -429,9 +429,9 @@ private fun AbdmLogoBadge(modifier: Modifier = Modifier) {
                 val strokeWidth = 2.4.dp.toPx()
                 val headRadius = 2.7.dp.toPx()
 
-                val blueColor = Color(0xFF1555A2)
-                val tealColor = Color(0xFF009677)
-                val orangeColor = Color(0xFFE86025)
+                val blueColor = Color(0xFF1F6B4F)
+                val tealColor = Color(0xFF1F6B4F)
+                val orangeColor = Color(0xFF7A4E32)
 
                 // Center Head & U-curve Body (Blue)
                 drawCircle(color = blueColor, radius = headRadius, center = Offset(cx, 4.dp.toPx()))
@@ -474,7 +474,7 @@ private fun AbdmLogoBadge(modifier: Modifier = Modifier) {
                 text = "ABDM",
                 fontSize = 9.5.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = Color(0xFF1555A2),
+                color = Color(0xFF1F6B4F),
                 letterSpacing = 0.5.sp,
                 lineHeight = 11.sp
             )
@@ -482,7 +482,7 @@ private fun AbdmLogoBadge(modifier: Modifier = Modifier) {
                 text = "Ayushman Bharat",
                 fontSize = 5.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A3E70),
+                color = Color(0xFF1F6B4F),
                 lineHeight = 6.sp,
                 textAlign = TextAlign.Center
             )
@@ -490,7 +490,7 @@ private fun AbdmLogoBadge(modifier: Modifier = Modifier) {
                 text = "Digital Mission",
                 fontSize = 5.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A3E70),
+                color = Color(0xFF1F6B4F),
                 lineHeight = 6.sp,
                 textAlign = TextAlign.Center
             )
@@ -505,7 +505,7 @@ private fun DpdpLogoBadge(modifier: Modifier = Modifier) {
             .size(76.dp)
             .clip(CircleShape)
             .background(PureWhite)
-            .border(BorderStroke(1.dp, Color(0xFFDFD9CC)), CircleShape),
+            .border(BorderStroke(1.dp, Color(0xFFE7F2EC)), CircleShape),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -516,7 +516,7 @@ private fun DpdpLogoBadge(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.Center
         ) {
             Canvas(modifier = Modifier.size(width = 24.dp, height = 24.dp)) {
-                val lockColor = Color(0xFF1B4332)
+                val lockColor = Color(0xFF124A38)
                 val shackleStroke = 2.3.dp.toPx()
                 val cx = size.width / 2f
 
@@ -565,7 +565,7 @@ private fun DpdpLogoBadge(modifier: Modifier = Modifier) {
                 text = "DPDP",
                 fontSize = 9.5.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = Color(0xFF1B4332),
+                color = Color(0xFF124A38),
                 letterSpacing = 0.5.sp,
                 lineHeight = 11.sp
             )
@@ -573,7 +573,7 @@ private fun DpdpLogoBadge(modifier: Modifier = Modifier) {
                 text = "Digital Personal Data",
                 fontSize = 5.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF384E42),
+                color = Color(0xFF26332D),
                 lineHeight = 6.sp,
                 textAlign = TextAlign.Center
             )
@@ -581,7 +581,7 @@ private fun DpdpLogoBadge(modifier: Modifier = Modifier) {
                 text = "Protection Act",
                 fontSize = 5.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF384E42),
+                color = Color(0xFF26332D),
                 lineHeight = 6.sp,
                 textAlign = TextAlign.Center
             )
@@ -592,7 +592,7 @@ private fun DpdpLogoBadge(modifier: Modifier = Modifier) {
 @Composable
 private fun ShieldCheckIcon(modifier: Modifier = Modifier) {
     Canvas(modifier = modifier.size(24.dp)) {
-        val strokeColor = Color(0xFF1B4332)
+        val strokeColor = Color(0xFF124A38)
         val strokeWidth = 2.dp.toPx()
 
         // Shield contour
@@ -635,7 +635,7 @@ private fun ShieldCheckIcon(modifier: Modifier = Modifier) {
 @Composable
 private fun StripLockIcon(modifier: Modifier = Modifier) {
     Canvas(modifier = modifier.size(22.dp)) {
-        val lockColor = Color(0xFF1B4332)
+        val lockColor = Color(0xFF124A38)
         val cx = size.width / 2f
         val shackleStroke = 2.dp.toPx()
 
@@ -702,7 +702,7 @@ private fun WithdrawalConsentNote() {
             modifier = Modifier
                 .weight(1f)
                 .height(1.dp)
-                .background(Color(0xFFDDD7CB))
+                .background(Color(0xFFE7F2EC))
         )
         Text(
             text = "You can withdraw your consent anytime from your profile settings.",
@@ -715,7 +715,7 @@ private fun WithdrawalConsentNote() {
             modifier = Modifier
                 .weight(1f)
                 .height(1.dp)
-                .background(Color(0xFFDDD7CB))
+                .background(Color(0xFFE7F2EC))
         )
     }
 }
@@ -725,3 +725,5 @@ private fun WithdrawalConsentNote() {
 private fun ConsentPrivacyScreenPreview() {
     ConsentPrivacyScreen(onAgreeContinue = {}, onDecline = {}, onBack = {})
 }
+
+

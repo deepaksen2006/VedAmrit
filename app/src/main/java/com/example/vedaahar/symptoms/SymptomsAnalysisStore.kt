@@ -20,6 +20,13 @@ object SymptomsAnalysisStore {
             ?: return null
         return runCatching { raw.toSymptomsAnalysisResult() }.getOrNull()
     }
+
+    fun clear(context: Context) {
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .clear()
+            .apply()
+    }
 }
 
 private fun SymptomsAnalysisResult.toJson(): JSONObject {

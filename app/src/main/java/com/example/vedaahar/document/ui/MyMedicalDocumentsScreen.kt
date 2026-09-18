@@ -1,4 +1,4 @@
-package com.example.vedaahar.document.ui
+﻿package com.example.vedaahar.document.ui
 
 import android.content.Context
 import android.widget.Toast
@@ -62,7 +62,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.LocalAppLanguageState
+import com.example.vedaahar.i18n.Text
+import com.example.vedaahar.i18n.translateText
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -102,9 +104,9 @@ import com.example.vedaahar.ui.theme.SoftOliveGreen
 import com.example.vedaahar.ui.theme.VedAmritCtaGreen
 import com.example.vedaahar.ui.theme.VedAmritGreen
 
-private val CardBorderColor = Color(0xFFE8E0D2)
-private val CardBgWarm = Color(0xFFFFFDF8)
-private val DestructiveRed = Color(0xFFC62828)
+private val CardBorderColor = Color(0xFFF1E6DC)
+private val CardBgWarm = Color(0xFFFFFFFF)
+private val DestructiveRed = Color(0xFF7A4E32)
 
 // Custom crisp vector icons
 private val EmptyDocFolderIcon: ImageVector = ImageVector.Builder(
@@ -206,6 +208,7 @@ fun MyMedicalDocumentsScreen(
     initialViewDocId: String? = null
 ) {
     val context = LocalContext.current
+    val selectedLanguage = LocalAppLanguageState.current.selectedLanguage
     var documents by remember { mutableStateOf(MedicalDocumentStore.getDocuments(context)) }
 
     // Search, Filter, Sort state
@@ -316,7 +319,7 @@ fun MyMedicalDocumentsScreen(
                 }
             }
 
-            HorizontalDivider(color = Color(0xFFE8DFD0), thickness = 1.dp)
+            HorizontalDivider(color = Color(0xFFF1E6DC), thickness = 1.dp)
 
             // Search Bar
             Box(
@@ -348,7 +351,7 @@ fun MyMedicalDocumentsScreen(
                     shape = RoundedCornerShape(50),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = VedAmritGreen,
-                        unfocusedBorderColor = Color(0xFFD8CFBE),
+                        unfocusedBorderColor = Color(0xFFF1E6DC),
                         focusedContainerColor = PureWhite,
                         unfocusedContainerColor = PureWhite
                     )
@@ -375,7 +378,7 @@ fun MyMedicalDocumentsScreen(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(50))
-                                .background(if (isSelected) VedAmritGreen else Color(0xFFEFE8DA))
+                                .background(if (isSelected) VedAmritGreen else Color(0xFFF1E6DC))
                                 .clickable { selectedFilter = filter }
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
@@ -397,7 +400,7 @@ fun MyMedicalDocumentsScreen(
                         modifier = Modifier
                             .clip(RoundedCornerShape(50))
                             .background(PureWhite)
-                            .border(BorderStroke(1.dp, Color(0xFFD8CFBE)), RoundedCornerShape(50))
+                            .border(BorderStroke(1.dp, Color(0xFFF1E6DC)), RoundedCornerShape(50))
                             .clickable { sortMenuExpanded = true }
                             .padding(horizontal = 10.dp, vertical = 5.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -457,7 +460,7 @@ fun MyMedicalDocumentsScreen(
                             doc = doc,
                             onView = { viewingDocument = doc },
                             onDownload = {
-                                Toast.makeText(context, "Downloading “${doc.title}”...", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, translateText(selectedLanguage, "Downloading ${doc.title}..."), Toast.LENGTH_SHORT).show()
                             },
                             onRename = { documentToRename = doc },
                             onShare = { documentToShare = doc },
@@ -489,7 +492,7 @@ fun MyMedicalDocumentsScreen(
                 documentToDelete = doc
             },
             onDownload = {
-                Toast.makeText(context, "Downloading “${viewingDocument!!.title}”...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, translateText(selectedLanguage, "Downloading ${viewingDocument!!.title}..."), Toast.LENGTH_SHORT).show()
             }
         )
     }
@@ -502,7 +505,7 @@ fun MyMedicalDocumentsScreen(
             onConfirmDelete = {
                 MedicalDocumentStore.deleteDocument(context, documentToDelete!!.id)
                 documents = MedicalDocumentStore.getDocuments(context)
-                Toast.makeText(context, "Document deleted", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, translateText(selectedLanguage, "Document deleted"), Toast.LENGTH_SHORT).show()
                 documentToDelete = null
             }
         )
@@ -516,7 +519,7 @@ fun MyMedicalDocumentsScreen(
             onConfirmRename = { newTitle ->
                 MedicalDocumentStore.renameDocument(context, documentToRename!!.id, newTitle)
                 documents = MedicalDocumentStore.getDocuments(context)
-                Toast.makeText(context, "Document renamed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, translateText(selectedLanguage, "Document renamed"), Toast.LENGTH_SHORT).show()
                 documentToRename = null
             }
         )
@@ -530,7 +533,7 @@ fun MyMedicalDocumentsScreen(
             onConfirmShare = { recipient, purpose, duration ->
                 MedicalDocumentStore.shareDocument(context, documentToShare!!.id, recipient, purpose, duration)
                 documents = MedicalDocumentStore.getDocuments(context)
-                Toast.makeText(context, "Shared securely with $recipient", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, translateText(selectedLanguage, "Shared securely with $recipient"), Toast.LENGTH_SHORT).show()
                 documentToShare = null
             }
         )
@@ -556,7 +559,7 @@ private fun DocumentItemCard(
             .fillMaxWidth()
             .clickable(onClick = onView),
         shape = RoundedCornerShape(18.dp),
-        border = BorderStroke(1.dp, Color(0xFFEBE3D5)),
+        border = BorderStroke(1.dp, Color(0xFFF1E6DC)),
         colors = CardDefaults.cardColors(containerColor = PureWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
@@ -576,9 +579,9 @@ private fun DocumentItemCard(
                         .clip(RoundedCornerShape(12.dp))
                         .background(
                             when (doc.fileType.uppercase(Locale.ROOT)) {
-                                "PDF" -> Color(0xFFFFEBEE)
-                                "JPG", "JPEG" -> Color(0xFFE8F5E9)
-                                else -> Color(0xFFFFF8E1)
+                                "PDF" -> Color(0xFFF1E6DC)
+                                "JPG", "JPEG" -> Color(0xFFE7F2EC)
+                                else -> Color(0xFFFFFFFF)
                             }
                         ),
                     contentAlignment = Alignment.Center
@@ -586,9 +589,9 @@ private fun DocumentItemCard(
                     Text(
                         text = doc.fileType,
                         color = when (doc.fileType.uppercase(Locale.ROOT)) {
-                            "PDF" -> Color(0xFFC62828)
-                            "JPG", "JPEG" -> Color(0xFF2E7D32)
-                            else -> Color(0xFFF57F17)
+                            "PDF" -> Color(0xFF7A4E32)
+                            "JPG", "JPEG" -> Color(0xFF1F6B4F)
+                            else -> Color(0xFF7A4E32)
                         },
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.5.sp
@@ -611,7 +614,7 @@ private fun DocumentItemCard(
                     if (doc.subTitle.isNotBlank() || doc.doctorOrHospital.isNotBlank()) {
                         val subText = buildString {
                             if (doc.subTitle.isNotBlank()) append(doc.subTitle)
-                            if (doc.subTitle.isNotBlank() && doc.doctorOrHospital.isNotBlank()) append(" · ")
+                            if (doc.subTitle.isNotBlank() && doc.doctorOrHospital.isNotBlank()) append(" Â· ")
                             if (doc.doctorOrHospital.isNotBlank()) append(doc.doctorOrHospital)
                         }
                         Text(
@@ -626,7 +629,7 @@ private fun DocumentItemCard(
                     Spacer(modifier = Modifier.height(2.dp))
 
                     Text(
-                        text = "${doc.documentDate} · ${doc.fileType} · ${doc.formattedSize}",
+                        text = "${doc.documentDate} Â· ${doc.fileType} Â· ${doc.formattedSize}",
                         color = MutedCharcoal.copy(alpha = 0.8f),
                         fontSize = 11.5.sp
                     )
@@ -638,7 +641,7 @@ private fun DocumentItemCard(
                         onClick = onView,
                         shape = RoundedCornerShape(50),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFEFF5ED),
+                            containerColor = Color(0xFFE7F2EC),
                             contentColor = DarkForestGreen
                         ),
                         contentPadding = ButtonDefaults.TextButtonContentPadding,
@@ -716,7 +719,7 @@ private fun DocumentItemCard(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Private Record · ${doc.documentType}",
+                    text = "Private Record Â· ${doc.documentType}",
                     color = SoftOliveGreen,
                     fontSize = 10.5.sp,
                     fontWeight = FontWeight.Medium
@@ -725,8 +728,8 @@ private fun DocumentItemCard(
                 if (doc.sharedWith.isNotEmpty()) {
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "• Shared with ${doc.sharedWith.size}",
-                        color = Color(0xFF1565C0),
+                        text = "â€¢ Shared with ${doc.sharedWith.size}",
+                        color = Color(0xFF1F6B4F),
                         fontSize = 10.5.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -763,7 +766,7 @@ private fun EmptyDocumentsState(
                 modifier = Modifier
                     .size(60.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFEFF5ED)),
+                    .background(Color(0xFFE7F2EC)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -804,7 +807,7 @@ private fun EmptyDocumentsState(
                 OutlinedButton(
                     onClick = onClearFilters,
                     shape = RoundedCornerShape(50),
-                    border = BorderStroke(1.dp, Color(0xFFD2C7B8))
+                    border = BorderStroke(1.dp, Color(0xFFF1E6DC))
                 ) {
                     Text("Clear Search & Filters", fontSize = 13.sp, color = DarkForestGreen)
                 }
@@ -845,7 +848,7 @@ private fun DocumentViewerModal(
                 .fillMaxSize()
                 .statusBarsPadding()
                 .navigationBarsPadding(),
-            color = Color(0xFFF7F4EC)
+            color = Color(0xFFFFFFFF)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // Top Action Bar
@@ -877,7 +880,7 @@ private fun DocumentViewerModal(
                     }
                 }
 
-                HorizontalDivider(color = Color(0xFFE8DFD0), thickness = 1.dp)
+                HorizontalDivider(color = Color(0xFFF1E6DC), thickness = 1.dp)
 
                 // Header Details
                 Column(
@@ -897,7 +900,7 @@ private fun DocumentViewerModal(
                     Spacer(modifier = Modifier.height(2.dp))
 
                     Text(
-                        text = "${document.documentType} · ${document.documentDate} · ${document.fileType} · ${document.formattedSize}",
+                        text = "${document.documentType} Â· ${document.documentDate} Â· ${document.fileType} Â· ${document.formattedSize}",
                         color = MutedCharcoal,
                         fontSize = 12.sp
                     )
@@ -912,7 +915,7 @@ private fun DocumentViewerModal(
                     }
                 }
 
-                HorizontalDivider(color = Color(0xFFE8DFD0), thickness = 1.dp)
+                HorizontalDivider(color = Color(0xFFF1E6DC), thickness = 1.dp)
 
                 // Main Viewer Body: Render authentic clinical document sheet
                 Column(
@@ -941,7 +944,7 @@ private fun ClinicalDocumentSheet(document: MedicalDocument) {
             .shadow(4.dp, RoundedCornerShape(8.dp)),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = PureWhite),
-        border = BorderStroke(1.dp, Color(0xFFD4CBBB))
+        border = BorderStroke(1.dp, Color(0xFFF1E6DC))
     ) {
         Column(
             modifier = Modifier
@@ -976,14 +979,14 @@ private fun ClinicalDocumentSheet(document: MedicalDocument) {
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
-                        .background(Color(0xFFE8F3E8))
+                        .background(Color(0xFFE7F2EC))
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text("VERIFIED RECORD", color = VedAmritGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFE0D8C8))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFF1E6DC))
 
             // Patient & Sample Metadata Table
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -995,11 +998,11 @@ private fun ClinicalDocumentSheet(document: MedicalDocument) {
                 Column(horizontalAlignment = Alignment.End) {
                     Text("DATE: ${document.documentDate}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = DarkForestGreen)
                     Text("REPORT ID: VA-${document.id.take(8).uppercase()}", fontSize = 10.sp, color = MutedCharcoal)
-                    Text("STATUS: Final Complete", fontSize = 10.sp, color = Color(0xFF2E7D32), fontWeight = FontWeight.Bold)
+                    Text("STATUS: Final Complete", fontSize = 10.sp, color = Color(0xFF1F6B4F), fontWeight = FontWeight.Bold)
                 }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFE0D8C8))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFF1E6DC))
 
             // Specific Content based on Type
             when (document.documentType) {
@@ -1007,9 +1010,9 @@ private fun ClinicalDocumentSheet(document: MedicalDocument) {
                     // Prescription View
                     Text("Rx (Medical Prescription)", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkForestGreen)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("1. Triphala Churna (Fine Powder) — 1 tsp with warm water before bedtime.", fontSize = 11.5.sp, color = DarkForestGreen)
-                    Text("2. Ashwagandha Capsules (500mg) — 1 capsule twice daily after meals.", fontSize = 11.5.sp, color = DarkForestGreen)
-                    Text("3. Brahmi Herbal Tea — Once daily in morning for Vata calm.", fontSize = 11.5.sp, color = DarkForestGreen)
+                    Text("1. Triphala Churna (Fine Powder) â€” 1 tsp with warm water before bedtime.", fontSize = 11.5.sp, color = DarkForestGreen)
+                    Text("2. Ashwagandha Capsules (500mg) â€” 1 capsule twice daily after meals.", fontSize = 11.5.sp, color = DarkForestGreen)
+                    Text("3. Brahmi Herbal Tea â€” Once daily in morning for Vata calm.", fontSize = 11.5.sp, color = DarkForestGreen)
                     Spacer(modifier = Modifier.height(14.dp))
                     Text("Dietary Instructions: Light freshly prepared food. Avoid excess spicy and cold dairy.", fontSize = 11.sp, color = MutedCharcoal)
                 }
@@ -1018,10 +1021,10 @@ private fun ClinicalDocumentSheet(document: MedicalDocument) {
                     // Diagnostic Imaging View
                     Text("RADIOLOGY INVESTIGATION: CHEST PA VIEW", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = DarkForestGreen)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("• Both lung fields appear clear without focal consolidation or pneumothorax.", fontSize = 11.sp, color = DarkForestGreen)
-                    Text("• Cardiothoracic ratio is within normal physiological limits.", fontSize = 11.sp, color = DarkForestGreen)
-                    Text("• Costophrenic and cardiophrenic angles are well visualized.", fontSize = 11.sp, color = DarkForestGreen)
-                    Text("• Bony thorax and soft tissues unremarkable.", fontSize = 11.sp, color = DarkForestGreen)
+                    Text("â€¢ Both lung fields appear clear without focal consolidation or pneumothorax.", fontSize = 11.sp, color = DarkForestGreen)
+                    Text("â€¢ Cardiothoracic ratio is within normal physiological limits.", fontSize = 11.sp, color = DarkForestGreen)
+                    Text("â€¢ Costophrenic and cardiophrenic angles are well visualized.", fontSize = 11.sp, color = DarkForestGreen)
+                    Text("â€¢ Bony thorax and soft tissues unremarkable.", fontSize = 11.sp, color = DarkForestGreen)
                     Spacer(modifier = Modifier.height(12.dp))
                     Text("IMPRESSION: Normal radiograph of the chest.", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = DarkForestGreen)
                 }
@@ -1031,7 +1034,7 @@ private fun ClinicalDocumentSheet(document: MedicalDocument) {
                     Text("INVESTIGATION: COMPLETE BLOOD COUNT (CBC)", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = DarkForestGreen)
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    Row(modifier = Modifier.fillMaxWidth().background(Color(0xFFF6F2E9)).padding(6.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth().background(Color(0xFFF1E6DC)).padding(6.dp)) {
                         Text("Test Parameter", modifier = Modifier.weight(1.5f), fontSize = 10.5.sp, fontWeight = FontWeight.Bold, color = DarkForestGreen)
                         Text("Observed", modifier = Modifier.weight(1f), fontSize = 10.5.sp, fontWeight = FontWeight.Bold, color = DarkForestGreen)
                         Text("Reference", modifier = Modifier.weight(1.2f), fontSize = 10.5.sp, fontWeight = FontWeight.Bold, color = DarkForestGreen)
@@ -1064,10 +1067,10 @@ private fun ClinicalDocumentSheet(document: MedicalDocument) {
                 Column {
                     Box(
                         modifier = Modifier
-                            .border(BorderStroke(1.dp, Color(0xFF2E7D32)), RoundedCornerShape(4.dp))
+                            .border(BorderStroke(1.dp, Color(0xFF1F6B4F)), RoundedCornerShape(4.dp))
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
-                        Text("DIGITALLY SIGNED & ENCRYPTED", fontSize = 8.5.sp, color = Color(0xFF2E7D32), fontWeight = FontWeight.Bold)
+                        Text("DIGITALLY SIGNED & ENCRYPTED", fontSize = 8.5.sp, color = Color(0xFF1F6B4F), fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -1090,9 +1093,9 @@ private fun LabTableRow(name: String, value: String, ref: String, status: String
         Text(name, modifier = Modifier.weight(1.5f), fontSize = 10.sp, color = DarkForestGreen)
         Text(value, modifier = Modifier.weight(1f), fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = DarkForestGreen)
         Text(ref, modifier = Modifier.weight(1.2f), fontSize = 9.5.sp, color = MutedCharcoal)
-        Text(status, modifier = Modifier.weight(0.8f), fontSize = 9.5.sp, color = Color(0xFF2E7D32), fontWeight = FontWeight.Bold)
+        Text(status, modifier = Modifier.weight(0.8f), fontSize = 9.5.sp, color = Color(0xFF1F6B4F), fontWeight = FontWeight.Bold)
     }
-    HorizontalDivider(color = Color(0xFFF0EBE0), thickness = 0.5.dp)
+    HorizontalDivider(color = Color(0xFFF1E6DC), thickness = 0.5.dp)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -1115,7 +1118,7 @@ private fun DeleteDocumentConfirmationDialog(
         },
         text = {
             Text(
-                text = "Are you sure you want to permanently delete “${document.title}”? This action cannot be undone.",
+                text = "Are you sure you want to permanently delete â€œ${document.title}â€? This action cannot be undone.",
                 color = MutedCharcoal,
                 fontSize = 13.sp,
                 lineHeight = 18.sp
@@ -1134,7 +1137,7 @@ private fun DeleteDocumentConfirmationDialog(
             OutlinedButton(
                 onClick = onDismiss,
                 shape = RoundedCornerShape(50),
-                border = BorderStroke(1.dp, Color(0xFFD2C7B8))
+                border = BorderStroke(1.dp, Color(0xFFF1E6DC))
             ) {
                 Text("Cancel", fontSize = 13.sp, color = MutedCharcoal)
             }
@@ -1176,7 +1179,7 @@ private fun RenameDocumentDialog(
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = VedAmritGreen,
-                        unfocusedBorderColor = Color(0xFFD2C7B8),
+                        unfocusedBorderColor = Color(0xFFF1E6DC),
                         focusedContainerColor = PureWhite,
                         unfocusedContainerColor = PureWhite
                     )
@@ -1197,7 +1200,7 @@ private fun RenameDocumentDialog(
             OutlinedButton(
                 onClick = onDismiss,
                 shape = RoundedCornerShape(50),
-                border = BorderStroke(1.dp, Color(0xFFD2C7B8))
+                border = BorderStroke(1.dp, Color(0xFFF1E6DC))
             ) {
                 Text("Cancel", fontSize = 13.sp, color = MutedCharcoal)
             }
@@ -1255,13 +1258,13 @@ private fun ShareMedicalDocumentModal(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFAF7F0))
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF))
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text("DOCUMENT BEING SHARED", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = SoftOliveGreen)
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(document.title, fontSize = 13.5.sp, fontWeight = FontWeight.Bold, color = DarkForestGreen)
-                        Text("${document.documentType} · ${document.formattedDate} · ${document.formattedSize}", fontSize = 11.sp, color = MutedCharcoal)
+                        Text("${document.documentType} Â· ${document.formattedDate} Â· ${document.formattedSize}", fontSize = 11.sp, color = MutedCharcoal)
                     }
                 }
 
@@ -1278,7 +1281,7 @@ private fun ShareMedicalDocumentModal(
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = VedAmritGreen,
-                            unfocusedBorderColor = Color(0xFFD2C7B8)
+                            unfocusedBorderColor = Color(0xFFF1E6DC)
                         )
                     )
                 }
@@ -1298,7 +1301,7 @@ private fun ShareMedicalDocumentModal(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(50))
-                                    .background(if (isSelected) VedAmritGreen else Color(0xFFEFE8DA))
+                                    .background(if (isSelected) VedAmritGreen else Color(0xFFF1E6DC))
                                     .clickable { purpose = option }
                                     .padding(horizontal = 10.dp, vertical = 5.dp)
                             ) {
@@ -1327,7 +1330,7 @@ private fun ShareMedicalDocumentModal(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(50))
-                                    .background(if (isSelected) VedAmritGreen else Color(0xFFEFE8DA))
+                                    .background(if (isSelected) VedAmritGreen else Color(0xFFF1E6DC))
                                     .clickable { accessDuration = duration }
                                     .padding(vertical = 7.dp),
                                 contentAlignment = Alignment.Center
@@ -1367,7 +1370,7 @@ private fun ShareMedicalDocumentModal(
                             .weight(1f)
                             .height(44.dp),
                         shape = RoundedCornerShape(50),
-                        border = BorderStroke(1.dp, Color(0xFFD2C7B8))
+                        border = BorderStroke(1.dp, Color(0xFFF1E6DC))
                     ) {
                         Text("Cancel", fontSize = 13.sp, color = MutedCharcoal)
                     }
@@ -1388,3 +1391,7 @@ private fun ShareMedicalDocumentModal(
         }
     }
 }
+
+
+
+

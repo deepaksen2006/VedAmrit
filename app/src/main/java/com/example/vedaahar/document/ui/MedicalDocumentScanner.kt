@@ -48,7 +48,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -120,7 +120,7 @@ fun MedicalDocumentScannerModal(
 
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = Color(0xFF0C1710)
+            color = Color(0xFF124A38)
         ) {
             Column(
                 modifier = Modifier
@@ -172,7 +172,7 @@ fun MedicalDocumentScannerModal(
                             .size(42.dp)
                             .clip(CircleShape)
                             .background(
-                                if (isFlashOn) Color(0xFFE8C97B).copy(alpha = 0.35f)
+                                if (isFlashOn) Color(0xFFF1E6DC).copy(alpha = 0.35f)
                                 else Color.White.copy(alpha = 0.12f)
                             )
                     ) {
@@ -204,8 +204,8 @@ fun MedicalDocumentScannerModal(
                                 .fillMaxWidth(0.92f)
                                 .aspectRatio(0.72f)
                                 .clip(RoundedCornerShape(16.dp))
-                                .border(BorderStroke(2.dp, Color(0xFF90C987)), RoundedCornerShape(16.dp))
-                                .background(Color(0xFF14241B)),
+                                .border(BorderStroke(2.dp, Color(0xFFF1E6DC)), RoundedCornerShape(16.dp))
+                                .background(Color(0xFF124A38)),
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
@@ -238,7 +238,7 @@ fun MedicalDocumentScannerModal(
                                 .fillMaxWidth(0.92f)
                                 .aspectRatio(0.72f)
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(Color(0xFF132218).copy(alpha = 0.75f))
+                                .background(Color(0xFF124A38).copy(alpha = 0.75f))
                         ) {
                             // Scanner Corner Indicators & animated scanning beam
                             Canvas(modifier = Modifier.fillMaxSize()) {
@@ -246,7 +246,7 @@ fun MedicalDocumentScannerModal(
                                 val h = size.height
                                 val bracketLen = 36.dp.toPx()
                                 val strokeW = 4.dp.toPx()
-                                val cornerColor = Color(0xFF90C987)
+                                val cornerColor = Color(0xFFF1E6DC)
 
                                 // Top-Left
                                 drawLine(cornerColor, Offset(0f, 0f), Offset(bracketLen, 0f), strokeW)
@@ -268,7 +268,7 @@ fun MedicalDocumentScannerModal(
                                 val beamY = h * beamPosition
                                 drawLine(
                                     brush = Brush.horizontalGradient(
-                                        listOf(Color.Transparent, Color(0xFF90C987), Color.Transparent)
+                                        listOf(Color.Transparent, Color(0xFFF1E6DC), Color.Transparent)
                                     ),
                                     start = Offset(0f, beamY),
                                     end = Offset(w, beamY),
@@ -290,7 +290,7 @@ fun MedicalDocumentScannerModal(
                                         modifier = Modifier
                                             .size(8.dp)
                                             .clip(CircleShape)
-                                            .background(Color(0xFF90C987))
+                                            .background(Color(0xFFF1E6DC))
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
@@ -324,7 +324,7 @@ fun MedicalDocumentScannerModal(
                                     .border(
                                         BorderStroke(
                                             if (idx == activePageIndex) 2.dp else 1.dp,
-                                            if (idx == activePageIndex) Color(0xFF90C987) else Color.White.copy(alpha = 0.3f)
+                                            if (idx == activePageIndex) Color(0xFFF1E6DC) else Color.White.copy(alpha = 0.3f)
                                         ),
                                         RoundedCornerShape(8.dp)
                                     )
@@ -347,7 +347,7 @@ fun MedicalDocumentScannerModal(
                 if (capturedPages.isNotEmpty()) {
                     Text(
                         text = "${capturedPages.size} ${if (capturedPages.size == 1) "page" else "pages"} scanned",
-                        color = Color(0xFFE8C97B),
+                        color = Color(0xFFF1E6DC),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -397,7 +397,7 @@ fun MedicalDocumentScannerModal(
                                     .height(48.dp),
                                 shape = RoundedCornerShape(50),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF1E422C),
+                                    containerColor = Color(0xFF124A38),
                                     contentColor = PureWhite
                                 )
                             ) {
@@ -422,8 +422,8 @@ fun MedicalDocumentScannerModal(
                                 .height(52.dp),
                             shape = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF90C987),
-                                contentColor = Color(0xFF0F3826)
+                                containerColor = Color(0xFFF1E6DC),
+                                contentColor = Color(0xFF124A38)
                             )
                         ) {
                             Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -449,7 +449,7 @@ fun MedicalDocumentScannerModal(
                                 .border(BorderStroke(4.dp, PureWhite), CircleShape)
                                 .padding(6.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFF90C987))
+                                .background(Color(0xFFF1E6DC))
                                 .clickable {
                                     cameraLauncher.launch(null)
                                 },
@@ -459,7 +459,7 @@ fun MedicalDocumentScannerModal(
                                 modifier = Modifier
                                     .size(24.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFF0F3826))
+                                    .background(Color(0xFF124A38))
                             )
                         }
 
@@ -493,3 +493,5 @@ private fun createSampleScannedBitmap(): Bitmap {
     canvas.drawText("Prescription & Assessment", 60f, 160f, paint)
     return bmp
 }
+
+

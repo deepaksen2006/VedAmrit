@@ -41,7 +41,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -79,9 +79,9 @@ import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
 
-private val LoginGold = Color(0xFFE6C978)
-private val LoginCard = Color(0xFFFFFBF4)
-private val LoginErrorRed = Color(0xFFC8483D)
+private val LoginGold = Color(0xFFF1E6DC)
+private val LoginCard = Color(0xFFFFFFFF)
+private val LoginErrorRed = Color(0xFF7A4E32)
 private val CinzelDecorative = FontFamily(Font(R.font.cinzel_decorative_regular))
 
 private fun validateLoginIdentifier(value: String): String? {
@@ -526,7 +526,7 @@ private fun PremiumLoginButton(text: String, enabled: Boolean, onClick: () -> Un
 private fun LoginBackground() {
     Box(modifier = Modifier.fillMaxSize()) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            drawRect(Brush.verticalGradient(listOf(Cream, Color(0xFFFFFBF3), Color(0xFFF3E9D8))))
+            drawRect(Color(0xFFFFFFFF))
             drawCircle(
                 brush = Brush.radialGradient(listOf(PureWhite.copy(alpha = 0.78f), Color.Transparent)),
                 radius = size.width * 0.82f,
@@ -580,3 +580,5 @@ private fun FloatingLeafCluster(modifier: Modifier = Modifier, alpha: Float) {
 private fun LoginScreenPreview() {
     LoginScreen(onLogin = {}, onCreateAccount = {})
 }
+
+

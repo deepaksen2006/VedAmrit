@@ -26,7 +26,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -46,9 +46,9 @@ import com.example.vedaahar.R
 import com.example.vedaahar.document.MedicalDocument
 import com.example.vedaahar.ui.theme.PureWhite
 
-private val BrandGold = Color(0xFFF4CD75)
-private val DarkHerbalDeep = Color(0xFF123722)
-private val ForestDarkGreen = Color(0xFF1B452B)
+private val BrandGold = Color(0xFFF1E6DC)
+private val DarkHerbalDeep = Color(0xFF124A38)
+private val ForestDarkGreen = Color(0xFF124A38)
 
 @Composable
 fun UploadMedicalDocumentSection(
@@ -87,8 +87,8 @@ private fun UploadDocumentHeroBanner(
             .shadow(
                 elevation = 14.dp,
                 shape = RoundedCornerShape(26.dp),
-                ambientColor = Color(0xFF0D2517).copy(alpha = 0.25f),
-                spotColor = Color(0xFF0A1F13).copy(alpha = 0.20f)
+                ambientColor = Color(0xFF124A38).copy(alpha = 0.25f),
+                spotColor = Color(0xFF124A38).copy(alpha = 0.20f)
             )
             .clip(RoundedCornerShape(26.dp))
             .background(
@@ -96,7 +96,7 @@ private fun UploadDocumentHeroBanner(
                     listOf(
                         DarkHerbalDeep,
                         ForestDarkGreen,
-                        Color(0xFF163E27)
+                        Color(0xFF124A38)
                     )
                 )
             )
@@ -114,7 +114,7 @@ private fun UploadDocumentHeroBanner(
                 .align(Alignment.TopEnd)
                 .offset(x = 35.dp, y = (-35).dp)
                 .clip(CircleShape)
-                .background(Color(0xFF265638).copy(alpha = 0.5f))
+                .background(Color(0xFF1F6B4F).copy(alpha = 0.5f))
         )
         Box(
             modifier = Modifier
@@ -122,7 +122,7 @@ private fun UploadDocumentHeroBanner(
                 .align(Alignment.BottomEnd)
                 .offset(x = 25.dp, y = 30.dp)
                 .clip(CircleShape)
-                .background(Color(0xFF1E482D).copy(alpha = 0.4f))
+                .background(Color(0xFF124A38).copy(alpha = 0.4f))
         )
 
         Row(
@@ -140,13 +140,13 @@ private fun UploadDocumentHeroBanner(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(50))
-                        .background(Color(0xFF0F2C1B).copy(alpha = 0.8f))
-                        .border(BorderStroke(1.dp, Color(0xFFD4AF57).copy(alpha = 0.65f)), RoundedCornerShape(50))
+                        .background(Color(0xFF124A38).copy(alpha = 0.8f))
+                        .border(BorderStroke(1.dp, Color(0xFF7A4E32).copy(alpha = 0.65f)), RoundedCornerShape(50))
                         .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = "No. 1",
-                        color = Color(0xFFE8C97B),
+                        color = Color(0xFFF1E6DC),
                         fontSize = 11.5.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -169,7 +169,7 @@ private fun UploadDocumentHeroBanner(
                 // Supporting text
                 Text(
                     text = "Securely upload and manage your medical reports, prescriptions, and health records in one place.",
-                    color = Color(0xFFD3E4D6),
+                    color = Color(0xFFE7F2EC),
                     fontSize = 11.5.sp,
                     lineHeight = 16.sp
                 )
@@ -218,3 +218,5 @@ private fun UploadDocumentHeroBanner(
         }
     }
 }
+
+

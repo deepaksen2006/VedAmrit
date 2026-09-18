@@ -52,7 +52,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -97,9 +97,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private val GoldMist = Color(0xFFE8C97B)
-private val WarmCard = Color(0xFFFFFBF4)
-private val GreenGlow = Color(0xFF90C987)
+private val GoldMist = Color(0xFFF1E6DC)
+private val WarmCard = Color(0xFFFFFFFF)
+private val GreenGlow = Color(0xFFF1E6DC)
 
 private val doshaArchetypes = listOf(
     "Vata-Pitta",
@@ -797,7 +797,7 @@ private fun AmbientAyurvedaBackground() {
         label = "drift"
     )
     Canvas(modifier = Modifier.fillMaxSize()) {
-        drawRect(Brush.verticalGradient(listOf(Cream, Color(0xFFFFFCF6), Color(0xFFF2EBDD))))
+        drawRect(Color(0xFFFFFFFF))
         drawCircle(Brush.radialGradient(listOf(GreenGlow.copy(alpha = 0.18f), Color.Transparent)), radius = size.width * 0.55f, center = Offset(size.width * 0.78f, size.height * 0.18f + drift))
         drawCircle(Brush.radialGradient(listOf(GoldMist.copy(alpha = 0.18f), Color.Transparent)), radius = size.width * 0.5f, center = Offset(size.width * 0.12f, size.height * 0.72f - drift))
         repeat(22) { index ->
@@ -839,3 +839,5 @@ private fun DoshaAssessmentPreview() {
         onContinueToDashboard = {}
     )
 }
+
+

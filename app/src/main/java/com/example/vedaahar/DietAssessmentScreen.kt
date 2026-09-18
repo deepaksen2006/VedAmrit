@@ -1,5 +1,12 @@
 package com.example.vedaahar
 
+import android.content.ContentValues
+import android.content.Context
+import android.media.MediaScannerConnection
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -40,7 +47,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -57,6 +64,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -94,17 +102,26 @@ import com.example.vedaahar.ui.theme.LightSage
 import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
+import com.example.vedaahar.voice.AssessmentQuestionVoiceEffect
+import com.example.vedaahar.voice.LocalVoiceAssistantController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
-private val DietWarmCard = Color(0xFFFFFBF4)
-private val DietGreenGlow = Color(0xFF90C987)
-private val DietMint = Color(0xFFDDEFE2)
-private val DietSky = Color(0xFFDDEBFF)
-private val DietDangerSoft = Color(0xFFFFEFE9)
-private val DietDanger = Color(0xFFB85A45)
-private val DietPitta = Color(0xFFE65100)
-private val DietKapha = Color(0xFF2E7D32)
+private val DietWarmCard = Color(0xFFFFFFFF)
+private val DietGreenGlow = Color(0xFFF1E6DC)
+private val DietMint = Color(0xFFE7F2EC)
+private val DietSky = Color(0xFFE7F2EC)
+private val DietDangerSoft = Color(0xFFF1E6DC)
+private val DietDanger = Color(0xFF7A4E32)
+private val DietPitta = Color(0xFF7A4E32)
+private val DietKapha = Color(0xFF1F6B4F)
+private const val AssessmentReportAssetName = "AI_Assessment_Report_1.pdf"
+private const val AssessmentReportDownloadFileName = "Ayurvedic-Assessment-Report.pdf"
+private const val DietPlanAssetName = "Final_Personalized_Wellness_Report_.pdf"
+private const val DietPlanDownloadFileName = "7-Day-Personalized-Diet-Plan.pdf"
 
 private enum class DoshaHubAssessment {
     Prakriti,
@@ -492,11 +509,31 @@ fun DoshaTestHubScreen(
         }
     }
 
+    fun restartCompleteAssessment() {
+        PrakritiResultStore.clear(context)
+        VikritiResultStore.clear(context)
+        AgniResultStore.clear(context)
+        SymptomsAnalysisStore.clear(context)
+        AssessmentProfileStore.clear(context)
+        selectedAssessment = DoshaHubAssessment.Prakriti
+        showCombinedResult = false
+        currentQuestionIndex = 0
+        answers = emptyMap()
+        assessmentResult = null
+        vikritiQuestionIndex = 0
+        vikritiAnswers = emptyMap()
+        vikritiResult = null
+        agniQuestionIndex = 0
+        agniAnswers = emptyMap()
+        agniResult = null
+        autoAdvanceLocked = false
+    }
+
     Surface(modifier = modifier.fillMaxSize(), color = Cream) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(Color(0xFFFFF9EE), Cream, LightSage.copy(alpha = 0.55f))))
+                .background(Color(0xFFFFFFFF))
         ) {
             Column(
                 modifier = Modifier
@@ -555,9 +592,10 @@ fun DoshaTestHubScreen(
                             prakritiResult = assessmentResult,
                             vikritiResult = vikritiResult,
                             agniResult = agniResult,
-                            onGeneratePersonalizedDiet = {
+                            onRetakeTest = { restartCompleteAssessment() },
+                            onDownloadReport = {
                                 saveProfileWhenComplete()
-                                onGeneratePersonalizedDiet()
+                                downloadAssessmentReport(context)
                             }
                         )
                     } else {
@@ -767,6 +805,25 @@ fun SequentialDoshaTestScreen(
         }
     }
 
+    fun restartCompleteAssessment() {
+        PrakritiResultStore.clear(context)
+        VikritiResultStore.clear(context)
+        AgniResultStore.clear(context)
+        SymptomsAnalysisStore.clear(context)
+        AssessmentProfileStore.clear(context)
+        currentQuestionIndex = 0
+        answers = emptyMap()
+        prakritiResult = null
+        vikritiQuestionIndex = 0
+        vikritiAnswers = emptyMap()
+        vikritiResult = null
+        agniQuestionIndex = 0
+        agniAnswers = emptyMap()
+        agniResult = null
+        autoAdvanceLocked = false
+        currentStep = DoshaSequentialStep.PrakritiQuestions
+    }
+
     fun stepLabel(): String {
         return when (currentStep) {
             DoshaSequentialStep.PrakritiQuestions, DoshaSequentialStep.PrakritiResult -> "Prakriti Assessment"
@@ -780,7 +837,7 @@ fun SequentialDoshaTestScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(Color(0xFFFFF9EE), Cream, LightSage.copy(alpha = 0.55f))))
+                .background(Color(0xFFFFFFFF))
         ) {
             Column(
                 modifier = Modifier
@@ -981,9 +1038,10 @@ fun SequentialDoshaTestScreen(
                                     prakritiResult = prakritiResult,
                                     vikritiResult = vikritiResult,
                                     agniResult = agniResult,
-                                    onGeneratePersonalizedDiet = {
+                                    onRetakeTest = { restartCompleteAssessment() },
+                                    onDownloadReport = {
                                         saveProfileWhenComplete()
-                                        onGeneratePersonalizedDiet()
+                                        downloadAssessmentReport(context)
                                     }
                                 )
                             } else {
@@ -1014,9 +1072,8 @@ fun DietAssessmentScreen(
     val savedPrakriti = remember { PrakritiResultStore.current(context) }
     val savedVikriti = remember { VikritiResultStore.current(context) }
     val savedAgni = remember { AgniResultStore.current(context) }
-    val finalAssessmentReport = remember { AssessmentProfileStore.currentRaw(context) }
 
-    if (savedPrakriti == null || savedVikriti == null || savedAgni == null || finalAssessmentReport == null) {
+    if (savedPrakriti == null || savedVikriti == null || savedAgni == null) {
         MissingDoshaTestDietScreen(
             onBack = onBack,
             onTakeDoshaTest = onTakeDoshaTest,
@@ -1037,7 +1094,7 @@ fun DietAssessmentScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(Color(0xFFFFF9EE), Cream, LightSage.copy(alpha = 0.55f))))
+                .background(Color(0xFFFFFFFF))
         ) {
             Column(
                 modifier = Modifier
@@ -1122,6 +1179,17 @@ fun DietAssessmentScreen(
                                 lineHeight = 19.sp,
                                 color = SoftBlueGray
                             )
+
+                            Button(
+                                onClick = { downloadDietPlan(context) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(52.dp),
+                                shape = RoundedCornerShape(50),
+                                colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+                            ) {
+                                Text("Download Your 7-Day Diet Plan", fontWeight = FontWeight.Bold)
+                            }
 
                             // Status Badges
                             Row(
@@ -1329,7 +1397,8 @@ private fun CombinedAssessmentResultContent(
     prakritiResult: PrakritiResult?,
     vikritiResult: VikritiResult?,
     agniResult: AgniResult?,
-    onGeneratePersonalizedDiet: () -> Unit
+    onRetakeTest: () -> Unit,
+    onDownloadReport: () -> Unit
 ) {
     if (prakritiResult == null || vikritiResult == null || agniResult == null) {
         return
@@ -1404,23 +1473,132 @@ private fun CombinedAssessmentResultContent(
             lineHeight = 21.sp,
             fontWeight = FontWeight.SemiBold
         )
-        Text(
-            text = "This structured report is saved and sent to Personalized Diet to generate the user's 7-day diet plan.",
-            color = SoftBlueGray,
-            fontSize = 12.5.sp,
-            lineHeight = 19.sp
-        )
-        Button(
-            onClick = onGeneratePersonalizedDiet,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Generate Personalized Diet", fontWeight = FontWeight.Bold)
+            Button(
+                onClick = onRetakeTest,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(52.dp),
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+            ) {
+                Text(
+                    text = "Retake Test",
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Button(
+                onClick = onDownloadReport,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(52.dp),
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+            ) {
+                Text(
+                    text = "Download Your Report",
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
+}
+
+private fun downloadAssessmentReport(context: Context) {
+    downloadBundledPdf(
+        context = context,
+        assetName = AssessmentReportAssetName,
+        downloadFileName = AssessmentReportDownloadFileName,
+        failureMessage = "Unable to download report"
+    )
+}
+
+private fun downloadDietPlan(context: Context) {
+    downloadBundledPdf(
+        context = context,
+        assetName = DietPlanAssetName,
+        downloadFileName = DietPlanDownloadFileName,
+        failureMessage = "Unable to download your diet plan. Please try again.",
+        showSuccessMessage = false
+    )
+}
+
+private fun downloadBundledPdf(
+    context: Context,
+    assetName: String,
+    downloadFileName: String,
+    failureMessage: String,
+    showSuccessMessage: Boolean = true
+): Result<String> {
+    val result = runCatching {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val resolver = context.contentResolver
+            val values = ContentValues().apply {
+                put(MediaStore.Downloads.DISPLAY_NAME, downloadFileName)
+                put(MediaStore.Downloads.MIME_TYPE, "application/pdf")
+                put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                put(MediaStore.Downloads.IS_PENDING, 1)
+            }
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                ?: throw IOException("Unable to create download file")
+            try {
+                resolver.openOutputStream(uri, "w")?.use { output ->
+                    context.assets.open(assetName).use { input ->
+                        input.copyTo(output)
+                    }
+                } ?: throw IOException("Unable to open download file")
+                values.clear()
+                values.put(MediaStore.Downloads.IS_PENDING, 0)
+                resolver.update(uri, values, null, null)
+                uri.toString()
+            } catch (error: Throwable) {
+                resolver.delete(uri, null, null)
+                throw error
+            }
+        } else {
+            val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val targetDirectory = if (publicDownloads.mkdirs() || publicDownloads.exists()) {
+                publicDownloads
+            } else {
+                context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+                    ?: throw IOException("Unable to open downloads directory")
+            }
+            val targetFile = File(targetDirectory, downloadFileName)
+            context.assets.open(assetName).use { input ->
+                FileOutputStream(targetFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            MediaScannerConnection.scanFile(
+                context,
+                arrayOf(targetFile.absolutePath),
+                arrayOf("application/pdf"),
+                null
+            )
+            targetFile.absolutePath
+        }
+    }
+
+    if (showSuccessMessage || result.isFailure) {
+        Toast.makeText(
+            context,
+            result.fold(
+                onSuccess = { "Downloaded: $downloadFileName" },
+                onFailure = { failureMessage }
+            ),
+            Toast.LENGTH_LONG
+        ).show()
+    }
+    return result
 }
 
 @Composable
@@ -1451,7 +1629,7 @@ private fun MissingDoshaTestDietScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(Color(0xFFFFF9EE), Cream, LightSage.copy(alpha = 0.55f))))
+                .background(Color(0xFFFFFFFF))
         ) {
             Column(
                 modifier = Modifier
@@ -1517,7 +1695,7 @@ private fun MissingDoshaTestDietScreen(
                                 shape = RoundedCornerShape(50),
                                 colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
                             ) {
-                                Text("Complete Dosha Test", fontWeight = FontWeight.Bold)
+                                Text("Take Your Ayurvedic Assessment", fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -1533,10 +1711,20 @@ private fun PrakritiQuestionnaireContent(
     currentQuestionIndex: Int,
     answers: Map<Int, String>,
     onAnswerSelected: (questionId: Int, optionId: String) -> Unit,
+    onSubmit: () -> Unit = {},
+    submitEnabled: Boolean = false,
     onPrevious: () -> Unit
 ) {
     val question = prakritiQuestions[currentQuestionIndex]
     val selectedOption = answers[question.id]
+    val isLastQuestion = currentQuestionIndex == prakritiQuestions.lastIndex
+    AssessmentQuestionVoiceEffect(
+        screenKey = "prakriti",
+        currentQuestion = currentQuestionIndex + 1,
+        totalQuestions = prakritiQuestions.size,
+        question = question.text,
+        options = question.options.map { it.text }
+    )
 
     Card(
         modifier = Modifier
@@ -1620,17 +1808,32 @@ private fun PrakritiQuestionnaireContent(
                 )
             }
 
-            OutlinedButton(
-                onClick = onPrevious,
-                enabled = currentQuestionIndex > 0,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(50),
-                border = BorderStroke(1.dp, BeigeBorder),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
-            ) {
-                Text("Previous", fontWeight = FontWeight.Bold)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = onPrevious,
+                    enabled = currentQuestionIndex > 0,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    border = BorderStroke(1.dp, BeigeBorder),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+                ) {
+                    Text("Previous", fontWeight = FontWeight.Bold)
+                }
+                if (isLastQuestion) {
+                    Button(
+                        onClick = onSubmit,
+                        enabled = submitEnabled,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(50.dp),
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+                    ) {
+                        Text("Submit", fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }
@@ -1642,15 +1845,19 @@ private fun PrakritiAnswerCard(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val voiceAssistant = LocalVoiceAssistantController.current
     val borderColor = if (selected) ForestGreen else BeigeBorder.copy(alpha = 0.8f)
-    val background = if (selected) DietMint else Color(0xFFFFFDF8)
+    val background = if (selected) DietMint else Color(0xFFFFFFFF)
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .background(background)
             .border(BorderStroke(if (selected) 1.6.dp else 1.dp, borderColor), RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick)
+            .clickable {
+                voiceAssistant?.stopSpeaking()
+                onClick()
+            }
             .padding(14.dp),
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -1799,10 +2006,20 @@ private fun VikritiQuestionnaireContent(
     currentQuestionIndex: Int,
     answers: Map<String, String>,
     onAnswerSelected: (questionId: String, optionId: String) -> Unit,
+    onSubmit: () -> Unit = {},
+    submitEnabled: Boolean = false,
     onPrevious: () -> Unit
 ) {
     val question = vikritiQuestions[currentQuestionIndex]
     val selectedOption = answers[question.id]
+    val isLastQuestion = currentQuestionIndex == vikritiQuestions.lastIndex
+    AssessmentQuestionVoiceEffect(
+        screenKey = "vikriti",
+        currentQuestion = currentQuestionIndex + 1,
+        totalQuestions = vikritiQuestions.size,
+        question = question.text,
+        options = vikritiAnswerOptions.map { it.label }
+    )
 
     Card(
         modifier = Modifier
@@ -1879,17 +2096,32 @@ private fun VikritiQuestionnaireContent(
                 )
             }
 
-            OutlinedButton(
-                onClick = onPrevious,
-                enabled = currentQuestionIndex > 0,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(50),
-                border = BorderStroke(1.dp, BeigeBorder),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
-            ) {
-                Text("Previous", fontWeight = FontWeight.Bold)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = onPrevious,
+                    enabled = currentQuestionIndex > 0,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    border = BorderStroke(1.dp, BeigeBorder),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+                ) {
+                    Text("Previous", fontWeight = FontWeight.Bold)
+                }
+                if (isLastQuestion) {
+                    Button(
+                        onClick = onSubmit,
+                        enabled = submitEnabled,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(50.dp),
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+                    ) {
+                        Text("Submit", fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }
@@ -1901,15 +2133,19 @@ private fun VikritiAnswerCard(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val voiceAssistant = LocalVoiceAssistantController.current
     val borderColor = if (selected) ForestGreen else BeigeBorder.copy(alpha = 0.8f)
-    val background = if (selected) DietMint else Color(0xFFFFFDF8)
+    val background = if (selected) DietMint else Color(0xFFFFFFFF)
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .background(background)
             .border(BorderStroke(if (selected) 1.6.dp else 1.dp, borderColor), RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick)
+            .clickable {
+                voiceAssistant?.stopSpeaking()
+                onClick()
+            }
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -2102,6 +2338,13 @@ private fun AgniQuestionnaireContent(
 ) {
     val question = agniQuestions[currentQuestionIndex]
     val selectedOption = answers[question.id]
+    AssessmentQuestionVoiceEffect(
+        screenKey = "agni",
+        currentQuestion = currentQuestionIndex + 1,
+        totalQuestions = agniQuestions.size,
+        question = question.text,
+        options = question.options.map { it.text }
+    )
 
     Card(
         modifier = Modifier
@@ -2200,15 +2443,19 @@ private fun AgniAnswerCard(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val voiceAssistant = LocalVoiceAssistantController.current
     val borderColor = if (selected) ForestGreen else BeigeBorder.copy(alpha = 0.8f)
-    val background = if (selected) DietMint else Color(0xFFFFFDF8)
+    val background = if (selected) DietMint else Color(0xFFFFFFFF)
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .background(background)
             .border(BorderStroke(if (selected) 1.6.dp else 1.dp, borderColor), RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick)
+            .clickable {
+                voiceAssistant?.stopSpeaking()
+                onClick()
+            }
             .padding(14.dp),
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -2319,6 +2566,13 @@ private fun AssessmentSymptomsQuestionnaireContent(
 ) {
     val symptom = symptomFeatures[currentQuestionIndex]
     val selectedValue = answers[symptom.key]
+    AssessmentQuestionVoiceEffect(
+        screenKey = "symptoms",
+        currentQuestion = currentQuestionIndex + 1,
+        totalQuestions = symptomFeatures.size,
+        question = "Do you experience ${symptom.label}?",
+        options = listOf("No", "Yes")
+    )
 
     Card(
         modifier = Modifier
@@ -2425,13 +2679,17 @@ private fun AssessmentSymptomAnswerCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val voiceAssistant = LocalVoiceAssistantController.current
     Row(
         modifier = modifier
             .height(58.dp)
             .clip(RoundedCornerShape(18.dp))
-            .background(if (selected) DietMint else Color(0xFFFFFDF8))
+            .background(if (selected) DietMint else Color(0xFFFFFFFF))
             .border(BorderStroke(if (selected) 1.7.dp else 1.dp, if (selected) ForestGreen else BeigeBorder), RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick)
+            .clickable {
+                voiceAssistant?.stopSpeaking()
+                onClick()
+            }
             .padding(horizontal = 14.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
@@ -2700,7 +2958,7 @@ private fun BodyAnalysisContent(result: DietResult, vikriti: String, agni: Strin
                 )
                 Text(
                     text = result.analysis,
-                    color = Color(0xFF334438),
+                    color = Color(0xFF26332D),
                     fontSize = 12.5.sp,
                     lineHeight = 19.sp
                 )
@@ -2745,7 +3003,7 @@ private fun FoodsListContent(items: List<String>, positive: Boolean) {
         val headerColor = if (positive) ForestGreen else DietDanger
         val icon = if (positive) Icons.Filled.Check else Icons.Filled.Close
         val containerColor = if (positive) PureWhite else DietDangerSoft.copy(alpha = 0.5f)
-        val iconBg = if (positive) DietMint else Color(0xFFFFDAD4)
+        val iconBg = if (positive) DietMint else Color(0xFFF1E6DC)
 
         Text(
             text = headerText,
@@ -2844,7 +3102,7 @@ private fun MealTimelineCard(mealName: String, timing: String, description: Stri
                 Text(mealName, color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 Text(timing, color = SageGreen, fontWeight = FontWeight.Bold, fontSize = 10.5.sp)
             }
-            Text(description, color = Color(0xFF334438), fontSize = 12.sp, lineHeight = 17.sp)
+            Text(description, color = Color(0xFF26332D), fontSize = 12.sp, lineHeight = 17.sp)
         }
     }
 }
@@ -2929,3 +3187,5 @@ private fun AyurvedicDravyaContent(tips: List<String>) {
         }
     }
 }
+
+

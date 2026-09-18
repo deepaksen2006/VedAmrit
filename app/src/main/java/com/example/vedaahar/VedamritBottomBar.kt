@@ -31,7 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -377,7 +377,7 @@ fun VedamritBottomNavigationBar(
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         color = PureWhite,
         shadowElevation = 12.dp,
-        border = BorderStroke(1.dp, Color(0xFFE8EDE8))
+        border = BorderStroke(1.dp, Color(0xFFE7F2EC))
     ) {
         Column(
             modifier = Modifier
@@ -550,3 +550,5 @@ private fun VedamritNavItem(
         }
     }
 }
+
+

@@ -49,7 +49,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.example.vedaahar.i18n.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -83,12 +83,12 @@ import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
 
-private val StoreBackground = Color(0xFFFAF6EC)
-private val StoreCard = Color(0xFFFFFCF5)
-private val StoreImagePanel = Color(0xFFEAF0E0)
-private val StoreGold = Color(0xFFE7C269)
-private val StoreLine = Color(0xFFE3D7C4)
-private val StoreMuted = Color(0xFF6A6F62)
+private val StoreBackground = Color(0xFFFFFFFF)
+private val StoreCard = Color(0xFFFFFFFF)
+private val StoreImagePanel = Color(0xFFE7F2EC)
+private val StoreGold = Color(0xFFF1E6DC)
+private val StoreLine = Color(0xFFF1E6DC)
+private val StoreMuted = Color(0xFF7A4E32)
 
 private data class StoreProduct(
     val name: String,
@@ -162,7 +162,7 @@ fun ShoppingScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(StoreBackground, Cream, LightSage.copy(alpha = 0.6f))))
+                .background(Color(0xFFFFFFFF))
         ) {
             Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
                 StoreTopBar(
@@ -362,7 +362,7 @@ private fun ProductCard(
             .shadow(14.dp, RoundedCornerShape(22.dp), ambientColor = ForestGreen.copy(alpha = 0.11f), spotColor = ForestGreen.copy(alpha = 0.09f)),
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = StoreCard),
-        border = BorderStroke(1.dp, Color(0xFFE8DDC8)),
+        border = BorderStroke(1.dp, Color(0xFFF1E6DC)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column {
@@ -374,7 +374,7 @@ private fun ProductCard(
                         Brush.verticalGradient(
                             listOf(
                                 PureWhite,
-                                Color(0xFFF8F6ED),
+                                Color(0xFFFFFFFF),
                                 StoreImagePanel.copy(alpha = 0.62f)
                             )
                         )
@@ -419,7 +419,7 @@ private fun ProductCard(
                     verticalAlignment = Alignment.Bottom
                 ) {
                     Column {
-                        Text("\u20B9${product.price}", color = Color(0xFF0F2319), fontSize = 19.sp, fontWeight = FontWeight.Black)
+                        Text("\u20B9${product.price}", color = Color(0xFF124A38), fontSize = 19.sp, fontWeight = FontWeight.Black)
                     }
                     QuantityButton(quantity = quantity, onAdd = onAdd, onRemove = onRemove)
                 }
@@ -592,11 +592,11 @@ private fun ProductImage(product: StoreProduct, modifier: Modifier = Modifier) {
     }
 
     val accent = when (product.category) {
-        "Immunity" -> Color(0xFF8FAF3C)
-        "Digestion" -> Color(0xFFC58B3B)
-        "Hair Care" -> Color(0xFF315B44)
-        "Skin Care" -> Color(0xFF77A878)
-        "Daily Care" -> Color(0xFFD4A84E)
+        "Immunity" -> Color(0xFF7A4E32)
+        "Digestion" -> Color(0xFF7A4E32)
+        "Hair Care" -> Color(0xFF1F6B4F)
+        "Skin Care" -> Color(0xFF7A4E32)
+        "Daily Care" -> Color(0xFF7A4E32)
         else -> ForestGreen
     }
     Box(
@@ -628,7 +628,7 @@ private fun ProductImage(product: StoreProduct, modifier: Modifier = Modifier) {
                 .width(66.dp)
                 .height(18.dp)
                 .clip(RoundedCornerShape(50))
-                .background(Color(0xFFF5E8CE)),
+                .background(Color(0xFFF1E6DC)),
             contentAlignment = Alignment.Center
         ) {
             Text("veda", color = ForestGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold)
@@ -672,12 +672,12 @@ private fun RatingBadge(rating: String) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(50))
-            .background(Color(0xFFF6EBD5))
+            .background(Color(0xFFF1E6DC))
             .padding(horizontal = 5.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(Icons.Filled.Star, contentDescription = null, tint = StoreGold, modifier = Modifier.size(10.dp))
-        Text(rating, color = Color(0xFF8D6C20), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+        Text(rating, color = Color(0xFF7A4E32), fontSize = 9.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -692,9 +692,9 @@ private fun QuantityButton(
             onClick = onAdd,
             modifier = Modifier.height(34.dp),
             shape = RoundedCornerShape(10.dp),
-            border = BorderStroke(1.dp, Color(0xFF67A62C)),
+            border = BorderStroke(1.dp, Color(0xFF7A4E32)),
             contentPadding = PaddingValues(horizontal = 17.dp),
-            colors = ButtonDefaults.outlinedButtonColors(containerColor = PureWhite, contentColor = Color(0xFF4B951F))
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = PureWhite, contentColor = Color(0xFF1F6B4F))
         ) {
             Text("ADD", fontSize = 12.sp, fontWeight = FontWeight.Black)
         }
@@ -736,7 +736,7 @@ private fun BottomCartBar(cartCount: Int) {
             .shadow(18.dp, RoundedCornerShape(20.dp), ambientColor = ForestGreen.copy(alpha = 0.2f), spotColor = ForestGreen.copy(alpha = 0.16f)),
         shape = RoundedCornerShape(20.dp),
         color = ForestGreen,
-        border = BorderStroke(1.dp, Color(0xFF7CAA52))
+        border = BorderStroke(1.dp, Color(0xFF7A4E32))
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
@@ -752,3 +752,6 @@ private fun BottomCartBar(cartCount: Int) {
         }
     }
 }
+
+
+
