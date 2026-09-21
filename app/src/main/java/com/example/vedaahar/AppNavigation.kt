@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +34,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.vedaahar.auth.AuthUiState
+import com.example.vedaahar.auth.AuthViewModel
 import com.example.vedaahar.dosha.DoshaResultStore
 import com.example.vedaahar.dosha.RetakeDoshaAssessmentRoute
 import com.example.vedaahar.doctor.ui.DoctorModuleRoute
@@ -41,7 +45,6 @@ import com.example.vedaahar.document.ui.MyMedicalDocumentsScreen
 import com.example.vedaahar.symptoms.SymptomsAnalysisModuleScreen
 import com.example.vedaahar.ui.theme.Cream
 import com.example.vedaahar.ui.theme.ForestGreen
-import com.google.firebase.auth.FirebaseAuth
 
 private object VedaAhaarRoute {
     const val Loading = "loading"
@@ -95,6 +98,8 @@ fun VedaAhaarNavHost(
     navController: NavHostController = rememberNavController()
 ) {
     val context = LocalContext.current
+    val authViewModel: AuthViewModel = viewModel()
+    val authState by authViewModel.uiState.collectAsState()
     val preferences = remember {
         context.getSharedPreferences(OnboardingPrefs.Name, Context.MODE_PRIVATE)
     }
@@ -137,7 +142,7 @@ fun VedaAhaarNavHost(
 
     fun logoutToWelcome() {
         runCatching {
-            FirebaseAuth.getInstance().signOut()
+            authViewModel.logout()
             preferences.edit()
                 .putBoolean(OnboardingPrefs.IsLoggedIn, false)
                 .putBoolean(OnboardingPrefs.ConsentCompleted, false)
@@ -161,9 +166,12 @@ fun VedaAhaarNavHost(
     }
 
     LaunchedEffect(Unit) {
+        authViewModel.restoreSession {
+            persistAndUpdate(isLoggedIn = true)
+        }
         onboardingState = OnboardingState(
             loading = false,
-            isLoggedIn = preferences.getBoolean(OnboardingPrefs.IsLoggedIn, false),
+            isLoggedIn = authState is AuthUiState.Authenticated,
             consentCompleted = preferences.getBoolean(OnboardingPrefs.ConsentCompleted, false),
             profileCompleted = preferences.getBoolean(OnboardingPrefs.ProfileCompleted, false),
             doshaTestCompleted = preferences.getBoolean(OnboardingPrefs.DoshaTestCompleted, false)
@@ -406,12 +414,18 @@ fun VedaAhaarNavHost(
             }
         ) {
             LoginScreen(
-                onLogin = {
-                    navigateToAllowedRoute(persistAndUpdate(isLoggedIn = true))
+                onLogin = { identifier, password ->
+                    authViewModel.login(identifier, password) {
+                        navigateToAllowedRoute(persistAndUpdate(isLoggedIn = true))
+                    }
                 },
-                onCreateAccount = {
-                    navigateToAllowedRoute(persistAndUpdate(isLoggedIn = true))
-                }
+                onCreateAccount = { identifier, password ->
+                    authViewModel.register(identifier, password) {
+                        navigateToAllowedRoute(persistAndUpdate(isLoggedIn = true))
+                    }
+                },
+                loading = authState is AuthUiState.Loading,
+                errorMessage = (authState as? AuthUiState.Error)?.message
             )
         }
 

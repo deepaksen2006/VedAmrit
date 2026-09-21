@@ -1,0 +1,9 @@
+langgraph
+langchain
+langchain-huggingface
+langchain-chroma
+sentence-transformers
+scikit-learn
+pandas
+reportlab
+python-dotenv

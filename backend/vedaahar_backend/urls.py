@@ -8,6 +8,8 @@ urlpatterns = [
     path("", include("apps.doctors.urls")),
     path("", include("apps.consultations.urls")),
     path("", include("apps.dietplans.urls")),
+    path("api/auth/", include("apps.authentication.urls")),
+    path("api/agentic/", include("apps.agentic_reports.urls")),
 ]
 
 if settings.DEBUG:

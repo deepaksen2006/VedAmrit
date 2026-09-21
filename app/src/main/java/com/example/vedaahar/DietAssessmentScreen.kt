@@ -41,6 +41,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
@@ -49,6 +50,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -68,6 +70,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.vedaahar.agentic.AgenticPlanUiState
+import com.example.vedaahar.agentic.AgenticPlanViewModel
 import com.example.vedaahar.agni.AgniOption
 import com.example.vedaahar.agni.AgniResult
 import com.example.vedaahar.agni.AgniResultStore
@@ -1088,6 +1093,8 @@ fun DietAssessmentScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val agenticViewModel: AgenticPlanViewModel = viewModel()
+    val agenticState by agenticViewModel.uiState.collectAsState()
     val savedPrakriti = remember { PrakritiResultStore.current(context) }
     val savedVikriti = remember { VikritiResultStore.current(context) }
     val savedAgni = remember { AgniResultStore.current(context) }
@@ -1229,6 +1236,11 @@ fun DietAssessmentScreen(
                         agni = currentAgni
                     )
 
+                    AgenticPlanSyncCard(
+                        state = agenticState,
+                        onGenerate = agenticViewModel::generatePlan
+                    )
+
                     // 6 Comprehensive Feature Tabs
                     ScrollableTabRow(
                         selectedTabIndex = activeTabIndex,
@@ -1266,6 +1278,81 @@ fun DietAssessmentScreen(
 
                     Spacer(modifier = Modifier.height(32.dp).navigationBarsPadding())
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AgenticPlanSyncCard(
+    state: AgenticPlanUiState,
+    onGenerate: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
+        border = BorderStroke(1.dp, BeigeBorder)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = "Agentic AI Plan Sync",
+                color = DarkForestGreen,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
+            Text(
+                text = "Send your saved canonical Prakriti, Vikriti, and Agni results to the Django agent pipeline. Your current static diet guide remains unchanged.",
+                color = SoftBlueGray,
+                fontSize = 12.sp,
+                lineHeight = 17.sp
+            )
+            Button(
+                onClick = onGenerate,
+                enabled = state !is AgenticPlanUiState.Loading,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+            ) {
+                if (state is AgenticPlanUiState.Loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = PureWhite
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                }
+                Text(
+                    text = if (state is AgenticPlanUiState.Loading) "Generating..." else "Generate AI Wellness Plan",
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            when (state) {
+                AgenticPlanUiState.Idle -> Text(
+                    text = "Requires Django JWT authentication and complete backend profile fields.",
+                    color = SoftBlueGray,
+                    fontSize = 11.sp
+                )
+                AgenticPlanUiState.Loading -> Text(
+                    text = "Contacting Django backend...",
+                    color = SoftBlueGray,
+                    fontSize = 11.sp
+                )
+                is AgenticPlanUiState.Success -> Text(
+                    text = "Plan #${state.plan.id} received. Doctor status: ${state.plan.doctorStatus ?: "PENDING"}.",
+                    color = ForestGreen,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                is AgenticPlanUiState.Error -> Text(
+                    text = state.message,
+                    color = DietDanger,
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp
+                )
             }
         }
     }

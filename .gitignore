@@ -13,3 +13,15 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Python / Django local artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.venv*/
+venv/
+backend/tmp_agent_engine_reports/
+backend/agent_engine/rag/vectorstore/
+backend/db.sqlite3
+backend/db.sqlite3-*

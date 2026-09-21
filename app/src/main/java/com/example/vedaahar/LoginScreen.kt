@@ -156,8 +156,10 @@ private val LoginEyeOffIcon: ImageVector = ImageVector.Builder(
 
 @Composable
 fun LoginScreen(
-    onLogin: () -> Unit,
-    onCreateAccount: () -> Unit,
+    onLogin: (String, String) -> Unit,
+    onCreateAccount: (String, String) -> Unit,
+    loading: Boolean = false,
+    errorMessage: String? = null,
     modifier: Modifier = Modifier
 ) {
     var email by remember { mutableStateOf("") }
@@ -198,9 +200,12 @@ fun LoginScreen(
                     onPasswordChange = { password = it },
                     passwordVisible = passwordVisible,
                     onPasswordVisibilityChange = { passwordVisible = !passwordVisible },
-                    onLogin = onLogin,
-                    isLoginEnabled = isLoginEnabled,
+                    onLogin = { onLogin(email, password) },
+                    isLoginEnabled = isLoginEnabled && !loading,
                     onCreateAccount = onCreateAccount
+                        .let { callback -> { callback(email, password) } },
+                    loading = loading,
+                    errorMessage = errorMessage
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -250,7 +255,9 @@ private fun LoginCard(
     onPasswordVisibilityChange: () -> Unit,
     onLogin: () -> Unit,
     isLoginEnabled: Boolean,
-    onCreateAccount: () -> Unit
+    onCreateAccount: () -> Unit,
+    loading: Boolean,
+    errorMessage: String?
 ) {
     Column(
         modifier = Modifier
@@ -320,7 +327,15 @@ private fun LoginCard(
         )
 
         Spacer(modifier = Modifier.height(22.dp))
-        PremiumLoginButton(text = "Login", enabled = isLoginEnabled, onClick = onLogin)
+        PremiumLoginButton(text = if (loading) "Signing in..." else "Login", enabled = isLoginEnabled, onClick = onLogin)
+        if (!errorMessage.isNullOrBlank()) {
+            Text(
+                text = errorMessage,
+                color = LoginErrorRed,
+                fontSize = 12.sp,
+                lineHeight = 17.sp
+            )
+        }
         Spacer(modifier = Modifier.height(20.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -333,7 +348,7 @@ private fun LoginCard(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Row(
-                modifier = Modifier.clickable(onClick = onCreateAccount),
+                modifier = Modifier.clickable(enabled = isLoginEnabled && !loading, onClick = onCreateAccount),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -578,7 +593,7 @@ private fun FloatingLeafCluster(modifier: Modifier = Modifier, alpha: Float) {
 @Preview(showBackground = true)
 @Composable
 private fun LoginScreenPreview() {
-    LoginScreen(onLogin = {}, onCreateAccount = {})
+    LoginScreen(onLogin = { _, _ -> }, onCreateAccount = { _, _ -> })
 }
 
 

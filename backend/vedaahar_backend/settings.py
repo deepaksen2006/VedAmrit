@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     "apps.doctors",
     "apps.consultations",
     "apps.dietplans",
+    "apps.agentic_reports",
 ]
 
 MIDDLEWARE = [
@@ -53,16 +54,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "vedaahar_backend.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB", "vedaahar"),
-        "USER": os.getenv("POSTGRES_USER", "vedaahar"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "vedaahar"),
-        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
-        "PORT": os.getenv("POSTGRES_PORT", "5432"),
+if os.getenv("DJANGO_DATABASE_ENGINE") == "sqlite":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.getenv("SQLITE_DB_PATH", BASE_DIR / "db.sqlite3"),
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("POSTGRES_DB", "vedaahar"),
+            "USER": os.getenv("POSTGRES_USER", "vedaahar"),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "vedaahar"),
+            "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+            "PORT": os.getenv("POSTGRES_PORT", "5432"),
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

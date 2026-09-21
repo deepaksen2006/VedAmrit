@@ -67,6 +67,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -82,6 +83,7 @@ import com.example.vedaahar.ui.theme.DarkForestGreen
 import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
+import com.example.vedaahar.profile.PatientProfileStore
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -100,6 +102,7 @@ fun PatientProfileScreen(
     viewModel: PatientProfileViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
@@ -205,11 +208,117 @@ fun PatientProfileScreen(
                         )
                     }
 
+                    ProfileSectionTitle("Diet and goals")
+                    ResponsivePair {
+                        ValidatedDropdown(
+                            field = PatientProfileField.DietaryPreference,
+                            label = "Dietary preference",
+                            value = uiState.dietaryPreference,
+                            options = PatientProfileOptions.DietaryPreferences,
+                            placeholder = "Select preference",
+                            onValueChange = { viewModel.updateField(PatientProfileField.DietaryPreference, it) },
+                            uiState = uiState,
+                            modifier = it
+                        )
+                        ValidatedDropdown(
+                            field = PatientProfileField.Goal,
+                            label = "Wellness goal",
+                            value = uiState.goal,
+                            options = PatientProfileOptions.Goals,
+                            placeholder = "Select goal",
+                            onValueChange = { viewModel.updateField(PatientProfileField.Goal, it) },
+                            uiState = uiState,
+                            modifier = it
+                        )
+                    }
+
+                    ResponsivePair {
+                        ValidatedDropdown(
+                            field = PatientProfileField.ActivityLevel,
+                            label = "Activity level",
+                            value = uiState.activityLevel,
+                            options = PatientProfileOptions.ActivityLevels,
+                            placeholder = "Select activity",
+                            onValueChange = { viewModel.updateField(PatientProfileField.ActivityLevel, it) },
+                            uiState = uiState,
+                            modifier = it
+                        )
+                        ValidatedDropdown(
+                            field = PatientProfileField.PregnancyInformation,
+                            label = "Pregnancy information",
+                            value = uiState.pregnancyInformation,
+                            options = PatientProfileOptions.PregnancyInformation,
+                            placeholder = "Select status",
+                            onValueChange = { viewModel.updateField(PatientProfileField.PregnancyInformation, it) },
+                            uiState = uiState,
+                            modifier = it
+                        )
+                    }
+
+                    ProfileSectionTitle("Safety context")
+                    TagInputField(
+                        label = "Allergies",
+                        values = uiState.allergies,
+                        placeholder = "Add allergy or leave empty if none",
+                        onAdd = { viewModel.addListValue(PatientProfileField.Allergies, it) },
+                        onRemove = { viewModel.removeListValue(PatientProfileField.Allergies, it) }
+                    )
+                    TagInputField(
+                        label = "Food intolerances",
+                        values = uiState.foodIntolerances,
+                        placeholder = "Add intolerance or leave empty if none",
+                        onAdd = { viewModel.addListValue(PatientProfileField.FoodIntolerances, it) },
+                        onRemove = { viewModel.removeListValue(PatientProfileField.FoodIntolerances, it) }
+                    )
+                    TagInputField(
+                        label = "Foods to avoid",
+                        values = uiState.foodsToAvoid,
+                        placeholder = "Add food or leave empty if none",
+                        onAdd = { viewModel.addListValue(PatientProfileField.FoodsToAvoid, it) },
+                        onRemove = { viewModel.removeListValue(PatientProfileField.FoodsToAvoid, it) }
+                    )
+                    TagInputField(
+                        label = "Health conditions",
+                        values = uiState.healthConditions,
+                        placeholder = "Add condition or leave empty if none",
+                        onAdd = { viewModel.addListValue(PatientProfileField.HealthConditions, it) },
+                        onRemove = { viewModel.removeListValue(PatientProfileField.HealthConditions, it) }
+                    )
+                    TagInputField(
+                        label = "Medicine allergies",
+                        values = uiState.medicineAllergies,
+                        placeholder = "Add medicine allergy or leave empty if none",
+                        onAdd = { viewModel.addListValue(PatientProfileField.MedicineAllergies, it) },
+                        onRemove = { viewModel.removeListValue(PatientProfileField.MedicineAllergies, it) }
+                    )
+                    TagInputField(
+                        label = "Current medicines",
+                        values = uiState.currentMedicines,
+                        placeholder = "Add medicine or leave empty if none",
+                        onAdd = { viewModel.addListValue(PatientProfileField.CurrentMedicines, it) },
+                        onRemove = { viewModel.removeListValue(PatientProfileField.CurrentMedicines, it) }
+                    )
+                    TagInputField(
+                        label = "Medication restrictions",
+                        values = uiState.medicationRestrictions,
+                        placeholder = "Add restriction or leave empty if none",
+                        onAdd = { viewModel.addListValue(PatientProfileField.MedicationRestrictions, it) },
+                        onRemove = { viewModel.removeListValue(PatientProfileField.MedicationRestrictions, it) }
+                    )
+                    TagInputField(
+                        label = "Doctor restrictions",
+                        values = uiState.doctorRestrictions,
+                        placeholder = "Add doctor instruction or leave empty if none",
+                        onAdd = { viewModel.addListValue(PatientProfileField.DoctorRestrictions, it) },
+                        onRemove = { viewModel.removeListValue(PatientProfileField.DoctorRestrictions, it) }
+                    )
+
                     SaveContinueButton(
                         formValid = uiState.isFormValid,
                         onClick = {
                             if (viewModel.submit()) {
                                 focusManager.clearFocus()
+                                PatientProfileStore.save(context, viewModel.uiState.value)
                                 onSaveContinue(viewModel.uiState.value.fullName.trim())
                             } else {
                                 scope.launch { scrollState.animateScrollTo(scrollTargetFor(viewModel.uiState.value.firstInvalidField)) }
@@ -228,6 +337,16 @@ private fun scrollTargetFor(field: PatientProfileField?): Int {
         PatientProfileField.FullName -> 0
         PatientProfileField.Age, PatientProfileField.Gender -> 160
         PatientProfileField.Height, PatientProfileField.Weight -> 300
+        PatientProfileField.DietaryPreference, PatientProfileField.Goal -> 440
+        PatientProfileField.ActivityLevel, PatientProfileField.PregnancyInformation -> 560
+        PatientProfileField.Allergies,
+        PatientProfileField.FoodIntolerances,
+        PatientProfileField.FoodsToAvoid,
+        PatientProfileField.HealthConditions,
+        PatientProfileField.MedicineAllergies,
+        PatientProfileField.CurrentMedicines,
+        PatientProfileField.MedicationRestrictions,
+        PatientProfileField.DoctorRestrictions -> 680
         null -> 0
     }
 }
@@ -563,6 +682,116 @@ private fun ValidatedDropdown(
                     letterSpacing = 0.sp
                 )
             )
+        }
+    }
+}
+
+@Composable
+private fun ProfileSectionTitle(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleSmall.copy(
+            color = ProfileDeepGreen,
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp,
+            lineHeight = 20.sp,
+            letterSpacing = 0.sp
+        )
+    )
+}
+
+@Composable
+private fun TagInputField(
+    label: String,
+    values: List<String>,
+    placeholder: String,
+    onAdd: (String) -> Unit,
+    onRemove: (String) -> Unit
+) {
+    var draft by remember { mutableStateOf("") }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall.copy(
+                color = DarkForestGreen,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 0.2.sp
+            )
+        )
+        Spacer(modifier = Modifier.height(7.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = draft,
+                onValueChange = { draft = it },
+                modifier = Modifier.weight(1f),
+                placeholder = {
+                    Text(text = placeholder, color = SoftBlueGray.copy(alpha = 0.68f), fontSize = 14.sp)
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(18.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = DarkForestGreen,
+                    unfocusedTextColor = DarkForestGreen,
+                    focusedBorderColor = ProfileGreen,
+                    unfocusedBorderColor = ProfileBorder,
+                    focusedContainerColor = PureWhite,
+                    unfocusedContainerColor = ProfileFieldTint,
+                    cursorColor = ProfileGreen
+                ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        onAdd(draft)
+                        draft = ""
+                    }
+                )
+            )
+            Button(
+                onClick = {
+                    onAdd(draft)
+                    draft = ""
+                },
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = ProfileDeepGreen),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 12.dp)
+            ) {
+                Text("Add", color = PureWhite, fontWeight = FontWeight.Bold)
+            }
+        }
+        if (values.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                values.forEach { value ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(ProfileGold.copy(alpha = 0.62f))
+                            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.8f)), RoundedCornerShape(14.dp))
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = value,
+                            color = DarkForestGreen,
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.bodyMedium.copy(letterSpacing = 0.sp)
+                        )
+                        Text(
+                            text = "Remove",
+                            color = ProfileError,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 12.sp,
+                            modifier = Modifier.clickable { onRemove(value) }
+                        )
+                    }
+                }
+            }
         }
     }
 }
