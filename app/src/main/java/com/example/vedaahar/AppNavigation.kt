@@ -38,17 +38,13 @@ import com.example.vedaahar.dosha.RetakeDoshaAssessmentRoute
 import com.example.vedaahar.doctor.ui.DoctorModuleRoute
 import com.example.vedaahar.document.ui.UploadMedicalDocumentScreen
 import com.example.vedaahar.document.ui.MyMedicalDocumentsScreen
-import com.example.vedaahar.i18n.LocalAppLanguageState
-import com.example.vedaahar.i18n.translateText
 import com.example.vedaahar.symptoms.SymptomsAnalysisModuleScreen
 import com.example.vedaahar.ui.theme.Cream
 import com.example.vedaahar.ui.theme.ForestGreen
-import com.example.vedaahar.voice.GlobalVoiceAssistantButton
 import com.google.firebase.auth.FirebaseAuth
 
 private object VedaAhaarRoute {
     const val Loading = "loading"
-    const val LanguageSelection = "language_selection"
     const val Welcome = "welcome"
     const val Login = "login"
     const val ConsentPrivacy = "consent_privacy"
@@ -87,6 +83,8 @@ private data class OnboardingState(
     val protectedRoute: String
         get() = when {
             !isLoggedIn -> VedaAhaarRoute.Welcome
+            !consentCompleted -> VedaAhaarRoute.ConsentPrivacy
+            !profileCompleted -> VedaAhaarRoute.PatientProfile
             else -> VedaAhaarRoute.PatientDashboard
         }
 }
@@ -100,7 +98,6 @@ fun VedaAhaarNavHost(
     val preferences = remember {
         context.getSharedPreferences(OnboardingPrefs.Name, Context.MODE_PRIVATE)
     }
-    val languageState = LocalAppLanguageState.current
     var onboardingState by remember { mutableStateOf(OnboardingState()) }
     var dashboardTab by rememberSaveable { mutableStateOf("Home") }
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -157,7 +154,7 @@ fun VedaAhaarNavHost(
         }.onFailure {
             Toast.makeText(
                 context,
-                translateText(languageState.selectedLanguage, "Unable to logout right now. Please try again."),
+                "Unable to logout right now. Please try again.",
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -173,40 +170,18 @@ fun VedaAhaarNavHost(
         )
     }
 
-    LaunchedEffect(onboardingState, currentRoute, languageState.hasSelectedLanguage) {
+    LaunchedEffect(onboardingState, currentRoute) {
         if (onboardingState.loading || currentRoute == null) return@LaunchedEffect
 
         if (currentRoute == VedaAhaarRoute.Loading) {
-            val firstRoute = if (languageState.hasSelectedLanguage) {
-                onboardingState.protectedRoute
-            } else {
-                VedaAhaarRoute.LanguageSelection
-            }
-            navController.navigate(firstRoute) {
+            navController.navigate(onboardingState.protectedRoute) {
                 popUpTo(VedaAhaarRoute.Loading) { inclusive = true }
                 launchSingleTop = true
             }
             return@LaunchedEffect
         }
 
-        if (!languageState.hasSelectedLanguage && currentRoute != VedaAhaarRoute.LanguageSelection) {
-            navController.navigate(VedaAhaarRoute.LanguageSelection) {
-                popUpTo(0)
-                launchSingleTop = true
-            }
-            return@LaunchedEffect
-        }
-
-        if (languageState.hasSelectedLanguage && currentRoute == VedaAhaarRoute.LanguageSelection) {
-            navController.navigate(onboardingState.protectedRoute) {
-                popUpTo(VedaAhaarRoute.LanguageSelection) { inclusive = true }
-                launchSingleTop = true
-            }
-            return@LaunchedEffect
-        }
-
-        val routeIsPublic = currentRoute == VedaAhaarRoute.LanguageSelection ||
-            currentRoute == VedaAhaarRoute.Welcome ||
+        val routeIsPublic = currentRoute == VedaAhaarRoute.Welcome ||
             currentRoute == VedaAhaarRoute.Login ||
             currentRoute == VedaAhaarRoute.DoctorModule
         if (!onboardingState.isLoggedIn) {
@@ -295,7 +270,6 @@ fun VedaAhaarNavHost(
 
     val isMainAppRoute = currentRoute != null &&
         currentRoute != VedaAhaarRoute.Loading &&
-        currentRoute != VedaAhaarRoute.LanguageSelection &&
         currentRoute != VedaAhaarRoute.Welcome &&
         currentRoute != VedaAhaarRoute.Login &&
         currentRoute != VedaAhaarRoute.ConsentPrivacy &&
@@ -329,7 +303,6 @@ fun VedaAhaarNavHost(
 
     val showGlobalBackButton = currentRoute != null &&
         currentRoute != VedaAhaarRoute.Loading &&
-        currentRoute != VedaAhaarRoute.LanguageSelection &&
         currentRoute != VedaAhaarRoute.Welcome &&
         currentRoute != VedaAhaarRoute.PatientDashboard &&
         currentRoute !in routesWithLocalBackButton
@@ -344,18 +317,6 @@ fun VedaAhaarNavHost(
         ) {
             composable(route = VedaAhaarRoute.Loading) {
                 LoadingScreen()
-            }
-
-            composable(route = VedaAhaarRoute.LanguageSelection) {
-                LanguageSelectionScreen(
-                    onContinue = { language ->
-                        languageState.setLanguage(language)
-                        navController.navigate(VedaAhaarRoute.Welcome) {
-                            popUpTo(VedaAhaarRoute.LanguageSelection) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-                )
             }
 
             composable(
@@ -945,16 +906,6 @@ fun VedaAhaarNavHost(
             )
         }
 
-        if (currentRoute != VedaAhaarRoute.Loading) {
-            GlobalVoiceAssistantButton(
-                currentRoute = currentRoute,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .statusBarsPadding()
-                    .padding(end = 16.dp, top = 12.dp)
-                    .zIndex(3f)
-            )
-        }
     }
 }
 

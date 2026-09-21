@@ -55,7 +55,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
-import com.example.vedaahar.i18n.Text
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -90,7 +90,6 @@ import com.example.vedaahar.doctor.data.DoctorRepository
 import com.example.vedaahar.doctor.ui.PatientVerifiedDoctorsSection
 import com.example.vedaahar.dosha.DoshaResultStore
 import com.example.vedaahar.dosha.SavedDoshaAssessment
-import com.example.vedaahar.i18n.LanguageSelector
 import com.example.vedaahar.ui.CircularArrowCta
 import com.example.vedaahar.ui.DoshaTestIllustration
 import com.example.vedaahar.ui.HealthyMealBowlIllustration
@@ -1279,42 +1278,7 @@ private fun ProfileTabContent(
         color = Color(0xFF7A4E32),
         letterSpacing = 2.sp
     )
-    LanguageSettingCard()
-    Spacer(modifier = Modifier.height(6.dp))
     LogoutActionButton(onClick = { showLogoutDialog = true })
-}
-
-@Composable
-private fun LanguageSettingCard() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
-        border = BorderStroke(1.dp, Color(0xFFE7F2EC))
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Language",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.5.sp,
-                    color = Color(0xFF26332D)
-                )
-                Text(
-                    text = "Change app language",
-                    fontSize = 11.sp,
-                    color = Color(0xFF7A4E32)
-                )
-            }
-            LanguageSelector()
-        }
-    }
 }
 
 @Composable
@@ -1582,6 +1546,7 @@ private fun ShoppingCategoryCard(
         }
     }
 }
+
 
 
 

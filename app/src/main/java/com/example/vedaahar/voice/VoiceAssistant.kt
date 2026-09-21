@@ -47,14 +47,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.vedaahar.i18n.AppLanguageState
-import com.example.vedaahar.i18n.LocalAppLanguageState
-import com.example.vedaahar.i18n.Text
-import com.example.vedaahar.i18n.translateText
+import androidx.compose.material3.Text
 import com.example.vedaahar.ui.theme.DarkForestGreen
 import com.example.vedaahar.ui.theme.ForestGreen
 import com.example.vedaahar.ui.theme.PureWhite
-import com.example.vedaahar.ui.theme.SoftBlueGray
 import com.example.vedaahar.ui.theme.VedamritBrandBrown
 import com.example.vedaahar.ui.theme.VedamritBrownSoft
 import com.example.vedaahar.ui.theme.VedamritGreenSoft
@@ -71,8 +67,7 @@ data class VoiceGuide(
 )
 
 class VoiceAssistantController(
-    private val context: Context,
-    private val languageState: AppLanguageState
+    private val context: Context
 ) {
     private val preferences = context.getSharedPreferences(VoicePrefsName, Context.MODE_PRIVATE)
     private var tts: TextToSpeech? = null
@@ -122,7 +117,7 @@ class VoiceAssistantController(
     }
 
     fun speakScreenGuide(route: String?) {
-        if (!enabled || !languageState.hasSelectedLanguage) return
+        if (!enabled) return
         val guide = ScreenVoiceGuides.forRoute(route) ?: return
         speak("${guide.title}. ${guide.description}")
     }
@@ -133,7 +128,7 @@ class VoiceAssistantController(
         question: String,
         options: List<String>
     ) {
-        if (!enabled || !readAssessmentQuestions || !languageState.hasSelectedLanguage) return
+        if (!enabled || !readAssessmentQuestions) return
         val optionText = options.mapIndexed { index, option ->
             "Option ${('A'.code + index).toChar()}: $option."
         }.joinToString(" ")
@@ -141,20 +136,18 @@ class VoiceAssistantController(
     }
 
     fun speak(message: String) {
-        if (!enabled || !languageState.hasSelectedLanguage || message.isBlank()) return
+        if (!enabled || message.isBlank()) return
         configureLanguage()
-        val localized = translateText(languageState.selectedLanguage, message)
         stopSpeaking()
-        val result = tts?.speak(localized, TextToSpeech.QUEUE_FLUSH, null, "vedamrit_voice_${System.currentTimeMillis()}")
+        val result = tts?.speak(message, TextToSpeech.QUEUE_FLUSH, null, "vedamrit_voice_${System.currentTimeMillis()}")
         isSpeaking = result == TextToSpeech.SUCCESS
     }
 
     private fun configureLanguage() {
         if (!ttsReady) return
-        val locale = Locale.forLanguageTag(languageState.voiceLocale)
-        val availability = tts?.setLanguage(locale)
+        val availability = tts?.setLanguage(Locale.US)
         if (availability == TextToSpeech.LANG_MISSING_DATA || availability == TextToSpeech.LANG_NOT_SUPPORTED) {
-            tts?.setLanguage(Locale.forLanguageTag("hi-IN"))
+            tts?.setLanguage(Locale.ENGLISH)
         }
     }
 }
@@ -164,9 +157,8 @@ val LocalVoiceAssistantController = compositionLocalOf<VoiceAssistantController?
 @Composable
 fun VoiceAssistantProvider(content: @Composable () -> Unit) {
     val context = LocalContext.current
-    val languageState = LocalAppLanguageState.current
-    val controller = remember(context, languageState.selectedLanguage, languageState.hasSelectedLanguage) {
-        VoiceAssistantController(context.applicationContext, languageState)
+    val controller = remember(context) {
+        VoiceAssistantController(context.applicationContext)
     }
 
     DisposableEffect(controller) {
@@ -193,14 +185,11 @@ fun GlobalVoiceAssistantButton(
     modifier: Modifier = Modifier
 ) {
     val controller = LocalVoiceAssistantController.current ?: return
-    val languageState = LocalAppLanguageState.current
     var expanded by remember { mutableStateOf(false) }
 
-    LaunchedEffect(currentRoute, controller.enabled, languageState.selectedLanguage, languageState.hasSelectedLanguage) {
-        if (languageState.hasSelectedLanguage) {
-            controller.stopSpeaking()
-            controller.speakScreenGuide(currentRoute)
-        }
+    LaunchedEffect(currentRoute, controller.enabled) {
+        controller.stopSpeaking()
+        controller.speakScreenGuide(currentRoute)
     }
 
     DisposableEffect(currentRoute) {
@@ -248,7 +237,6 @@ fun GlobalVoiceAssistantButton(
                             color = if (controller.enabled) ForestGreen else VedamritBrandBrown,
                             fontWeight = FontWeight.Bold
                         )
-                        Text(text = "Language follows app language", color = SoftBlueGray, fontSize = 11.sp)
                     }
                 },
                 onClick = {}
@@ -304,7 +292,6 @@ fun AssessmentQuestionVoiceEffect(
     options: List<String>
 ) {
     val controller = LocalVoiceAssistantController.current ?: return
-    val languageState = LocalAppLanguageState.current
     LaunchedEffect(
         screenKey,
         currentQuestion,
@@ -312,9 +299,7 @@ fun AssessmentQuestionVoiceEffect(
         question,
         options,
         controller.enabled,
-        controller.readAssessmentQuestions,
-        languageState.selectedLanguage,
-        languageState.hasSelectedLanguage
+        controller.readAssessmentQuestions
     ) {
         controller.stopSpeaking()
         controller.speakAssessmentQuestion(currentQuestion, totalQuestions, question, options)
@@ -377,10 +362,6 @@ object ScreenVoiceGuides {
     }
 
     private val guides = mapOf(
-        "language_selection" to VoiceGuide(
-            "Language Selection",
-            "Select your preferred language. The application and voice assistant will use this language."
-        ),
         "welcome" to VoiceGuide(
             "Welcome to VedAmrit",
             "You can log in or create an account to continue."
@@ -454,3 +435,4 @@ object ScreenVoiceGuides {
         )
     )
 }
+

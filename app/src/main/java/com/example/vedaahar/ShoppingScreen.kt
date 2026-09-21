@@ -49,7 +49,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import com.example.vedaahar.i18n.Text
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -752,6 +752,7 @@ private fun BottomCartBar(cartCount: Int) {
         }
     }
 }
+
 
 
 

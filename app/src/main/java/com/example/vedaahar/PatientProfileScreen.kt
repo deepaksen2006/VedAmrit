@@ -45,7 +45,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
-import com.example.vedaahar.i18n.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -693,5 +693,6 @@ private fun FloatingProfileLeaves(modifier: Modifier = Modifier, alpha: Float) {
 private fun PatientProfileScreenPreview() {
     PatientProfileScreen(onSaveContinue = { _ -> })
 }
+
 
 

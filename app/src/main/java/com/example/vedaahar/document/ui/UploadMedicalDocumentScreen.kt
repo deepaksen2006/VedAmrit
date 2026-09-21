@@ -67,7 +67,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
-import com.example.vedaahar.i18n.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -1241,6 +1241,7 @@ private fun parseCapturedPhotoToFileDetails(context: Context, uri: Uri): Selecte
         isUnsupported = false
     )
 }
+
 
 
 

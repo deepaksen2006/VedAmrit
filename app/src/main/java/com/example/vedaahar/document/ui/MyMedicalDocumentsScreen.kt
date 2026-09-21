@@ -1,4 +1,4 @@
-﻿package com.example.vedaahar.document.ui
+package com.example.vedaahar.document.ui
 
 import android.content.Context
 import android.widget.Toast
@@ -62,9 +62,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
-import com.example.vedaahar.i18n.LocalAppLanguageState
-import com.example.vedaahar.i18n.Text
-import com.example.vedaahar.i18n.translateText
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -208,7 +206,6 @@ fun MyMedicalDocumentsScreen(
     initialViewDocId: String? = null
 ) {
     val context = LocalContext.current
-    val selectedLanguage = LocalAppLanguageState.current.selectedLanguage
     var documents by remember { mutableStateOf(MedicalDocumentStore.getDocuments(context)) }
 
     // Search, Filter, Sort state
@@ -460,7 +457,7 @@ fun MyMedicalDocumentsScreen(
                             doc = doc,
                             onView = { viewingDocument = doc },
                             onDownload = {
-                                Toast.makeText(context, translateText(selectedLanguage, "Downloading ${doc.title}..."), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Downloading ${doc.title}...", Toast.LENGTH_SHORT).show()
                             },
                             onRename = { documentToRename = doc },
                             onShare = { documentToShare = doc },
@@ -492,7 +489,7 @@ fun MyMedicalDocumentsScreen(
                 documentToDelete = doc
             },
             onDownload = {
-                Toast.makeText(context, translateText(selectedLanguage, "Downloading ${viewingDocument!!.title}..."), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Downloading ${viewingDocument!!.title}...", Toast.LENGTH_SHORT).show()
             }
         )
     }
@@ -505,7 +502,7 @@ fun MyMedicalDocumentsScreen(
             onConfirmDelete = {
                 MedicalDocumentStore.deleteDocument(context, documentToDelete!!.id)
                 documents = MedicalDocumentStore.getDocuments(context)
-                Toast.makeText(context, translateText(selectedLanguage, "Document deleted"), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Document deleted", Toast.LENGTH_SHORT).show()
                 documentToDelete = null
             }
         )
@@ -519,7 +516,7 @@ fun MyMedicalDocumentsScreen(
             onConfirmRename = { newTitle ->
                 MedicalDocumentStore.renameDocument(context, documentToRename!!.id, newTitle)
                 documents = MedicalDocumentStore.getDocuments(context)
-                Toast.makeText(context, translateText(selectedLanguage, "Document renamed"), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Document renamed", Toast.LENGTH_SHORT).show()
                 documentToRename = null
             }
         )
@@ -533,7 +530,7 @@ fun MyMedicalDocumentsScreen(
             onConfirmShare = { recipient, purpose, duration ->
                 MedicalDocumentStore.shareDocument(context, documentToShare!!.id, recipient, purpose, duration)
                 documents = MedicalDocumentStore.getDocuments(context)
-                Toast.makeText(context, translateText(selectedLanguage, "Shared securely with $recipient"), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Shared securely with $recipient", Toast.LENGTH_SHORT).show()
                 documentToShare = null
             }
         )
@@ -614,7 +611,7 @@ private fun DocumentItemCard(
                     if (doc.subTitle.isNotBlank() || doc.doctorOrHospital.isNotBlank()) {
                         val subText = buildString {
                             if (doc.subTitle.isNotBlank()) append(doc.subTitle)
-                            if (doc.subTitle.isNotBlank() && doc.doctorOrHospital.isNotBlank()) append(" Â· ")
+                            if (doc.subTitle.isNotBlank() && doc.doctorOrHospital.isNotBlank()) append(" · ")
                             if (doc.doctorOrHospital.isNotBlank()) append(doc.doctorOrHospital)
                         }
                         Text(
@@ -629,7 +626,7 @@ private fun DocumentItemCard(
                     Spacer(modifier = Modifier.height(2.dp))
 
                     Text(
-                        text = "${doc.documentDate} Â· ${doc.fileType} Â· ${doc.formattedSize}",
+                        text = "${doc.documentDate} · ${doc.fileType} · ${doc.formattedSize}",
                         color = MutedCharcoal.copy(alpha = 0.8f),
                         fontSize = 11.5.sp
                     )
@@ -719,7 +716,7 @@ private fun DocumentItemCard(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Private Record Â· ${doc.documentType}",
+                    text = "Private Record · ${doc.documentType}",
                     color = SoftOliveGreen,
                     fontSize = 10.5.sp,
                     fontWeight = FontWeight.Medium
@@ -728,7 +725,7 @@ private fun DocumentItemCard(
                 if (doc.sharedWith.isNotEmpty()) {
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "â€¢ Shared with ${doc.sharedWith.size}",
+                        text = "• Shared with ${doc.sharedWith.size}",
                         color = Color(0xFF1F6B4F),
                         fontSize = 10.5.sp,
                         fontWeight = FontWeight.Medium
@@ -900,7 +897,7 @@ private fun DocumentViewerModal(
                     Spacer(modifier = Modifier.height(2.dp))
 
                     Text(
-                        text = "${document.documentType} Â· ${document.documentDate} Â· ${document.fileType} Â· ${document.formattedSize}",
+                        text = "${document.documentType} · ${document.documentDate} · ${document.fileType} · ${document.formattedSize}",
                         color = MutedCharcoal,
                         fontSize = 12.sp
                     )
@@ -1010,9 +1007,9 @@ private fun ClinicalDocumentSheet(document: MedicalDocument) {
                     // Prescription View
                     Text("Rx (Medical Prescription)", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkForestGreen)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("1. Triphala Churna (Fine Powder) â€” 1 tsp with warm water before bedtime.", fontSize = 11.5.sp, color = DarkForestGreen)
-                    Text("2. Ashwagandha Capsules (500mg) â€” 1 capsule twice daily after meals.", fontSize = 11.5.sp, color = DarkForestGreen)
-                    Text("3. Brahmi Herbal Tea â€” Once daily in morning for Vata calm.", fontSize = 11.5.sp, color = DarkForestGreen)
+                    Text("1. Triphala Churna (Fine Powder) — 1 tsp with warm water before bedtime.", fontSize = 11.5.sp, color = DarkForestGreen)
+                    Text("2. Ashwagandha Capsules (500mg) — 1 capsule twice daily after meals.", fontSize = 11.5.sp, color = DarkForestGreen)
+                    Text("3. Brahmi Herbal Tea — Once daily in morning for Vata calm.", fontSize = 11.5.sp, color = DarkForestGreen)
                     Spacer(modifier = Modifier.height(14.dp))
                     Text("Dietary Instructions: Light freshly prepared food. Avoid excess spicy and cold dairy.", fontSize = 11.sp, color = MutedCharcoal)
                 }
@@ -1021,10 +1018,10 @@ private fun ClinicalDocumentSheet(document: MedicalDocument) {
                     // Diagnostic Imaging View
                     Text("RADIOLOGY INVESTIGATION: CHEST PA VIEW", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = DarkForestGreen)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("â€¢ Both lung fields appear clear without focal consolidation or pneumothorax.", fontSize = 11.sp, color = DarkForestGreen)
-                    Text("â€¢ Cardiothoracic ratio is within normal physiological limits.", fontSize = 11.sp, color = DarkForestGreen)
-                    Text("â€¢ Costophrenic and cardiophrenic angles are well visualized.", fontSize = 11.sp, color = DarkForestGreen)
-                    Text("â€¢ Bony thorax and soft tissues unremarkable.", fontSize = 11.sp, color = DarkForestGreen)
+                    Text("• Both lung fields appear clear without focal consolidation or pneumothorax.", fontSize = 11.sp, color = DarkForestGreen)
+                    Text("• Cardiothoracic ratio is within normal physiological limits.", fontSize = 11.sp, color = DarkForestGreen)
+                    Text("• Costophrenic and cardiophrenic angles are well visualized.", fontSize = 11.sp, color = DarkForestGreen)
+                    Text("• Bony thorax and soft tissues unremarkable.", fontSize = 11.sp, color = DarkForestGreen)
                     Spacer(modifier = Modifier.height(12.dp))
                     Text("IMPRESSION: Normal radiograph of the chest.", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = DarkForestGreen)
                 }
@@ -1118,7 +1115,7 @@ private fun DeleteDocumentConfirmationDialog(
         },
         text = {
             Text(
-                text = "Are you sure you want to permanently delete â€œ${document.title}â€? This action cannot be undone.",
+                text = "Are you sure you want to permanently delete “${document.title}”? This action cannot be undone.",
                 color = MutedCharcoal,
                 fontSize = 13.sp,
                 lineHeight = 18.sp
@@ -1264,7 +1261,7 @@ private fun ShareMedicalDocumentModal(
                         Text("DOCUMENT BEING SHARED", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = SoftOliveGreen)
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(document.title, fontSize = 13.5.sp, fontWeight = FontWeight.Bold, color = DarkForestGreen)
-                        Text("${document.documentType} Â· ${document.formattedDate} Â· ${document.formattedSize}", fontSize = 11.sp, color = MutedCharcoal)
+                        Text("${document.documentType} · ${document.formattedDate} · ${document.formattedSize}", fontSize = 11.sp, color = MutedCharcoal)
                     }
                 }
 
@@ -1391,6 +1388,7 @@ private fun ShareMedicalDocumentModal(
         }
     }
 }
+
 
 
 

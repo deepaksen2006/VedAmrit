@@ -40,7 +40,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import com.example.vedaahar.i18n.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -511,5 +511,6 @@ private fun FlowLabels(items: List<String>) {
 private fun SectionTitle(text: String) {
     Text(text.uppercase(), color = SageGreen, fontWeight = FontWeight.Bold, fontSize = 11.sp, letterSpacing = 1.7.sp)
 }
+
 
 

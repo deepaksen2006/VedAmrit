@@ -47,7 +47,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import com.example.vedaahar.i18n.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -102,8 +102,6 @@ import com.example.vedaahar.ui.theme.LightSage
 import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
-import com.example.vedaahar.voice.AssessmentQuestionVoiceEffect
-import com.example.vedaahar.voice.LocalVoiceAssistantController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -621,28 +619,31 @@ fun DoshaTestHubScreen(
                                     currentQuestionIndex = currentQuestionIndex,
                                     answers = answers,
                                     onAnswerSelected = { questionId, optionId ->
-                                        if (!autoAdvanceLocked) {
+                                        val selectedIndex = currentQuestionIndex
+                                        answers = answers + (questionId to optionId)
+                                        if (selectedIndex < prakritiQuestions.lastIndex && !autoAdvanceLocked) {
                                             autoAdvanceLocked = true
-                                            val selectedIndex = currentQuestionIndex
-                                            val updatedAnswers = answers + (questionId to optionId)
-                                            answers = updatedAnswers
                                             coroutineScope.launch {
                                                 delay(250)
                                                 if (currentQuestionIndex == selectedIndex) {
-                                                    if (selectedIndex < prakritiQuestions.lastIndex) {
-                                                        currentQuestionIndex = selectedIndex + 1
-                                                    } else if (updatedAnswers.size == prakritiQuestions.size) {
-                                                        val generatedPrakriti = generatePrakritiResult(updatedAnswers)
-                                                        PrakritiResultStore.save(context, generatedPrakriti)
-                                                        assessmentResult = generatedPrakriti
-                                                        saveProfileWhenComplete(prakriti = generatedPrakriti)
-                                                        selectedAssessment = null
-                                                    }
+                                                    currentQuestionIndex = selectedIndex + 1
                                                 }
                                                 autoAdvanceLocked = false
                                             }
                                         }
                                     },
+                                    onSubmit = {
+                                        if (!autoAdvanceLocked && answers.size == prakritiQuestions.size) {
+                                            autoAdvanceLocked = true
+                                            val generatedPrakriti = generatePrakritiResult(answers)
+                                            PrakritiResultStore.save(context, generatedPrakriti)
+                                            assessmentResult = generatedPrakriti
+                                            saveProfileWhenComplete(prakriti = generatedPrakriti)
+                                            selectedAssessment = null
+                                            autoAdvanceLocked = false
+                                        }
+                                    },
+                                    submitEnabled = !autoAdvanceLocked && answers.containsKey(prakritiQuestions.last().id),
                                     onPrevious = {
                                         currentQuestionIndex = (currentQuestionIndex - 1).coerceAtLeast(0)
                                     }
@@ -668,31 +669,34 @@ fun DoshaTestHubScreen(
                                     currentQuestionIndex = vikritiQuestionIndex,
                                     answers = vikritiAnswers,
                                     onAnswerSelected = { questionId, optionId ->
-                                        if (!autoAdvanceLocked) {
+                                        val selectedIndex = vikritiQuestionIndex
+                                        vikritiAnswers = vikritiAnswers + (questionId to optionId)
+                                        if (selectedIndex < vikritiQuestions.lastIndex && !autoAdvanceLocked) {
                                             autoAdvanceLocked = true
-                                            val selectedIndex = vikritiQuestionIndex
-                                            val updatedAnswers = vikritiAnswers + (questionId to optionId)
-                                            vikritiAnswers = updatedAnswers
                                             coroutineScope.launch {
                                                 delay(250)
                                                 if (vikritiQuestionIndex == selectedIndex) {
-                                                    if (selectedIndex < vikritiQuestions.lastIndex) {
-                                                        vikritiQuestionIndex = selectedIndex + 1
-                                                    } else if (updatedAnswers.size == vikritiQuestions.size) {
-                                                        val generatedVikriti = generateVikritiResult(
-                                                            answers = updatedAnswers,
-                                                            prakritiType = assessmentResult?.prakritiType ?: "Not assessed"
-                                                        )
-                                                        VikritiResultStore.save(context, generatedVikriti)
-                                                        vikritiResult = generatedVikriti
-                                                        saveProfileWhenComplete(vikriti = generatedVikriti)
-                                                        selectedAssessment = null
-                                                    }
+                                                    vikritiQuestionIndex = selectedIndex + 1
                                                 }
                                                 autoAdvanceLocked = false
                                             }
                                         }
                                     },
+                                    onSubmit = {
+                                        if (!autoAdvanceLocked && vikritiAnswers.size == vikritiQuestions.size) {
+                                            autoAdvanceLocked = true
+                                            val generatedVikriti = generateVikritiResult(
+                                                answers = vikritiAnswers,
+                                                prakritiType = assessmentResult?.prakritiType ?: "Not assessed"
+                                            )
+                                            VikritiResultStore.save(context, generatedVikriti)
+                                            vikritiResult = generatedVikriti
+                                            saveProfileWhenComplete(vikriti = generatedVikriti)
+                                            selectedAssessment = null
+                                            autoAdvanceLocked = false
+                                        }
+                                    },
+                                    submitEnabled = !autoAdvanceLocked && vikritiAnswers.containsKey(vikritiQuestions.last().id),
                                     onPrevious = {
                                         vikritiQuestionIndex = (vikritiQuestionIndex - 1).coerceAtLeast(0)
                                     }
@@ -718,28 +722,31 @@ fun DoshaTestHubScreen(
                                     currentQuestionIndex = agniQuestionIndex,
                                     answers = agniAnswers,
                                     onAnswerSelected = { questionId, optionId ->
-                                        if (!autoAdvanceLocked) {
+                                        val selectedIndex = agniQuestionIndex
+                                        agniAnswers = agniAnswers + (questionId to optionId)
+                                        if (selectedIndex < agniQuestions.lastIndex && !autoAdvanceLocked) {
                                             autoAdvanceLocked = true
-                                            val selectedIndex = agniQuestionIndex
-                                            val updatedAnswers = agniAnswers + (questionId to optionId)
-                                            agniAnswers = updatedAnswers
                                             coroutineScope.launch {
                                                 delay(250)
                                                 if (agniQuestionIndex == selectedIndex) {
-                                                    if (selectedIndex < agniQuestions.lastIndex) {
-                                                        agniQuestionIndex = selectedIndex + 1
-                                                    } else if (updatedAnswers.size == agniQuestions.size) {
-                                                        val generatedAgni = generateAgniResult(updatedAnswers)
-                                                        AgniResultStore.save(context, generatedAgni)
-                                                        agniResult = generatedAgni
-                                                        saveProfileWhenComplete(agni = generatedAgni)
-                                                        selectedAssessment = null
-                                                    }
+                                                    agniQuestionIndex = selectedIndex + 1
                                                 }
                                                 autoAdvanceLocked = false
                                             }
                                         }
                                     },
+                                    onSubmit = {
+                                        if (!autoAdvanceLocked && agniAnswers.size == agniQuestions.size) {
+                                            autoAdvanceLocked = true
+                                            val generatedAgni = generateAgniResult(agniAnswers)
+                                            AgniResultStore.save(context, generatedAgni)
+                                            agniResult = generatedAgni
+                                            saveProfileWhenComplete(agni = generatedAgni)
+                                            selectedAssessment = null
+                                            autoAdvanceLocked = false
+                                        }
+                                    },
+                                    submitEnabled = !autoAdvanceLocked && agniAnswers.containsKey(agniQuestions.last().id),
                                     onPrevious = {
                                         agniQuestionIndex = (agniQuestionIndex - 1).coerceAtLeast(0)
                                     }
@@ -884,27 +891,31 @@ fun SequentialDoshaTestScreen(
                                     currentQuestionIndex = currentQuestionIndex,
                                     answers = answers,
                                     onAnswerSelected = { questionId, optionId ->
-                                        if (!autoAdvanceLocked) {
+                                        val selectedIndex = currentQuestionIndex
+                                        val updatedAnswers = answers + (questionId to optionId)
+                                        answers = updatedAnswers
+                                        if (selectedIndex < prakritiQuestions.lastIndex && !autoAdvanceLocked) {
                                             autoAdvanceLocked = true
-                                            val selectedIndex = currentQuestionIndex
-                                            val updatedAnswers = answers + (questionId to optionId)
-                                            answers = updatedAnswers
                                             coroutineScope.launch {
                                                 delay(250)
                                                 if (currentQuestionIndex == selectedIndex) {
-                                                    if (selectedIndex < prakritiQuestions.lastIndex) {
                                                         currentQuestionIndex = selectedIndex + 1
-                                                    } else if (updatedAnswers.size == prakritiQuestions.size) {
-                                                        val generatedPrakriti = generatePrakritiResult(updatedAnswers)
-                                                        PrakritiResultStore.save(context, generatedPrakriti)
-                                                        prakritiResult = generatedPrakriti
-                                                        currentStep = DoshaSequentialStep.PrakritiResult
-                                                    }
                                                 }
                                                 autoAdvanceLocked = false
                                             }
                                         }
                                     },
+                                    onSubmit = {
+                                        if (!autoAdvanceLocked && answers.size == prakritiQuestions.size) {
+                                            autoAdvanceLocked = true
+                                            val generatedPrakriti = generatePrakritiResult(answers)
+                                            PrakritiResultStore.save(context, generatedPrakriti)
+                                            prakritiResult = generatedPrakriti
+                                            currentStep = DoshaSequentialStep.VikritiQuestions
+                                            autoAdvanceLocked = false
+                                        }
+                                    },
+                                    submitEnabled = !autoAdvanceLocked && answers.containsKey(prakritiQuestions.last().id),
                                     onPrevious = {
                                         currentQuestionIndex = (currentQuestionIndex - 1).coerceAtLeast(0)
                                     }
@@ -940,30 +951,34 @@ fun SequentialDoshaTestScreen(
                                         currentQuestionIndex = vikritiQuestionIndex,
                                         answers = vikritiAnswers,
                                         onAnswerSelected = { questionId, optionId ->
-                                            if (!autoAdvanceLocked) {
+                                            val selectedIndex = vikritiQuestionIndex
+                                            val updatedAnswers = vikritiAnswers + (questionId to optionId)
+                                            vikritiAnswers = updatedAnswers
+                                            if (selectedIndex < vikritiQuestions.lastIndex && !autoAdvanceLocked) {
                                                 autoAdvanceLocked = true
-                                                val selectedIndex = vikritiQuestionIndex
-                                                val updatedAnswers = vikritiAnswers + (questionId to optionId)
-                                                vikritiAnswers = updatedAnswers
                                                 coroutineScope.launch {
                                                     delay(250)
                                                     if (vikritiQuestionIndex == selectedIndex) {
-                                                        if (selectedIndex < vikritiQuestions.lastIndex) {
                                                             vikritiQuestionIndex = selectedIndex + 1
-                                                        } else if (updatedAnswers.size == vikritiQuestions.size) {
-                                                            val generatedVikriti = generateVikritiResult(
-                                                                answers = updatedAnswers,
-                                                                prakritiType = prakritiResult?.prakritiType ?: "Not assessed"
-                                                            )
-                                                            VikritiResultStore.save(context, generatedVikriti)
-                                                            vikritiResult = generatedVikriti
-                                                            currentStep = DoshaSequentialStep.VikritiResult
-                                                        }
                                                     }
                                                     autoAdvanceLocked = false
                                                 }
                                             }
                                         },
+                                        onSubmit = {
+                                            if (!autoAdvanceLocked && vikritiAnswers.size == vikritiQuestions.size) {
+                                                autoAdvanceLocked = true
+                                                val generatedVikriti = generateVikritiResult(
+                                                    answers = vikritiAnswers,
+                                                    prakritiType = prakritiResult?.prakritiType ?: "Not assessed"
+                                                )
+                                                VikritiResultStore.save(context, generatedVikriti)
+                                                vikritiResult = generatedVikriti
+                                                currentStep = DoshaSequentialStep.AgniQuestions
+                                                autoAdvanceLocked = false
+                                            }
+                                        },
+                                        submitEnabled = !autoAdvanceLocked && vikritiAnswers.containsKey(vikritiQuestions.last().id),
                                         onPrevious = {
                                             vikritiQuestionIndex = (vikritiQuestionIndex - 1).coerceAtLeast(0)
                                         }
@@ -1000,28 +1015,32 @@ fun SequentialDoshaTestScreen(
                                         currentQuestionIndex = agniQuestionIndex,
                                         answers = agniAnswers,
                                         onAnswerSelected = { questionId, optionId ->
-                                            if (!autoAdvanceLocked) {
+                                            val selectedIndex = agniQuestionIndex
+                                            val updatedAnswers = agniAnswers + (questionId to optionId)
+                                            agniAnswers = updatedAnswers
+                                            if (selectedIndex < agniQuestions.lastIndex && !autoAdvanceLocked) {
                                                 autoAdvanceLocked = true
-                                                val selectedIndex = agniQuestionIndex
-                                                val updatedAnswers = agniAnswers + (questionId to optionId)
-                                                agniAnswers = updatedAnswers
                                                 coroutineScope.launch {
                                                     delay(250)
                                                     if (agniQuestionIndex == selectedIndex) {
-                                                        if (selectedIndex < agniQuestions.lastIndex) {
                                                             agniQuestionIndex = selectedIndex + 1
-                                                        } else if (updatedAnswers.size == agniQuestions.size) {
-                                                            val generatedAgni = generateAgniResult(updatedAnswers)
-                                                            AgniResultStore.save(context, generatedAgni)
-                                                            agniResult = generatedAgni
-                                                            saveProfileWhenComplete(agni = generatedAgni)
-                                                            currentStep = DoshaSequentialStep.CompleteResult
-                                                        }
                                                     }
                                                     autoAdvanceLocked = false
                                                 }
                                             }
                                         },
+                                        onSubmit = {
+                                            if (!autoAdvanceLocked && agniAnswers.size == agniQuestions.size) {
+                                                autoAdvanceLocked = true
+                                                val generatedAgni = generateAgniResult(agniAnswers)
+                                                AgniResultStore.save(context, generatedAgni)
+                                                agniResult = generatedAgni
+                                                saveProfileWhenComplete(agni = generatedAgni)
+                                                currentStep = DoshaSequentialStep.CompleteResult
+                                                autoAdvanceLocked = false
+                                            }
+                                        },
+                                        submitEnabled = !autoAdvanceLocked && agniAnswers.containsKey(agniQuestions.last().id),
                                         onPrevious = {
                                             agniQuestionIndex = (agniQuestionIndex - 1).coerceAtLeast(0)
                                         }
@@ -1718,13 +1737,6 @@ private fun PrakritiQuestionnaireContent(
     val question = prakritiQuestions[currentQuestionIndex]
     val selectedOption = answers[question.id]
     val isLastQuestion = currentQuestionIndex == prakritiQuestions.lastIndex
-    AssessmentQuestionVoiceEffect(
-        screenKey = "prakriti",
-        currentQuestion = currentQuestionIndex + 1,
-        totalQuestions = prakritiQuestions.size,
-        question = question.text,
-        options = question.options.map { it.text }
-    )
 
     Card(
         modifier = Modifier
@@ -1845,7 +1857,6 @@ private fun PrakritiAnswerCard(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val voiceAssistant = LocalVoiceAssistantController.current
     val borderColor = if (selected) ForestGreen else BeigeBorder.copy(alpha = 0.8f)
     val background = if (selected) DietMint else Color(0xFFFFFFFF)
     Row(
@@ -1855,7 +1866,6 @@ private fun PrakritiAnswerCard(
             .background(background)
             .border(BorderStroke(if (selected) 1.6.dp else 1.dp, borderColor), RoundedCornerShape(18.dp))
             .clickable {
-                voiceAssistant?.stopSpeaking()
                 onClick()
             }
             .padding(14.dp),
@@ -2013,13 +2023,6 @@ private fun VikritiQuestionnaireContent(
     val question = vikritiQuestions[currentQuestionIndex]
     val selectedOption = answers[question.id]
     val isLastQuestion = currentQuestionIndex == vikritiQuestions.lastIndex
-    AssessmentQuestionVoiceEffect(
-        screenKey = "vikriti",
-        currentQuestion = currentQuestionIndex + 1,
-        totalQuestions = vikritiQuestions.size,
-        question = question.text,
-        options = vikritiAnswerOptions.map { it.label }
-    )
 
     Card(
         modifier = Modifier
@@ -2133,7 +2136,6 @@ private fun VikritiAnswerCard(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val voiceAssistant = LocalVoiceAssistantController.current
     val borderColor = if (selected) ForestGreen else BeigeBorder.copy(alpha = 0.8f)
     val background = if (selected) DietMint else Color(0xFFFFFFFF)
     Row(
@@ -2143,7 +2145,6 @@ private fun VikritiAnswerCard(
             .background(background)
             .border(BorderStroke(if (selected) 1.6.dp else 1.dp, borderColor), RoundedCornerShape(18.dp))
             .clickable {
-                voiceAssistant?.stopSpeaking()
                 onClick()
             }
             .padding(14.dp),
@@ -2334,17 +2335,13 @@ private fun AgniQuestionnaireContent(
     currentQuestionIndex: Int,
     answers: Map<Int, String>,
     onAnswerSelected: (questionId: Int, optionId: String) -> Unit,
+    onSubmit: () -> Unit = {},
+    submitEnabled: Boolean = false,
     onPrevious: () -> Unit
 ) {
     val question = agniQuestions[currentQuestionIndex]
     val selectedOption = answers[question.id]
-    AssessmentQuestionVoiceEffect(
-        screenKey = "agni",
-        currentQuestion = currentQuestionIndex + 1,
-        totalQuestions = agniQuestions.size,
-        question = question.text,
-        options = question.options.map { it.text }
-    )
+    val isLastQuestion = currentQuestionIndex == agniQuestions.lastIndex
 
     Card(
         modifier = Modifier
@@ -2421,17 +2418,32 @@ private fun AgniQuestionnaireContent(
                 )
             }
 
-            OutlinedButton(
-                onClick = onPrevious,
-                enabled = currentQuestionIndex > 0,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(50),
-                border = BorderStroke(1.dp, BeigeBorder),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
-            ) {
-                Text("Previous", fontWeight = FontWeight.Bold)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = onPrevious,
+                    enabled = currentQuestionIndex > 0,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(50),
+                    border = BorderStroke(1.dp, BeigeBorder),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+                ) {
+                    Text("Previous", fontWeight = FontWeight.Bold)
+                }
+                if (isLastQuestion) {
+                    Button(
+                        onClick = onSubmit,
+                        enabled = submitEnabled,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(50.dp),
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+                    ) {
+                        Text("Submit", fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }
@@ -2443,7 +2455,6 @@ private fun AgniAnswerCard(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val voiceAssistant = LocalVoiceAssistantController.current
     val borderColor = if (selected) ForestGreen else BeigeBorder.copy(alpha = 0.8f)
     val background = if (selected) DietMint else Color(0xFFFFFFFF)
     Row(
@@ -2453,7 +2464,6 @@ private fun AgniAnswerCard(
             .background(background)
             .border(BorderStroke(if (selected) 1.6.dp else 1.dp, borderColor), RoundedCornerShape(18.dp))
             .clickable {
-                voiceAssistant?.stopSpeaking()
                 onClick()
             }
             .padding(14.dp),
@@ -2566,13 +2576,6 @@ private fun AssessmentSymptomsQuestionnaireContent(
 ) {
     val symptom = symptomFeatures[currentQuestionIndex]
     val selectedValue = answers[symptom.key]
-    AssessmentQuestionVoiceEffect(
-        screenKey = "symptoms",
-        currentQuestion = currentQuestionIndex + 1,
-        totalQuestions = symptomFeatures.size,
-        question = "Do you experience ${symptom.label}?",
-        options = listOf("No", "Yes")
-    )
 
     Card(
         modifier = Modifier
@@ -2679,7 +2682,6 @@ private fun AssessmentSymptomAnswerCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val voiceAssistant = LocalVoiceAssistantController.current
     Row(
         modifier = modifier
             .height(58.dp)
@@ -2687,7 +2689,6 @@ private fun AssessmentSymptomAnswerCard(
             .background(if (selected) DietMint else Color(0xFFFFFFFF))
             .border(BorderStroke(if (selected) 1.7.dp else 1.dp, if (selected) ForestGreen else BeigeBorder), RoundedCornerShape(18.dp))
             .clickable {
-                voiceAssistant?.stopSpeaking()
                 onClick()
             }
             .padding(horizontal = 14.dp),
@@ -3187,5 +3188,6 @@ private fun AyurvedicDravyaContent(tips: List<String>) {
         }
     }
 }
+
 
 
