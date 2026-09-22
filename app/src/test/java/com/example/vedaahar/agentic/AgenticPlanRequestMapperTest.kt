@@ -61,8 +61,7 @@ class AgenticPlanRequestMapperTest {
     fun preservesCanonicalAssessmentValuesExactly() {
         val result = AgenticPlanRequestMapper.fromRawAssessmentAndProfile(rawAssessment, completeProfile())
 
-        assertTrue(result is AgenticRequestMappingResult.Success)
-        val request = (result as AgenticRequestMappingResult.Success).request
+        val request = result.successRequest()
         assertEquals("Vata-Pitta", request.assessment.prakriti["prakritiType"])
         assertEquals("Vata", request.assessment.prakriti["primaryDosha"])
         assertEquals("Pitta", request.assessment.vikriti["dominantDosha"])
@@ -87,8 +86,7 @@ class AgenticPlanRequestMapperTest {
             )
         )
 
-        assertTrue(result is AgenticRequestMappingResult.Success)
-        val profile = (result as AgenticRequestMappingResult.Success).request.patientProfile
+        val profile = result.successRequest().patientProfile
         assertEquals("Anaya Rao", profile["name"])
         assertEquals("34", profile["age"])
         assertEquals("female", profile["gender"])
@@ -104,8 +102,7 @@ class AgenticPlanRequestMapperTest {
     fun passesCanonicalPrakritiThroughUnchanged() {
         val result = AgenticPlanRequestMapper.fromRawAssessmentAndProfile(rawAssessment, completeProfile())
 
-        assertTrue(result is AgenticRequestMappingResult.Success)
-        val prakriti = (result as AgenticRequestMappingResult.Success).request.assessment.prakriti
+        val prakriti = result.successRequest().assessment.prakriti
         assertEquals("Vata-Pitta", prakriti["prakritiType"])
         assertEquals("Vata", prakriti["primaryDosha"])
         assertEquals("Pitta", prakriti["secondaryDosha"])
@@ -115,8 +112,7 @@ class AgenticPlanRequestMapperTest {
     fun passesCanonicalVikritiThroughUnchanged() {
         val result = AgenticPlanRequestMapper.fromRawAssessmentAndProfile(rawAssessment, completeProfile())
 
-        assertTrue(result is AgenticRequestMappingResult.Success)
-        val vikriti = (result as AgenticRequestMappingResult.Success).request.assessment.vikriti
+        val vikriti = result.successRequest().assessment.vikriti
         assertEquals("Pitta", vikriti["dominantDosha"])
         assertEquals("Moderate", (vikriti["severities"] as Map<*, *>)["Pitta"])
         assertEquals("Vata-Pitta", vikriti["prakritiType"])
@@ -126,8 +122,7 @@ class AgenticPlanRequestMapperTest {
     fun passesCanonicalAgniThroughUnchanged() {
         val result = AgenticPlanRequestMapper.fromRawAssessmentAndProfile(rawAssessment, completeProfile())
 
-        assertTrue(result is AgenticRequestMappingResult.Success)
-        val agni = (result as AgenticRequestMappingResult.Success).request.assessment.agni
+        val agni = result.successRequest().assessment.agni
         assertEquals("Samagni", agni["dominantAgni"])
         assertEquals(false, agni["isMixed"])
         assertEquals(emptyList<Any?>(), agni["mixedAgniTypes"])
@@ -142,8 +137,7 @@ class AgenticPlanRequestMapperTest {
 
         val result = AgenticPlanRequestMapper.fromRawAssessmentAndProfile(contradictoryAssessment, completeProfile())
 
-        assertTrue(result is AgenticRequestMappingResult.Success)
-        val agni = (result as AgenticRequestMappingResult.Success).request.assessment.agni
+        val agni = result.successRequest().assessment.agni
         assertEquals("Samagni", agni["dominantAgni"])
         assertEquals(8, ((agni["scores"] as Map<*, *>)["Samagni"] as Number).toInt())
     }
@@ -166,8 +160,7 @@ class AgenticPlanRequestMapperTest {
     fun acceptsExplicitlyEmptySafetyLists() {
         val result = AgenticPlanRequestMapper.fromRawAssessmentAndProfile(rawAssessment, completeProfile())
 
-        assertTrue(result is AgenticRequestMappingResult.Success)
-        val profile = (result as AgenticRequestMappingResult.Success).request.patientProfile
+        val profile = result.successRequest().patientProfile
         assertEquals(emptyList<String>(), profile["allergies"])
         assertEquals(emptyList<String>(), profile["doctor_restrictions"])
     }
@@ -221,4 +214,10 @@ class AgenticPlanRequestMapperTest {
         assertTrue(missing.contains("patient_profile.height_cm"))
         assertTrue(missing.contains("patient_profile.weight_kg"))
     }
+
+    private fun AgenticRequestMappingResult.successRequest() =
+        when (this) {
+            is AgenticRequestMappingResult.Success -> request
+            else -> error("Expected success but was $this")
+        }
 }

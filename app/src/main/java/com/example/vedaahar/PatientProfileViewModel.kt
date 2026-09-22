@@ -1,6 +1,14 @@
 package com.example.vedaahar
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.example.vedaahar.agentic.AgenticApiResult
+import com.example.vedaahar.profile.PatientProfileGateway
+import com.example.vedaahar.profile.PatientProfileLoadResult
+import com.example.vedaahar.profile.StoredPatientProfile
+import com.example.vedaahar.profile.toStoredProfile
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -44,7 +52,12 @@ data class PatientProfileUiState(
     val doctorRestrictions: List<String> = emptyList(),
     val pregnancyInformation: String = "",
     val touchedFields: Set<PatientProfileField> = emptySet(),
-    val submitAttempts: Int = 0
+    val submitAttempts: Int = 0,
+    val loading: Boolean = false,
+    val saving: Boolean = false,
+    val syncMessage: String? = null,
+    val saveError: String? = null,
+    val serverSynced: Boolean = false
 ) {
     val errors: Map<PatientProfileField, String> = PatientProfileValidators.validate(this)
     val requiredFields: List<PatientProfileField> = listOf(
@@ -99,24 +112,57 @@ object PatientProfileOptions {
     val PregnancyInformation = listOf("not_applicable", "not_pregnant", "pregnant", "prefer_not_to_say")
 }
 
-class PatientProfileViewModel : ViewModel() {
+class PatientProfileViewModel(
+    private val repository: PatientProfileGateway
+) : ViewModel() {
     private val _uiState = MutableStateFlow(PatientProfileUiState())
     val uiState: StateFlow<PatientProfileUiState> = _uiState
+
+    fun loadProfile() {
+        _uiState.update { it.copy(loading = true, syncMessage = null, saveError = null) }
+        viewModelScope.launch {
+            when (val result = repository.loadProfile()) {
+                is PatientProfileLoadResult.Remote -> {
+                    _uiState.value = result.profile.toUiState(
+                        loading = false,
+                        syncMessage = null,
+                        serverSynced = true
+                    )
+                }
+                is PatientProfileLoadResult.Cache -> {
+                    _uiState.value = result.profile.toUiState(
+                        loading = false,
+                        syncMessage = result.message,
+                        serverSynced = false
+                    )
+                }
+                is PatientProfileLoadResult.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            loading = false,
+                            syncMessage = result.message,
+                            serverSynced = false
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     fun updateField(field: PatientProfileField, value: String) {
         _uiState.update { state ->
             val sanitized = sanitize(field, value)
             val touched = state.touchedFields + field
             when (field) {
-                PatientProfileField.FullName -> state.copy(fullName = sanitized, touchedFields = touched)
-                PatientProfileField.Age -> state.copy(age = sanitized, touchedFields = touched)
-                PatientProfileField.Gender -> state.copy(gender = sanitized, touchedFields = touched)
-                PatientProfileField.Height -> state.copy(height = sanitized, touchedFields = touched)
-                PatientProfileField.Weight -> state.copy(weight = sanitized, touchedFields = touched)
-                PatientProfileField.DietaryPreference -> state.copy(dietaryPreference = sanitized, touchedFields = touched)
-                PatientProfileField.Goal -> state.copy(goal = sanitized, touchedFields = touched)
-                PatientProfileField.ActivityLevel -> state.copy(activityLevel = sanitized, touchedFields = touched)
-                PatientProfileField.PregnancyInformation -> state.copy(pregnancyInformation = sanitized, touchedFields = touched)
+                PatientProfileField.FullName -> state.copy(fullName = sanitized, touchedFields = touched, saveError = null)
+                PatientProfileField.Age -> state.copy(age = sanitized, touchedFields = touched, saveError = null)
+                PatientProfileField.Gender -> state.copy(gender = sanitized, touchedFields = touched, saveError = null)
+                PatientProfileField.Height -> state.copy(height = sanitized, touchedFields = touched, saveError = null)
+                PatientProfileField.Weight -> state.copy(weight = sanitized, touchedFields = touched, saveError = null)
+                PatientProfileField.DietaryPreference -> state.copy(dietaryPreference = sanitized, touchedFields = touched, saveError = null)
+                PatientProfileField.Goal -> state.copy(goal = sanitized, touchedFields = touched, saveError = null)
+                PatientProfileField.ActivityLevel -> state.copy(activityLevel = sanitized, touchedFields = touched, saveError = null)
+                PatientProfileField.PregnancyInformation -> state.copy(pregnancyInformation = sanitized, touchedFields = touched, saveError = null)
                 PatientProfileField.Allergies,
                 PatientProfileField.FoodIntolerances,
                 PatientProfileField.FoodsToAvoid,
@@ -124,7 +170,7 @@ class PatientProfileViewModel : ViewModel() {
                 PatientProfileField.MedicineAllergies,
                 PatientProfileField.CurrentMedicines,
                 PatientProfileField.MedicationRestrictions,
-                PatientProfileField.DoctorRestrictions -> state.copy(touchedFields = touched)
+                PatientProfileField.DoctorRestrictions -> state.copy(touchedFields = touched, saveError = null)
             }
         }
     }
@@ -136,14 +182,14 @@ class PatientProfileViewModel : ViewModel() {
         _uiState.update { state ->
             val touched = state.touchedFields + field
             when (field) {
-                PatientProfileField.Allergies -> state.copy(allergies = addUnique(state.allergies, sanitized), touchedFields = touched)
-                PatientProfileField.FoodIntolerances -> state.copy(foodIntolerances = addUnique(state.foodIntolerances, sanitized), touchedFields = touched)
-                PatientProfileField.FoodsToAvoid -> state.copy(foodsToAvoid = addUnique(state.foodsToAvoid, sanitized), touchedFields = touched)
-                PatientProfileField.HealthConditions -> state.copy(healthConditions = addUnique(state.healthConditions, sanitized), touchedFields = touched)
-                PatientProfileField.MedicineAllergies -> state.copy(medicineAllergies = addUnique(state.medicineAllergies, sanitized), touchedFields = touched)
-                PatientProfileField.CurrentMedicines -> state.copy(currentMedicines = addUnique(state.currentMedicines, sanitized), touchedFields = touched)
-                PatientProfileField.MedicationRestrictions -> state.copy(medicationRestrictions = addUnique(state.medicationRestrictions, sanitized), touchedFields = touched)
-                PatientProfileField.DoctorRestrictions -> state.copy(doctorRestrictions = addUnique(state.doctorRestrictions, sanitized), touchedFields = touched)
+                PatientProfileField.Allergies -> state.copy(allergies = addUnique(state.allergies, sanitized), touchedFields = touched, saveError = null)
+                PatientProfileField.FoodIntolerances -> state.copy(foodIntolerances = addUnique(state.foodIntolerances, sanitized), touchedFields = touched, saveError = null)
+                PatientProfileField.FoodsToAvoid -> state.copy(foodsToAvoid = addUnique(state.foodsToAvoid, sanitized), touchedFields = touched, saveError = null)
+                PatientProfileField.HealthConditions -> state.copy(healthConditions = addUnique(state.healthConditions, sanitized), touchedFields = touched, saveError = null)
+                PatientProfileField.MedicineAllergies -> state.copy(medicineAllergies = addUnique(state.medicineAllergies, sanitized), touchedFields = touched, saveError = null)
+                PatientProfileField.CurrentMedicines -> state.copy(currentMedicines = addUnique(state.currentMedicines, sanitized), touchedFields = touched, saveError = null)
+                PatientProfileField.MedicationRestrictions -> state.copy(medicationRestrictions = addUnique(state.medicationRestrictions, sanitized), touchedFields = touched, saveError = null)
+                PatientProfileField.DoctorRestrictions -> state.copy(doctorRestrictions = addUnique(state.doctorRestrictions, sanitized), touchedFields = touched, saveError = null)
                 else -> state
             }
         }
@@ -153,14 +199,14 @@ class PatientProfileViewModel : ViewModel() {
         _uiState.update { state ->
             val touched = state.touchedFields + field
             when (field) {
-                PatientProfileField.Allergies -> state.copy(allergies = state.allergies - value, touchedFields = touched)
-                PatientProfileField.FoodIntolerances -> state.copy(foodIntolerances = state.foodIntolerances - value, touchedFields = touched)
-                PatientProfileField.FoodsToAvoid -> state.copy(foodsToAvoid = state.foodsToAvoid - value, touchedFields = touched)
-                PatientProfileField.HealthConditions -> state.copy(healthConditions = state.healthConditions - value, touchedFields = touched)
-                PatientProfileField.MedicineAllergies -> state.copy(medicineAllergies = state.medicineAllergies - value, touchedFields = touched)
-                PatientProfileField.CurrentMedicines -> state.copy(currentMedicines = state.currentMedicines - value, touchedFields = touched)
-                PatientProfileField.MedicationRestrictions -> state.copy(medicationRestrictions = state.medicationRestrictions - value, touchedFields = touched)
-                PatientProfileField.DoctorRestrictions -> state.copy(doctorRestrictions = state.doctorRestrictions - value, touchedFields = touched)
+                PatientProfileField.Allergies -> state.copy(allergies = state.allergies - value, touchedFields = touched, saveError = null)
+                PatientProfileField.FoodIntolerances -> state.copy(foodIntolerances = state.foodIntolerances - value, touchedFields = touched, saveError = null)
+                PatientProfileField.FoodsToAvoid -> state.copy(foodsToAvoid = state.foodsToAvoid - value, touchedFields = touched, saveError = null)
+                PatientProfileField.HealthConditions -> state.copy(healthConditions = state.healthConditions - value, touchedFields = touched, saveError = null)
+                PatientProfileField.MedicineAllergies -> state.copy(medicineAllergies = state.medicineAllergies - value, touchedFields = touched, saveError = null)
+                PatientProfileField.CurrentMedicines -> state.copy(currentMedicines = state.currentMedicines - value, touchedFields = touched, saveError = null)
+                PatientProfileField.MedicationRestrictions -> state.copy(medicationRestrictions = state.medicationRestrictions - value, touchedFields = touched, saveError = null)
+                PatientProfileField.DoctorRestrictions -> state.copy(doctorRestrictions = state.doctorRestrictions - value, touchedFields = touched, saveError = null)
                 else -> state
             }
         }
@@ -177,6 +223,33 @@ class PatientProfileViewModel : ViewModel() {
             submitted
         }
         return valid
+    }
+
+    fun saveProfile(onSaved: (String) -> Unit) {
+        if (!submit()) return
+        val profile = _uiState.value.toStoredProfile()
+        _uiState.update { it.copy(saving = true, saveError = null, syncMessage = null) }
+        viewModelScope.launch {
+            when (val result = repository.saveProfile(profile)) {
+                is AgenticApiResult.Success -> {
+                    _uiState.value = result.value.toUiState(
+                        loading = false,
+                        saving = false,
+                        serverSynced = true
+                    )
+                    onSaved(result.value.fullName.trim())
+                }
+                is AgenticApiResult.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            saving = false,
+                            saveError = result.message,
+                            serverSynced = false
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun sanitize(field: PatientProfileField, value: String): String {
@@ -199,6 +272,51 @@ class PatientProfileViewModel : ViewModel() {
             existing + value
         }
     }
+
+    class Factory(
+        private val repository: PatientProfileGateway
+    ) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(PatientProfileViewModel::class.java)) {
+                return PatientProfileViewModel(repository) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class ${modelClass.name}")
+        }
+    }
+}
+
+private fun StoredPatientProfile.toUiState(
+    loading: Boolean = false,
+    saving: Boolean = false,
+    syncMessage: String? = null,
+    saveError: String? = null,
+    serverSynced: Boolean = false
+): PatientProfileUiState {
+    return PatientProfileUiState(
+        fullName = fullName,
+        age = age,
+        gender = gender,
+        height = heightCm,
+        weight = weightKg,
+        dietaryPreference = dietaryPreference,
+        goal = goal,
+        activityLevel = activityLevel,
+        allergies = allergies.orEmpty(),
+        foodIntolerances = foodIntolerances.orEmpty(),
+        foodsToAvoid = foodsToAvoid.orEmpty(),
+        healthConditions = healthConditions.orEmpty(),
+        medicineAllergies = medicineAllergies.orEmpty(),
+        currentMedicines = currentMedicines.orEmpty(),
+        medicationRestrictions = medicationRestrictions.orEmpty(),
+        doctorRestrictions = doctorRestrictions.orEmpty(),
+        pregnancyInformation = pregnancyInformation,
+        loading = loading,
+        saving = saving,
+        syncMessage = syncMessage,
+        saveError = saveError,
+        serverSynced = serverSynced
+    )
 }
 
 object PatientProfileValidators {

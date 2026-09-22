@@ -37,8 +37,9 @@ def _error_response(
 
 
 def _assessment_output(request: AgentEngineRequest) -> dict[str, Any]:
+    source = request.runtime.get("assessment_source", "android_canonical_results")
     return {
-        "source": "android_canonical_results",
+        "source": source,
         "prakriti": deepcopy(request.prakriti_result),
         "vikriti": deepcopy(request.vikriti_result),
         "agni": deepcopy(request.agni_result),
@@ -169,7 +170,7 @@ def _service_response(
             "workflow_status": result_state.get("workflow_status"),
             "session_id": result_state.get("session_id"),
             "patient_id": result_state.get("patient_id"),
-            "assessment_source": "android_canonical_results",
+            "assessment_source": request.runtime.get("assessment_source", "android_canonical_results"),
             "errors": deepcopy(errors),
             "rag": deepcopy(rag_status),
             "doctor_review_required": True,

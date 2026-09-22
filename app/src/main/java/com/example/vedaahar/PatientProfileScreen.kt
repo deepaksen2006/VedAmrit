@@ -67,7 +67,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -76,14 +75,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.vedaahar.agentic.AgenticApiResult
+import com.example.vedaahar.profile.PatientProfileGateway
+import com.example.vedaahar.profile.PatientProfileLoadResult
+import com.example.vedaahar.profile.StoredPatientProfile
 import com.example.vedaahar.ui.theme.BeigeBorder
 import com.example.vedaahar.ui.theme.Cream
 import com.example.vedaahar.ui.theme.DarkForestGreen
 import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
-import com.example.vedaahar.profile.PatientProfileStore
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -99,10 +100,9 @@ private val ProfileError = Color(0xFF7A4E32)
 fun PatientProfileScreen(
     onSaveContinue: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: PatientProfileViewModel = viewModel()
+    viewModel: PatientProfileViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
@@ -111,6 +111,10 @@ fun PatientProfileScreen(
     val ageFocus = remember { FocusRequester() }
     val heightFocus = remember { FocusRequester() }
     val weightFocus = remember { FocusRequester() }
+
+    LaunchedEffect(viewModel) {
+        viewModel.loadProfile()
+    }
 
     LaunchedEffect(uiState.submitAttempts) {
         if (uiState.submitAttempts > 0 && !uiState.isFormValid) {
@@ -313,15 +317,23 @@ fun PatientProfileScreen(
                         onRemove = { viewModel.removeListValue(PatientProfileField.DoctorRestrictions, it) }
                     )
 
+                    uiState.syncMessage?.let { message ->
+                        ProfileStatusText(message = message, isError = false)
+                    }
+                    uiState.saveError?.let { message ->
+                        ProfileStatusText(message = message, isError = true)
+                    }
+
                     SaveContinueButton(
                         formValid = uiState.isFormValid,
+                        saving = uiState.saving,
                         onClick = {
-                            if (viewModel.submit()) {
-                                focusManager.clearFocus()
-                                PatientProfileStore.save(context, viewModel.uiState.value)
-                                onSaveContinue(viewModel.uiState.value.fullName.trim())
-                            } else {
+                            focusManager.clearFocus()
+                            if (!uiState.isFormValid) {
+                                viewModel.submit()
                                 scope.launch { scrollState.animateScrollTo(scrollTargetFor(viewModel.uiState.value.firstInvalidField)) }
+                            } else {
+                                viewModel.saveProfile(onSaveContinue)
                             }
                         }
                     )
@@ -330,6 +342,19 @@ fun PatientProfileScreen(
             }
         }
     }
+}
+
+@Composable
+private fun ProfileStatusText(message: String, isError: Boolean) {
+    Text(
+        text = message,
+        color = if (isError) ProfileError else DarkForestGreen,
+        style = MaterialTheme.typography.bodySmall.copy(
+            fontSize = 12.sp,
+            lineHeight = 16.sp,
+            letterSpacing = 0.sp
+        )
+    )
 }
 
 private fun scrollTargetFor(field: PatientProfileField?): Int {
@@ -820,7 +845,7 @@ private fun ValidationTrailingIcon(showError: Boolean, valid: Boolean) {
 }
 
 @Composable
-private fun SaveContinueButton(formValid: Boolean, onClick: () -> Unit) {
+private fun SaveContinueButton(formValid: Boolean, saving: Boolean, onClick: () -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -836,6 +861,7 @@ private fun SaveContinueButton(formValid: Boolean, onClick: () -> Unit) {
 
     Button(
         onClick = onClick,
+        enabled = !saving,
         interactionSource = interactionSource,
         modifier = Modifier
             .fillMaxWidth()
@@ -855,7 +881,11 @@ private fun SaveContinueButton(formValid: Boolean, onClick: () -> Unit) {
             FloatingProfileLeaves(modifier = Modifier.align(Alignment.CenterEnd).size(82.dp), alpha = if (formValid) 0.12f else 0.06f)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = if (formValid) "Save and Continue" else "Complete Required Fields",
+                    text = when {
+                        saving -> "Saving..."
+                        formValid -> "Save and Continue"
+                        else -> "Complete Required Fields"
+                    },
                     style = MaterialTheme.typography.bodyLarge.copy(
                         color = PureWhite,
                         fontWeight = FontWeight.Bold,
@@ -920,7 +950,29 @@ private fun FloatingProfileLeaves(modifier: Modifier = Modifier, alpha: Float) {
 @Preview(showBackground = true)
 @Composable
 private fun PatientProfileScreenPreview() {
-    PatientProfileScreen(onSaveContinue = { _ -> })
+    PatientProfileScreen(
+        onSaveContinue = { _ -> },
+        viewModel = PatientProfileViewModel(PreviewPatientProfileGateway)
+    )
+}
+
+private object PreviewPatientProfileGateway : PatientProfileGateway {
+    override suspend fun loadProfile(): PatientProfileLoadResult {
+        return PatientProfileLoadResult.Cache(
+            StoredPatientProfile(
+                fullName = "",
+                age = "",
+                gender = "",
+                heightCm = "",
+                weightKg = ""
+            ),
+            "Preview"
+        )
+    }
+
+    override suspend fun saveProfile(profile: StoredPatientProfile): AgenticApiResult<StoredPatientProfile> {
+        return AgenticApiResult.Success(profile)
+    }
 }
 
 

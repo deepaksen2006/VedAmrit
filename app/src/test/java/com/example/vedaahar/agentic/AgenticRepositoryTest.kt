@@ -2,7 +2,9 @@ package com.example.vedaahar.agentic
 
 import com.example.vedaahar.network.AgenticApi
 import com.example.vedaahar.network.dto.AgenticPlanRequest
+import com.example.vedaahar.network.dto.AssessmentResultResponse
 import com.example.vedaahar.network.dto.CanonicalAssessmentDto
+import com.example.vedaahar.network.dto.CanonicalAssessmentRequest
 import com.example.vedaahar.network.dto.FinalReportResponse
 import com.example.vedaahar.network.dto.WellnessPlanResponse
 import com.example.vedaahar.network.dto.WellnessPlanStatusResponse
@@ -50,6 +52,35 @@ class AgenticRepositoryTest {
         assertEquals(AgenticApiErrorType.BackendFailure, (server as AgenticApiResult.Error).type)
     }
 
+    @Test
+    fun mapsReportBlockedAndFinalReportAvailable() = runTest {
+        val blocked = AgenticRepository(
+            FakeAgenticApi(Response.success(plan()), finalReportResponse = Response.error(409, "{}".toResponseBody(null))),
+            accessTokenProvider = { "jwt" }
+        ).finalReport(42L)
+        val available = AgenticRepository(
+            FakeAgenticApi(Response.success(plan()), finalReportResponse = Response.success(finalReport())),
+            accessTokenProvider = { "jwt" }
+        ).finalReport(42L)
+
+        assertEquals(AgenticApiErrorType.ReportNotReady, (blocked as AgenticApiResult.Error).type)
+        assertEquals("The final report is not ready yet.", blocked.message)
+        assertTrue(available is AgenticApiResult.Success)
+        assertEquals("/api/agentic/plans/42/report/", (available as AgenticApiResult.Success).value.reportReference)
+    }
+
+    @Test
+    fun refreshPlanUsesGetPlanAndDoesNotGenerate() = runTest {
+        val api = FakeAgenticApi(Response.success(plan()))
+        val repository = AgenticRepository(api, accessTokenProvider = { "jwt" })
+
+        val result = repository.plan(42L)
+
+        assertTrue(result is AgenticApiResult.Success)
+        assertEquals(0, api.generateCalls)
+        assertEquals(1, api.planCalls)
+    }
+
     private fun error(code: Int): Response<WellnessPlanResponse> {
         return Response.error(code, "{}".toResponseBody(null))
     }
@@ -74,13 +105,59 @@ class AgenticRepositoryTest {
         updatedAt = "2026-01-01T00:00:00Z"
     )
 
+    private fun finalReport() = FinalReportResponse(
+        id = 7L,
+        wellnessPlanId = 42L,
+        reportReference = "/api/agentic/plans/42/report/",
+        reportMetadata = mapOf("status" to "available"),
+        finalizedAt = "2026-01-01T00:00:00Z",
+        createdAt = "2026-01-01T00:00:00Z"
+    )
+
     private class FakeAgenticApi(
-        private val generateResponse: Response<WellnessPlanResponse>
+        private val generateResponse: Response<WellnessPlanResponse>,
+        private val finalReportResponse: Response<FinalReportResponse> = Response.success(
+            FinalReportResponse(
+                id = null,
+                wellnessPlanId = null,
+                reportReference = null,
+                reportMetadata = null,
+                finalizedAt = null,
+                createdAt = null
+            )
+        )
     ) : AgenticApi {
-        override suspend fun generatePlan(request: AgenticPlanRequest): Response<WellnessPlanResponse> = generateResponse
+        var generateCalls = 0
+            private set
+        var planCalls = 0
+            private set
+
+        override suspend fun persistAssessment(request: CanonicalAssessmentRequest): Response<AssessmentResultResponse> {
+            return Response.success(
+                AssessmentResultResponse(
+                    id = 1L,
+                    prakritiResult = emptyMap(),
+                    vikritiResult = emptyMap(),
+                    agniResult = emptyMap(),
+                    canonicalPayload = request.assessmentProfile,
+                    createdAt = null,
+                    updatedAt = null
+                )
+            )
+        }
+
+        override suspend fun latestAssessment(): Response<AssessmentResultResponse> = throw NotImplementedError()
+
+        override suspend fun generatePlan(request: AgenticPlanRequest): Response<WellnessPlanResponse> {
+            generateCalls += 1
+            return generateResponse
+        }
         override suspend fun plans(): Response<List<WellnessPlanResponse>> = Response.success(emptyList())
-        override suspend fun plan(id: Long): Response<WellnessPlanResponse> = generateResponse
+        override suspend fun plan(id: Long): Response<WellnessPlanResponse> {
+            planCalls += 1
+            return generateResponse
+        }
         override suspend fun planStatus(id: Long): Response<WellnessPlanStatusResponse> = throw NotImplementedError()
-        override suspend fun finalReport(id: Long): Response<FinalReportResponse> = throw NotImplementedError()
+        override suspend fun finalReport(id: Long): Response<FinalReportResponse> = finalReportResponse
     }
 }

@@ -2,73 +2,133 @@ package com.example.vedaahar.auth
 
 import com.example.vedaahar.agentic.AgenticApiErrorType
 import com.example.vedaahar.agentic.AgenticApiResult
-import com.example.vedaahar.network.AuthApi
-import com.example.vedaahar.network.TokenStorage
-import com.example.vedaahar.network.dto.AuthRequest
-import com.example.vedaahar.network.dto.AuthResponse
-import com.example.vedaahar.network.dto.TokenRefreshRequest
-import retrofit2.Response
-import java.io.IOException
+import com.google.android.gms.tasks.Task
+import com.google.firebase.FirebaseApiNotAvailableException
+import com.google.firebase.FirebaseException
+import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class AuthRepository(
-    private val authApi: AuthApi,
-    private val tokenStore: TokenStorage
+    private val gateway: FirebaseAuthGateway = FirebaseAuthGateway.Live()
 ) {
-    suspend fun login(identifier: String, password: String): AgenticApiResult<AuthResponse> {
-        return authenticate { authApi.login(AuthRequest(identifier, password)) }
-    }
+    constructor(firebaseAuth: FirebaseAuth) : this(FirebaseAuthGateway.Live(firebaseAuth))
 
-    suspend fun register(identifier: String, password: String): AgenticApiResult<AuthResponse> {
-        return authenticate { authApi.register(AuthRequest(identifier, password)) }
-    }
-
-    suspend fun refreshSession(): Boolean {
-        val refresh = tokenStore.getRefreshToken() ?: return false
-        return runCatching {
-            val response = authApi.refresh(TokenRefreshRequest(refresh))
-            if (response.isSuccessful) {
-                val access = response.body()?.access
-                if (access.isNullOrBlank()) {
-                    tokenStore.clear()
-                    false
-                } else {
-                    tokenStore.saveTokens(accessToken = access, refreshToken = refresh)
-                    true
-                }
-            } else {
-                tokenStore.clear()
-                false
-            }
-        }.getOrElse {
-            false
+    suspend fun login(email: String, password: String): AgenticApiResult<Unit> {
+        return authenticate {
+            gateway.signIn(email.trim(), password)
         }
     }
 
-    fun isSessionAvailable(): Boolean = tokenStore.hasTokens()
-
-    fun logout() {
-        tokenStore.clear()
+    suspend fun register(email: String, password: String): AgenticApiResult<Unit> {
+        return authenticate {
+            gateway.createAccount(email.trim(), password)
+        }
     }
 
-    private suspend fun authenticate(block: suspend () -> Response<AuthResponse>): AgenticApiResult<AuthResponse> {
+    fun isSessionAvailable(): Boolean = gateway.hasCurrentUser()
+
+    fun logout() {
+        gateway.signOut()
+    }
+
+    private suspend fun authenticate(block: suspend () -> Unit): AgenticApiResult<Unit> {
         return try {
-            val response = block()
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body == null) {
-                    AgenticApiResult.Error(AgenticApiErrorType.Parse, "Authentication response was empty.")
-                } else {
-                    tokenStore.saveTokens(body.access, body.refresh)
-                    AgenticApiResult.Success(body)
-                }
+            block()
+            AgenticApiResult.Success(Unit)
+        } catch (exception: Exception) {
+            exception.toAuthError()
+        }
+    }
+
+    private fun Exception.toAuthError(): AgenticApiResult.Error {
+        return when (this) {
+            is FirebaseAuthUserCollisionException -> AgenticApiResult.Error(
+                AgenticApiErrorType.BadRequest,
+                "An account already exists for this email."
+            )
+            is FirebaseAuthWeakPasswordException -> AgenticApiResult.Error(
+                AgenticApiErrorType.BadRequest,
+                reason?.takeIf { it.isNotBlank() } ?: "Use a stronger password."
+            )
+            is FirebaseAuthInvalidUserException -> AgenticApiResult.Error(
+                AgenticApiErrorType.AuthenticationExpired,
+                "No Firebase account exists for this email."
+            )
+            is FirebaseAuthInvalidCredentialsException -> AgenticApiResult.Error(
+                AgenticApiErrorType.AuthenticationExpired,
+                firebaseCredentialMessage()
+            )
+            is FirebaseNetworkException -> AgenticApiResult.Error(
+                AgenticApiErrorType.Network,
+                "Network is unavailable. Check your connection and try again."
+            )
+            is FirebaseApiNotAvailableException -> AgenticApiResult.Error(
+                AgenticApiErrorType.BackendFailure,
+                "Firebase Authentication is not available on this device."
+            )
+            is FirebaseException -> AgenticApiResult.Error(
+                AgenticApiErrorType.BackendFailure,
+                "Firebase Authentication is not configured correctly."
+            )
+            else -> AgenticApiResult.Error(
+                AgenticApiErrorType.Unknown,
+                "Authentication failed. Please try again."
+            )
+        }
+    }
+
+    private fun FirebaseAuthInvalidCredentialsException.firebaseCredentialMessage(): String {
+        return when (errorCode) {
+            "ERROR_INVALID_EMAIL" -> "Enter a valid email address."
+            "ERROR_WRONG_PASSWORD", "ERROR_INVALID_CREDENTIAL" -> "Incorrect email or password."
+            else -> "Incorrect email or password."
+        }
+    }
+}
+
+interface FirebaseAuthGateway {
+    suspend fun signIn(email: String, password: String)
+    suspend fun createAccount(email: String, password: String)
+    fun hasCurrentUser(): Boolean
+    fun signOut()
+
+    class Live(
+        private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
+    ) : FirebaseAuthGateway {
+        override suspend fun signIn(email: String, password: String) {
+            firebaseAuth.signInWithEmailAndPassword(email, password).await()
+        }
+
+        override suspend fun createAccount(email: String, password: String) {
+            firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+        }
+
+        override fun hasCurrentUser(): Boolean = firebaseAuth.currentUser != null
+
+        override fun signOut() {
+            firebaseAuth.signOut()
+        }
+    }
+}
+
+private suspend fun <T> Task<T>.await(): T {
+    return suspendCancellableCoroutine { continuation ->
+        addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                continuation.resume(task.result)
             } else {
-                val type = if (response.code() in 400..499) AgenticApiErrorType.AuthenticationExpired else AgenticApiErrorType.BackendFailure
-                AgenticApiResult.Error(type, "Invalid credentials or authentication service unavailable.")
+                continuation.resumeWithException(
+                    task.exception ?: IllegalStateException("Firebase task failed.")
+                )
             }
-        } catch (_: IOException) {
-            AgenticApiResult.Error(AgenticApiErrorType.Network, "Network is unavailable or the backend cannot be reached.")
-        } catch (_: RuntimeException) {
-            AgenticApiResult.Error(AgenticApiErrorType.Parse, "Authentication response could not be read.")
         }
     }
 }

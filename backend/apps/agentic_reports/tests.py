@@ -5,16 +5,20 @@ from decimal import Decimal
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TestCase
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.agentic_reports.models import (
     AgentRun,
     AgentRunStatus,
     AssessmentResult,
+    DoctorAssignment,
     DoctorReviewStatus,
     FinalReport,
+    PatientProfile,
     ValidationStatus,
     WellnessPlan,
 )
@@ -93,7 +97,13 @@ def successful_agent_response(validation_status: str = "PASS") -> dict:
             "status": "review_required",
             "workflow_status": "PENDING_DOCTOR_REVIEW",
             "errors": [],
-            "rag": {"status": "available", "available": True, "embedding_count": 1532},
+            "rag": {
+                "status": "available",
+                "available": True,
+                "embedding_count": 1532,
+                "chunk_count": 1532,
+                "vectorstore_path": "/internal/vectorstore/path",
+            },
         },
     }
 
@@ -130,7 +140,6 @@ class AgenticReportPersistenceTests(TestCase):
             consultation_fee=Decimal("500.00"),
             is_verified=True,
         )
-
     def create_plan(self, validation_status: str = "PASS"):
         with patch(
             "apps.agentic_reports.services.generate_personalized_plan",
@@ -146,6 +155,48 @@ class AgenticReportPersistenceTests(TestCase):
         self.assertEqual(assessment.prakriti_result, sample_payload()["assessment"]["prakriti"])
         self.assertEqual(assessment.vikriti_result["dominantDosha"], "Pitta")
         self.assertEqual(assessment.agni_result["dominantAgni"], "Samagni")
+
+    def test_persisted_profile_and_assessment_override_generation_payload(self):
+        profile = PatientProfile.objects.create(
+            user=self.user,
+            name="Persisted Patient",
+            age=42,
+            gender="female",
+            height_cm=160,
+            weight_kg=62,
+            dietary_preference="vegetarian",
+            goal="sleep support",
+            activity_level="low",
+            allergies=["peanut"],
+            intolerances=[],
+            foods_to_avoid=[],
+            health_conditions=[],
+            current_medicines=[],
+            medicine_allergies=[],
+            medication_restrictions=[],
+            doctor_restrictions=[],
+            pregnancy_status="not_pregnant",
+        )
+        assessment = AssessmentResult.objects.create(
+            user=self.user,
+            prakriti_result={**sample_payload()["assessment"]["prakriti"], "primaryDosha": "Kapha"},
+            vikriti_result=sample_payload()["assessment"]["vikriti"],
+            agni_result=sample_payload()["assessment"]["agni"],
+            canonical_payload={"source": "database"},
+        )
+        with patch(
+            "apps.agentic_reports.services.generate_personalized_plan",
+            return_value=successful_agent_response(),
+        ) as generate:
+            result = create_wellness_plan(self.user, sample_payload())
+
+        engine_payload = generate.call_args.args[0]
+        self.assertEqual(result.assessment.pk, assessment.pk)
+        self.assertEqual(AssessmentResult.objects.filter(user=self.user).count(), 1)
+        self.assertEqual(engine_payload["patient_profile"]["name"], profile.name)
+        self.assertEqual(engine_payload["patient_profile"]["goal"], profile.goal)
+        self.assertEqual(engine_payload["assessment"]["prakriti"]["primaryDosha"], "Kapha")
+        self.assertEqual(engine_payload["runtime"]["assessment_source"], "persisted_db")
 
     def test_successful_agent_run_and_wellness_plan_v1_creation(self):
         result = self.create_plan()
@@ -198,6 +249,32 @@ class AgenticReportPersistenceTests(TestCase):
         self.assertEqual(v2.parent_plan, v1)
         self.assertEqual(v2.lineage_id, v1.lineage_id)
         self.assertEqual(v2.doctor_status, DoctorReviewStatus.PENDING)
+
+    def test_revisions_form_immutable_v1_v2_v3_chain(self):
+        v1 = self.create_plan().wellness_plan
+        v2 = create_plan_revision(
+            parent_plan=v1,
+            diet_plan={"version": 2},
+            validation={"status": "REVIEW_REQUIRED"},
+        )
+        v3 = create_plan_revision(
+            parent_plan=v1,
+            diet_plan={"version": 3},
+            validation={"status": "REVIEW_REQUIRED"},
+        )
+
+        v1.refresh_from_db()
+        v2.refresh_from_db()
+        self.assertEqual(v1.version, 1)
+        self.assertEqual(v1.diet_plan["duration_days"], 1)
+        self.assertEqual(v2.version, 2)
+        self.assertEqual(v2.parent_plan, v1)
+        self.assertEqual(v3.version, 3)
+        self.assertEqual(v3.parent_plan, v2)
+        self.assertEqual(
+            list(WellnessPlan.objects.filter(lineage_id=v1.lineage_id).order_by("version").values_list("version", flat=True)),
+            [1, 2, 3],
+        )
 
     def test_validation_pass_does_not_approve_doctor_status(self):
         result = self.create_plan(validation_status="PASS")
@@ -277,6 +354,181 @@ class AgenticReportPersistenceTests(TestCase):
         )
 
 
+class PatientProfileModelTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="profile-patient", password="pw")
+
+    def test_patient_profile_is_associated_with_user(self):
+        profile = PatientProfile.objects.create(
+            user=self.user,
+            name="Anaya Rao",
+            age=34,
+            gender="female",
+            height_cm=Decimal("164.00"),
+            weight_kg=Decimal("58.00"),
+            dietary_preference="vegetarian",
+            goal="general wellness",
+            activity_level="moderate",
+            allergies=[],
+            intolerances=["lactose"],
+            foods_to_avoid=["curd at night"],
+            health_conditions=["acidity"],
+            current_medicines=["vitamin d"],
+            medicine_allergies=[],
+            medication_restrictions=[],
+            doctor_restrictions=["low sodium"],
+            pregnancy_status="not_pregnant",
+        )
+
+        self.assertEqual(self.user.patient_profile, profile)
+        self.assertEqual(profile.allergies, [])
+        self.assertEqual(profile.intolerances, ["lactose"])
+
+    def test_patient_profile_preserves_unanswered_safety_lists(self):
+        profile = PatientProfile.objects.create(
+            user=self.user,
+            name="Anaya Rao",
+            age=34,
+            gender="female",
+            height_cm=Decimal("164.00"),
+            weight_kg=Decimal("58.00"),
+        )
+
+        self.assertIsNone(profile.allergies)
+        self.assertIsNone(profile.current_medicines)
+        self.assertIsNone(profile.doctor_restrictions)
+
+    def test_patient_profile_rejects_malformed_safety_lists(self):
+        profile = PatientProfile(
+            user=self.user,
+            name="Anaya Rao",
+            allergies="peanut",
+            current_medicines=["vitamin d", 12],
+        )
+
+        with self.assertRaises(ValidationError) as error:
+            profile.full_clean()
+
+        self.assertIn("allergies", error.exception.message_dict)
+        self.assertIn("current_medicines", error.exception.message_dict)
+
+
+class PatientProfileApiTests(APITestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="profile-api-patient", password="pw")
+        self.other_user = User.objects.create_user(username="profile-api-other", password="pw")
+
+    def authenticate(self, user=None):
+        token = RefreshToken.for_user(user or self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
+
+    def profile_payload(self) -> dict:
+        return {
+            "name": "Anaya Rao",
+            "age": 34,
+            "gender": "female",
+            "height_cm": "164.00",
+            "weight_kg": "58.00",
+            "dietary_preference": "vegetarian",
+            "goal": "general wellness",
+            "activity_level": "moderate",
+            "allergies": [],
+            "food_intolerances": ["lactose"],
+            "foods_to_avoid": ["curd at night"],
+            "health_conditions": ["acidity"],
+            "current_medicines": ["vitamin d"],
+            "medicine_allergies": [],
+            "medication_restrictions": [],
+            "doctor_restrictions": ["low sodium"],
+            "pregnancy_information": "not_pregnant",
+        }
+
+    def test_profile_requires_jwt_authentication(self):
+        response = self.client.get("/api/profile/")
+
+        self.assertEqual(response.status_code, 401)
+
+    def test_get_creates_profile_for_authenticated_user(self):
+        self.authenticate()
+
+        response = self.client.get("/api/profile/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["user_id"], self.user.id)
+        self.assertTrue(PatientProfile.objects.filter(user=self.user).exists())
+
+    def test_put_stores_profile_for_jwt_user_and_ignores_submitted_user_id(self):
+        self.authenticate()
+        payload = self.profile_payload()
+        payload["user_id"] = self.other_user.id
+
+        response = self.client.put("/api/profile/", payload, format="json")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["user_id"], self.user.id)
+        self.assertEqual(response.data["intolerances"], ["lactose"])
+        self.assertEqual(response.data["pregnancy_status"], "not_pregnant")
+        self.assertFalse(PatientProfile.objects.filter(user=self.other_user).exists())
+        profile = PatientProfile.objects.get(user=self.user)
+        self.assertEqual(profile.intolerances, ["lactose"])
+        self.assertEqual(profile.pregnancy_status, "not_pregnant")
+
+    def test_patch_updates_existing_profile_partially(self):
+        PatientProfile.objects.create(
+            user=self.user,
+            name="Anaya Rao",
+            allergies=None,
+            doctor_restrictions=None,
+        )
+        self.authenticate()
+
+        response = self.client.patch(
+            "/api/profile/",
+            {"allergies": [], "doctor_restrictions": ["low sodium"]},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["allergies"], [])
+        self.assertEqual(response.data["doctor_restrictions"], ["low sodium"])
+        self.assertEqual(response.data["name"], "Anaya Rao")
+
+    def test_profile_preserves_unanswered_vs_explicit_none(self):
+        self.authenticate()
+
+        response = self.client.put(
+            "/api/profile/",
+            {
+                "name": "Anaya Rao",
+                "age": 34,
+                "gender": "female",
+                "allergies": [],
+                "current_medicines": None,
+                "doctor_restrictions": None,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["allergies"], [])
+        self.assertIsNone(response.data["current_medicines"])
+        self.assertIsNone(response.data["doctor_restrictions"])
+
+    def test_profile_rejects_malformed_safety_lists(self):
+        self.authenticate()
+
+        response = self.client.patch(
+            "/api/profile/",
+            {"allergies": "peanut"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("allergies", response.data)
+
+
 class AgenticReportsApiTests(APITestCase):
     def setUp(self):
         User = get_user_model()
@@ -294,6 +546,18 @@ class AgenticReportsApiTests(APITestCase):
             experience=9,
             clinic_name="API Clinic",
             consultation_fee=Decimal("700.00"),
+            is_verified=True,
+        )
+        self.doctor_b = DoctorProfile.objects.create(
+            user=User.objects.create_user(username="api-doctor-b", password="pw"),
+            full_name="Dr. Bina",
+            phone="8888888887",
+            email="api-doctor-b@example.com",
+            bams_registration_number="BAMS-API-B",
+            specialization="Ayurveda",
+            experience=6,
+            clinic_name="Bina Clinic",
+            consultation_fee=Decimal("450.00"),
             is_verified=True,
         )
         self.unverified_doctor = DoctorProfile.objects.create(
@@ -317,12 +581,41 @@ class AgenticReportsApiTests(APITestCase):
 
     def create_api_plan(self, user=None, validation_status="PASS"):
         self.client.force_authenticate(user=user or self.patient)
+        patient = user or self.patient
+        PatientProfile.objects.update_or_create(
+            user=patient,
+            defaults={
+                "name": "Anaya Rao",
+                "age": 34,
+                "gender": "female",
+                "height_cm": "164.00",
+                "weight_kg": "58.00",
+                "dietary_preference": "vegetarian",
+                "goal": "general wellness",
+                "activity_level": "moderate",
+                "allergies": [],
+                "intolerances": [],
+                "foods_to_avoid": [],
+                "health_conditions": [],
+                "current_medicines": [],
+                "medicine_allergies": [],
+                "medication_restrictions": [],
+                "doctor_restrictions": [],
+                "pregnancy_status": "not_pregnant",
+            },
+        )
         with patch(
             "apps.agentic_reports.services.generate_personalized_plan",
             return_value=successful_agent_response(validation_status),
         ):
             response = self.client.post("/api/agentic/plans/", sample_payload(), format="json")
         self.assertEqual(response.status_code, 201, response.data)
+        profile, _ = PatientProfile.objects.get_or_create(user=patient)
+        assignment, _ = DoctorAssignment.objects.get_or_create(
+            patient_profile=profile,
+            doctor=self.doctor,
+        )
+        WellnessPlan.objects.filter(pk=response.data["id"]).update(assignment=assignment)
         return response
 
     def test_authenticated_plan_generation_with_valid_canonical_assessment(self):
@@ -334,6 +627,68 @@ class AgenticReportsApiTests(APITestCase):
         self.assertEqual(response.data["validation_status"], "PASS")
         self.assertEqual(response.data["doctor_status"], "PENDING")
         self.assertEqual(response.data["rag_status"]["status"], "available")
+
+    def test_canonical_assessment_can_be_persisted_without_agent_execution(self):
+        self.authenticate_patient()
+        payload = {
+            "assessment_profile": {
+                "prakriti_result": sample_payload()["assessment"]["prakriti"],
+                "vikriti_result": sample_payload()["assessment"]["vikriti"],
+                "agni_result": sample_payload()["assessment"]["agni"],
+                "symptoms_result": {"possibleCondition": "none"},
+            },
+            "user_id": self.patient_b.id,
+        }
+
+        response = self.client.post("/api/agentic/assessments/", payload, format="json")
+
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(response.data["prakriti_result"], sample_payload()["assessment"]["prakriti"])
+        self.assertEqual(response.data["vikriti_result"], sample_payload()["assessment"]["vikriti"])
+        self.assertEqual(response.data["agni_result"], sample_payload()["assessment"]["agni"])
+        assessment = AssessmentResult.objects.get(pk=response.data["id"])
+        self.assertEqual(assessment.user_id, self.patient.id)
+        self.assertEqual(assessment.canonical_payload["symptoms_result"], {"possibleCondition": "none"})
+        self.assertEqual(AgentRun.objects.count(), 0)
+        self.assertEqual(WellnessPlan.objects.count(), 0)
+
+    def test_latest_assessment_is_scoped_to_authenticated_patient(self):
+        own = AssessmentResult.objects.create(
+            user=self.patient,
+            prakriti_result=sample_payload()["assessment"]["prakriti"],
+            vikriti_result=sample_payload()["assessment"]["vikriti"],
+            agni_result=sample_payload()["assessment"]["agni"],
+            canonical_payload=sample_payload()["assessment"],
+        )
+        AssessmentResult.objects.create(
+            user=self.patient_b,
+            prakriti_result={**sample_payload()["assessment"]["prakriti"], "prakritiType": "Kapha"},
+            vikriti_result=sample_payload()["assessment"]["vikriti"],
+            agni_result=sample_payload()["assessment"]["agni"],
+            canonical_payload={},
+        )
+        self.authenticate_patient()
+
+        response = self.client.get("/api/agentic/assessments/latest/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["id"], own.id)
+        self.assertEqual(response.data["prakriti_result"]["prakritiType"], "Vata-Pitta")
+
+    def test_malformed_canonical_assessment_persistence_returns_400(self):
+        self.authenticate_patient()
+        payload = {
+            "assessment": {
+                "prakriti": "bad",
+                "vikriti": sample_payload()["assessment"]["vikriti"],
+                "agni": sample_payload()["assessment"]["agni"],
+            }
+        }
+
+        response = self.client.post("/api/agentic/assessments/", payload, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(AssessmentResult.objects.count(), 0)
 
     def test_unauthenticated_generation_is_rejected(self):
         response = self.client.post("/api/agentic/plans/", sample_payload(), format="json")
@@ -372,6 +727,10 @@ class AgenticReportsApiTests(APITestCase):
         self.assertEqual(detail_response.data["id"], plan_id)
         self.assertEqual(status_response.status_code, 200)
         self.assertEqual(status_response.data["doctor_status"], "PENDING")
+        self.assertEqual(detail_response.data["rag_status"]["embedding_count"], 1532)
+        self.assertEqual(detail_response.data["rag_status"]["chunk_count"], 1532)
+        self.assertNotIn("vectorstore_path", detail_response.data["rag_status"])
+        self.assertNotIn("vectorstore_path", status_response.data["rag_status"])
 
     def test_patient_a_cannot_access_patient_b_plan(self):
         created = self.create_api_plan(user=self.patient_b)
@@ -380,6 +739,25 @@ class AgenticReportsApiTests(APITestCase):
         response = self.client.get(f"/api/agentic/plans/{created.data['id']}/")
 
         self.assertEqual(response.status_code, 404)
+
+    def test_doctors_only_access_plans_for_assigned_patients(self):
+        created = self.create_api_plan(user=self.patient)
+        profile = PatientProfile.objects.get(user=self.patient)
+        assignment = DoctorAssignment.objects.get(patient_profile=profile)
+        assignment.doctor = self.doctor_b
+        assignment.save(update_fields=["doctor"])
+
+        self.client.force_authenticate(user=self.doctor_user)
+        detail = self.client.get(f"/api/agentic/doctor/plans/{created.data['id']}/")
+        queue = self.client.get("/api/agentic/doctor/review-queue/")
+
+        self.assertEqual(detail.status_code, 404)
+        self.assertEqual(queue.status_code, 200)
+        self.assertEqual(queue.data, [])
+
+        self.client.force_authenticate(user=self.doctor_b.user)
+        assigned_detail = self.client.get(f"/api/agentic/doctor/plans/{created.data['id']}/")
+        self.assertEqual(assigned_detail.status_code, 200)
 
     def test_patient_cannot_access_doctor_queue_or_actions(self):
         created = self.create_api_plan()

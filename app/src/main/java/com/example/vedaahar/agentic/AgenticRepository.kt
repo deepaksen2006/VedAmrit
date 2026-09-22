@@ -8,6 +8,14 @@ import com.example.vedaahar.network.dto.WellnessPlanStatusResponse
 import retrofit2.Response
 import java.io.IOException
 
+interface AgenticPlanGateway {
+    suspend fun generatePlan(request: AgenticPlanRequest): AgenticApiResult<WellnessPlanResponse>
+    suspend fun plans(): AgenticApiResult<List<WellnessPlanResponse>>
+    suspend fun plan(id: Long): AgenticApiResult<WellnessPlanResponse>
+    suspend fun planStatus(id: Long): AgenticApiResult<WellnessPlanStatusResponse>
+    suspend fun finalReport(id: Long): AgenticApiResult<FinalReportResponse>
+}
+
 sealed class AgenticApiResult<out T> {
     data class Success<T>(val value: T) : AgenticApiResult<T>()
     data class Error(val type: AgenticApiErrorType, val message: String) : AgenticApiResult<Nothing>()
@@ -30,8 +38,8 @@ enum class AgenticApiErrorType {
 class AgenticRepository(
     private val api: AgenticApi,
     private val accessTokenProvider: () -> String?
-) {
-    suspend fun generatePlan(request: AgenticPlanRequest): AgenticApiResult<WellnessPlanResponse> {
+) : AgenticPlanGateway {
+    override suspend fun generatePlan(request: AgenticPlanRequest): AgenticApiResult<WellnessPlanResponse> {
         if (accessTokenProvider().isNullOrBlank()) {
             return AgenticApiResult.Error(
                 AgenticApiErrorType.AuthenticationRequired,
@@ -41,13 +49,13 @@ class AgenticRepository(
         return call { api.generatePlan(request) }
     }
 
-    suspend fun plans(): AgenticApiResult<List<WellnessPlanResponse>> = authenticatedCall { api.plans() }
+    override suspend fun plans(): AgenticApiResult<List<WellnessPlanResponse>> = authenticatedCall { api.plans() }
 
-    suspend fun plan(id: Long): AgenticApiResult<WellnessPlanResponse> = authenticatedCall { api.plan(id) }
+    override suspend fun plan(id: Long): AgenticApiResult<WellnessPlanResponse> = authenticatedCall { api.plan(id) }
 
-    suspend fun planStatus(id: Long): AgenticApiResult<WellnessPlanStatusResponse> = authenticatedCall { api.planStatus(id) }
+    override suspend fun planStatus(id: Long): AgenticApiResult<WellnessPlanStatusResponse> = authenticatedCall { api.planStatus(id) }
 
-    suspend fun finalReport(id: Long): AgenticApiResult<FinalReportResponse> = authenticatedCall { api.finalReport(id) }
+    override suspend fun finalReport(id: Long): AgenticApiResult<FinalReportResponse> = authenticatedCall { api.finalReport(id) }
 
     private suspend fun <T> authenticatedCall(block: suspend () -> Response<T>): AgenticApiResult<T> {
         if (accessTokenProvider().isNullOrBlank()) {

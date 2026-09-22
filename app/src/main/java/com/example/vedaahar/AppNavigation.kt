@@ -1,5 +1,6 @@
 package com.example.vedaahar
 
+import android.app.Application
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -36,6 +37,7 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vedaahar.auth.AuthUiState
+import com.example.vedaahar.auth.AuthRepository
 import com.example.vedaahar.auth.AuthViewModel
 import com.example.vedaahar.dosha.DoshaResultStore
 import com.example.vedaahar.dosha.RetakeDoshaAssessmentRoute
@@ -43,8 +45,11 @@ import com.example.vedaahar.doctor.ui.DoctorModuleRoute
 import com.example.vedaahar.document.ui.UploadMedicalDocumentScreen
 import com.example.vedaahar.document.ui.MyMedicalDocumentsScreen
 import com.example.vedaahar.symptoms.SymptomsAnalysisModuleScreen
+import com.example.vedaahar.network.ApiClient
+import com.example.vedaahar.profile.PatientProfileRepository
 import com.example.vedaahar.ui.theme.Cream
 import com.example.vedaahar.ui.theme.ForestGreen
+import com.google.firebase.auth.FirebaseAuth
 
 private object VedaAhaarRoute {
     const val Loading = "loading"
@@ -98,7 +103,23 @@ fun VedaAhaarNavHost(
     navController: NavHostController = rememberNavController()
 ) {
     val context = LocalContext.current
-    val authViewModel: AuthViewModel = viewModel()
+    val application = remember(context) { context.applicationContext as Application }
+    val authViewModelFactory = remember(application) {
+        AuthViewModel.Factory(
+            application = application,
+            repository = AuthRepository(FirebaseAuth.getInstance())
+        )
+    }
+    val authViewModel: AuthViewModel = viewModel(factory = authViewModelFactory)
+    val patientProfileViewModelFactory = remember(application) {
+        PatientProfileViewModel.Factory(
+            repository = PatientProfileRepository(
+                api = ApiClient.profileApi(application),
+                accessTokenProvider = { FirebaseAuth.getInstance().currentUser?.uid },
+                context = application
+            )
+        )
+    }
     val authState by authViewModel.uiState.collectAsState()
     val preferences = remember {
         context.getSharedPreferences(OnboardingPrefs.Name, Context.MODE_PRIVATE)
@@ -420,12 +441,15 @@ fun VedaAhaarNavHost(
                     }
                 },
                 onCreateAccount = { identifier, password ->
-                    authViewModel.register(identifier, password) {
-                        navigateToAllowedRoute(persistAndUpdate(isLoggedIn = true))
-                    }
+                    authViewModel.register(identifier, password)
                 },
                 loading = authState is AuthUiState.Loading,
-                errorMessage = (authState as? AuthUiState.Error)?.message
+                errorMessage = (authState as? AuthUiState.Error)?.message,
+                successMessage = if (authState is AuthUiState.AccountCreated) {
+                    "Account Created Successfully"
+                } else {
+                    null
+                }
             )
         }
 
@@ -508,7 +532,9 @@ fun VedaAhaarNavHost(
                     )
             }
         ) {
+            val patientProfileViewModel: PatientProfileViewModel = viewModel(factory = patientProfileViewModelFactory)
             PatientProfileScreen(
+                viewModel = patientProfileViewModel,
                 onSaveContinue = { fullName ->
                     preferences.edit()
                         .putString(OnboardingPrefs.PatientFullName, fullName)

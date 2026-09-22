@@ -2,6 +2,7 @@ package com.example.vedaahar
 
 import android.content.ContentValues
 import android.content.Context
+import android.app.Application
 import android.media.MediaScannerConnection
 import android.os.Build
 import android.os.Environment
@@ -73,6 +74,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vedaahar.agentic.AgenticPlanUiState
 import com.example.vedaahar.agentic.AgenticPlanViewModel
+import com.example.vedaahar.agentic.AgenticRepository
+import com.example.vedaahar.agentic.AiDietPlan
+import com.example.vedaahar.agentic.AiLifestylePlan
+import com.example.vedaahar.agentic.AiWellnessPlanPresentation
+import com.example.vedaahar.agentic.toPresentation
+import com.example.vedaahar.network.ApiClient
 import com.example.vedaahar.agni.AgniOption
 import com.example.vedaahar.agni.AgniResult
 import com.example.vedaahar.agni.AgniResultStore
@@ -80,6 +87,7 @@ import com.example.vedaahar.agni.AgniType
 import com.example.vedaahar.agni.agniQuestions
 import com.example.vedaahar.agni.generateAgniResult
 import com.example.vedaahar.assessment.AssessmentProfileStore
+import com.example.vedaahar.assessment.AssessmentRepository
 import com.example.vedaahar.dosha.DoshaResultStore
 import com.example.vedaahar.prakriti.PrakritiDosha
 import com.example.vedaahar.prakriti.PrakritiOption
@@ -107,6 +115,7 @@ import com.example.vedaahar.ui.theme.LightSage
 import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -489,6 +498,12 @@ fun DoshaTestHubScreen(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val assessmentRepository = remember(context) {
+        AssessmentRepository(
+            api = ApiClient.agenticApi(context.applicationContext),
+            accessTokenProvider = { FirebaseAuth.getInstance().currentUser?.uid }
+        )
+    }
     var selectedAssessment by remember { mutableStateOf<DoshaHubAssessment?>(null) }
     var showCombinedResult by remember { mutableStateOf(false) }
     var currentQuestionIndex by remember { mutableIntStateOf(0) }
@@ -509,6 +524,11 @@ fun DoshaTestHubScreen(
     ) {
         if (prakriti != null && vikriti != null && agni != null) {
             AssessmentProfileStore.save(context, prakriti, vikriti, agni)
+            AssessmentProfileStore.currentRaw(context)?.let { rawAssessment ->
+                coroutineScope.launch {
+                    assessmentRepository.persistCanonicalAssessment(rawAssessment)
+                }
+            }
         }
     }
 
@@ -786,6 +806,12 @@ fun SequentialDoshaTestScreen(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val assessmentRepository = remember(context) {
+        AssessmentRepository(
+            api = ApiClient.agenticApi(context.applicationContext),
+            accessTokenProvider = { FirebaseAuth.getInstance().currentUser?.uid }
+        )
+    }
     var currentQuestionIndex by remember { mutableIntStateOf(0) }
     var answers by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
     var prakritiResult by remember { mutableStateOf(PrakritiResultStore.current(context)) }
@@ -814,6 +840,11 @@ fun SequentialDoshaTestScreen(
     ) {
         if (prakriti != null && vikriti != null && agni != null) {
             AssessmentProfileStore.save(context, prakriti, vikriti, agni)
+            AssessmentProfileStore.currentRaw(context)?.let { rawAssessment ->
+                coroutineScope.launch {
+                    assessmentRepository.persistCanonicalAssessment(rawAssessment)
+                }
+            }
         }
     }
 
@@ -1093,8 +1124,19 @@ fun DietAssessmentScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val agenticViewModel: AgenticPlanViewModel = viewModel()
+    val application = remember(context) { context.applicationContext as Application }
+    val agenticViewModelFactory = remember(application) {
+        AgenticPlanViewModel.Factory(
+            application = application,
+            repository = AgenticRepository(
+                api = ApiClient.agenticApi(application),
+                accessTokenProvider = { FirebaseAuth.getInstance().currentUser?.uid }
+            )
+        )
+    }
+    val agenticViewModel: AgenticPlanViewModel = viewModel(factory = agenticViewModelFactory)
     val agenticState by agenticViewModel.uiState.collectAsState()
+    val latestPlanId by agenticViewModel.latestPlanId.collectAsState()
     val savedPrakriti = remember { PrakritiResultStore.current(context) }
     val savedVikriti = remember { VikritiResultStore.current(context) }
     val savedAgni = remember { AgniResultStore.current(context) }
@@ -1112,6 +1154,8 @@ fun DietAssessmentScreen(
     val selectedPrakriti = assessmentPrakriti
     var activeTabIndex by remember { mutableIntStateOf(0) }
     val result = remember(selectedPrakriti) { getDietPlanForConstitution(selectedPrakriti) }
+    val generatedPlan = (agenticState as? AgenticPlanUiState.Success)?.plan
+    val generatedPresentation = remember(generatedPlan) { generatedPlan?.toPresentation() }
     val currentVikriti = savedVikriti.dominantDosha
     val currentAgni = savedAgni.displayResult
     val tabs = listOf("Body Analysis", "Foods To Eat", "Foods To Avoid", "7-Day Diet Plan", "Lifestyle Tips", "Ayurvedic Dravya")
@@ -1236,9 +1280,14 @@ fun DietAssessmentScreen(
                         agni = currentAgni
                     )
 
+                    DietDataSourceBanner(generatedPresentation)
+
                     AgenticPlanSyncCard(
                         state = agenticState,
-                        onGenerate = agenticViewModel::generatePlan
+                        latestPlanId = latestPlanId,
+                        onGenerate = agenticViewModel::generatePlan,
+                        onRefresh = agenticViewModel::refreshCurrentPlan,
+                        onViewReport = agenticViewModel::loadFinalReport
                     )
 
                     // 6 Comprehensive Feature Tabs
@@ -1271,8 +1320,8 @@ fun DietAssessmentScreen(
                         0 -> BodyAnalysisContent(result, currentVikriti, currentAgni)
                         1 -> FoodsListContent(result.foodsToEat, positive = true)
                         2 -> FoodsListContent(result.foodsToAvoid, positive = false)
-                        3 -> MealPlanContent(result)
-                        4 -> LifestyleContent(result.lifestyleTips)
+                        3 -> if (generatedPresentation?.diet != null) GeneratedMealPlanContent(generatedPresentation.diet) else MealPlanContent(result)
+                        4 -> if (generatedPresentation?.lifestyle != null) GeneratedLifestyleContent(generatedPresentation.lifestyle) else LifestyleContent(result.lifestyleTips)
                         else -> AyurvedicDravyaContent(result.ayurvedicTips)
                     }
 
@@ -1286,8 +1335,13 @@ fun DietAssessmentScreen(
 @Composable
 private fun AgenticPlanSyncCard(
     state: AgenticPlanUiState,
-    onGenerate: () -> Unit
+    latestPlanId: Long?,
+    onGenerate: () -> Unit,
+    onRefresh: () -> Unit,
+    onViewReport: () -> Unit
 ) {
+    val presentation = (state as? AgenticPlanUiState.Success)?.plan?.toPresentation()
+    var showWarnings by remember { mutableStateOf(false) }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -1305,34 +1359,47 @@ private fun AgenticPlanSyncCard(
                 fontSize = 16.sp
             )
             Text(
-                text = "Send your saved canonical Prakriti, Vikriti, and Agni results to the Django agent pipeline. Your current static diet guide remains unchanged.",
+                text = "Generate or refresh your server-backed AI wellness draft. The standard diet guidance remains available if generation fails.",
                 color = SoftBlueGray,
                 fontSize = 12.sp,
                 lineHeight = 17.sp
             )
-            Button(
-                onClick = onGenerate,
-                enabled = state !is AgenticPlanUiState.Loading,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
-            ) {
-                if (state is AgenticPlanUiState.Loading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color = PureWhite
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = onGenerate,
+                    enabled = state !is AgenticPlanUiState.Loading && (state as? AgenticPlanUiState.Success)?.refreshing != true,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+                ) {
+                    if (state is AgenticPlanUiState.Loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = PureWhite
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                    }
+                    Text(
+                        text = if (state is AgenticPlanUiState.Loading) "Generating..." else "Generate",
+                        fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
                 }
-                Text(
-                    text = if (state is AgenticPlanUiState.Loading) "Generating..." else "Generate AI Wellness Plan",
-                    fontWeight = FontWeight.Bold
-                )
+                OutlinedButton(
+                    onClick = onRefresh,
+                    enabled = latestPlanId != null && state !is AgenticPlanUiState.Loading && (state as? AgenticPlanUiState.Success)?.refreshing != true,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(50),
+                    border = BorderStroke(1.dp, BeigeBorder),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+                ) {
+                    Text("Refresh", fontWeight = FontWeight.Bold)
+                }
             }
             when (state) {
                 AgenticPlanUiState.Idle -> Text(
-                    text = "Requires Django JWT authentication and complete backend profile fields.",
+                    text = latestPlanId?.let { "Latest generated plan ID saved: #$it. Tap Refresh to load current server status." }
+                        ?: "No generated plan loaded. Showing standard diet guidance.",
                     color = SoftBlueGray,
                     fontSize = 11.sp
                 )
@@ -1341,19 +1408,109 @@ private fun AgenticPlanSyncCard(
                     color = SoftBlueGray,
                     fontSize = 11.sp
                 )
-                is AgenticPlanUiState.Success -> Text(
-                    text = "Plan #${state.plan.id} received. Doctor status: ${state.plan.doctorStatus ?: "PENDING"}.",
-                    color = ForestGreen,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+                is AgenticPlanUiState.Success -> {
+                    Text(
+                        text = "AI-generated draft: Plan #${state.plan.id}",
+                        color = ForestGreen,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    presentation?.let {
+                        StatusLine("Validation", it.validationStatus ?: "Unknown", it.validationMessage)
+                        StatusLine("Doctor status", it.doctorStatus ?: "PENDING", it.doctorStatusMessage)
+                        if (it.ragAvailable == true) {
+                            Text("RAG: ${it.ragStatus ?: "available"}", color = SoftBlueGray, fontSize = 11.sp)
+                        }
+                        if (it.validationWarnings.isNotEmpty()) {
+                            Text(
+                                text = if (showWarnings) "Hide validation warnings" else "View validation warnings (${it.validationWarnings.size})",
+                                color = DietDanger,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.clickable { showWarnings = !showWarnings }
+                            )
+                            if (showWarnings) {
+                                it.validationWarnings.forEach { warning ->
+                                    Text("- $warning", color = SoftBlueGray, fontSize = 11.sp, lineHeight = 15.sp)
+                                }
+                            }
+                        }
+                        if (state.refreshing) {
+                            Text("Refreshing server state...", color = SoftBlueGray, fontSize = 11.sp)
+                        }
+                        state.notice?.let { notice ->
+                            Text(notice, color = SoftBlueGray, fontSize = 11.sp, lineHeight = 15.sp)
+                        }
+                        OutlinedButton(
+                            onClick = onViewReport,
+                            enabled = it.doctorStatus?.uppercase() == "APPROVED" && !state.refreshing,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(50),
+                            border = BorderStroke(1.dp, BeigeBorder),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+                        ) {
+                            Text(
+                                text = if (it.doctorStatus?.uppercase() == "APPROVED") "View Final Report" else "Final report available after doctor approval",
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
                 is AgenticPlanUiState.Error -> Text(
-                    text = state.message,
+                    text = "${state.message} Standard diet guidance remains available below.",
                     color = DietDanger,
                     fontSize = 12.sp,
                     lineHeight = 17.sp
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun StatusLine(label: String, status: String, message: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(PureWhite)
+            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(14.dp))
+            .padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        Text(label.uppercase(), color = SageGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        Text(status, color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Text(message, color = SoftBlueGray, fontSize = 11.sp, lineHeight = 15.sp)
+    }
+}
+
+@Composable
+private fun DietDataSourceBanner(plan: AiWellnessPlanPresentation?) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (plan != null) DietMint else PureWhite)
+            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(16.dp))
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Icon(Icons.Filled.Info, contentDescription = null, tint = ForestGreen, modifier = Modifier.size(18.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.weight(1f)) {
+            Text(
+                text = if (plan != null) "AI-generated personalized plan" else "Standard diet guidance",
+                color = DarkForestGreen,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp
+            )
+            Text(
+                text = if (plan != null) "Showing Agent 2 diet and Agent 3 lifestyle draft from plan #${plan.planId}." else "No generated plan is loaded; the existing static guidance is shown as fallback.",
+                color = SoftBlueGray,
+                fontSize = 11.sp,
+                lineHeight = 15.sp
+            )
         }
     }
 }
@@ -3140,6 +3297,147 @@ private fun FoodsListContent(items: List<String>, positive: Boolean) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun GeneratedMealPlanContent(plan: AiDietPlan) {
+    var selectedDayIndex by remember(plan) { mutableIntStateOf(0) }
+    val days = plan.days
+    val selectedDay = days.getOrNull(selectedDayIndex)
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = "AI-GENERATED 7-DAY DIET DRAFT",
+            color = SageGreen,
+            fontWeight = FontWeight.Bold,
+            fontSize = 10.sp,
+            letterSpacing = 1.4.sp
+        )
+        Text(
+            text = "Duration: ${plan.durationDays ?: days.size} days",
+            color = DarkForestGreen,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp
+        )
+        if (plan.dailyTarget.isNotEmpty()) {
+            NutritionMetricCard("Daily target", plan.dailyTarget)
+        }
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            days.forEachIndexed { index, day ->
+                val selected = index == selectedDayIndex
+                val label = "Day ${day.day ?: index + 1}"
+                if (selected) {
+                    Button(
+                        onClick = { selectedDayIndex = index },
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
+                    ) {
+                        Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = { selectedDayIndex = index },
+                        shape = RoundedCornerShape(50),
+                        border = BorderStroke(1.dp, BeigeBorder),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = ForestGreen)
+                    ) {
+                        Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+        selectedDay?.let { day ->
+            if (day.dailyTotal.isNotEmpty()) {
+                NutritionMetricCard("Day ${day.day ?: selectedDayIndex + 1} total", day.dailyTotal)
+            }
+            day.meals.forEach { meal ->
+                GeneratedMealCard(meal)
+            }
+        }
+    }
+}
+
+@Composable
+private fun GeneratedMealCard(meal: com.example.vedaahar.agentic.AiMeal) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = PureWhite),
+        border = BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f))
+    ) {
+        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
+                Text(meal.name, color = DarkForestGreen, fontWeight = FontWeight.Bold, fontSize = 15.sp, modifier = Modifier.weight(1f))
+                meal.actualCalories?.let {
+                    Text("$it cal", color = ForestGreen, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                }
+            }
+            meal.targetCalories?.let {
+                Text("Target calories: $it", color = SoftBlueGray, fontSize = 11.sp)
+            }
+            if (meal.mealTotal.isNotEmpty()) {
+                InlineMetrics(meal.mealTotal)
+            }
+            meal.foods.forEach { food ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(DietMint.copy(alpha = 0.55f))
+                        .padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(food.name, color = DarkForestGreen, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                        food.portion?.let { Text(it, color = SageGreen, fontWeight = FontWeight.Bold, fontSize = 11.sp) }
+                    }
+                    if (food.nutrition.isNotEmpty()) InlineMetrics(food.nutrition)
+                    if (food.rankingReasons.isNotEmpty()) {
+                        Text(food.rankingReasons.joinToString("; "), color = SoftBlueGray, fontSize = 10.5.sp, lineHeight = 14.sp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NutritionMetricCard(title: String, metrics: List<com.example.vedaahar.agentic.NutritionMetric>) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = PureWhite),
+        border = BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f))
+    ) {
+        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(title.uppercase(), color = SageGreen, fontWeight = FontWeight.Bold, fontSize = 10.sp, letterSpacing = 1.2.sp)
+            InlineMetrics(metrics)
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun InlineMetrics(metrics: List<com.example.vedaahar.agentic.NutritionMetric>) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        metrics.forEach { metric ->
+            Text(
+                text = "${metric.label}: ${metric.value}",
+                color = DarkForestGreen,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(DietWarmCard)
+                    .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(50))
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            )
+        }
+    }
+}
+
 @Composable
 private fun MealPlanContent(result: DietResult) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -3191,6 +3489,104 @@ private fun MealTimelineCard(mealName: String, timing: String, description: Stri
                 Text(timing, color = SageGreen, fontWeight = FontWeight.Bold, fontSize = 10.5.sp)
             }
             Text(description, color = Color(0xFF26332D), fontSize = 12.sp, lineHeight = 17.sp)
+        }
+    }
+}
+
+@Composable
+private fun GeneratedLifestyleContent(plan: AiLifestylePlan) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            text = "AI-GENERATED LIFESTYLE DRAFT",
+            color = SageGreen,
+            fontWeight = FontWeight.Bold,
+            fontSize = 10.sp,
+            letterSpacing = 1.4.sp
+        )
+        plan.draftStatus?.let {
+            Text(it, color = DietDanger, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+        }
+        plan.recommendations.forEachIndexed { index, recommendation ->
+            LifestyleRecommendationCard(index + 1, recommendation)
+        }
+        if (plan.safetyFlags.isNotEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = DietDangerSoft.copy(alpha = 0.45f)),
+                border = BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f))
+            ) {
+                Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("Safety flags", color = DietDanger, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    plan.safetyFlags.forEach { flag ->
+                        Text("- $flag", color = SoftBlueGray, fontSize = 11.sp, lineHeight = 15.sp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LifestyleRecommendationCard(
+    number: Int,
+    recommendation: com.example.vedaahar.agentic.AiLifestyleRecommendation
+) {
+    var showSource by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(PureWhite)
+            .border(BorderStroke(1.dp, BeigeBorder.copy(alpha = 0.75f)), RoundedCornerShape(16.dp))
+            .padding(14.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .clip(CircleShape)
+                .background(LightSage),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("$number", color = ForestGreen, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.weight(1f)) {
+            recommendation.category?.let {
+                Text(it.replace("_", " ").uppercase(), color = SageGreen, fontSize = 9.5.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.1.sp)
+            }
+            recommendation.recommendation?.let {
+                Text(it, color = DarkForestGreen, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, lineHeight = 18.sp)
+            }
+            recommendation.reason?.let {
+                Text(it, color = SoftBlueGray, fontSize = 11.sp, lineHeight = 15.sp)
+            }
+            recommendation.safetyConsideration?.let {
+                Text(it, color = SoftBlueGray, fontSize = 10.5.sp, lineHeight = 14.sp)
+            }
+            recommendation.source?.let { source ->
+                Text(
+                    text = if (showSource) "Hide source" else "View source",
+                    color = ForestGreen,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { showSource = !showSource }
+                )
+                if (showSource) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(DietMint.copy(alpha = 0.55f))
+                            .padding(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        source.source?.let { Text("Source: $it", color = DarkForestGreen, fontSize = 11.sp) }
+                        source.page?.let { Text("Page: $it", color = DarkForestGreen, fontSize = 11.sp) }
+                    }
+                }
+            }
         }
     }
 }

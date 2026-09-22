@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     alias(libs.plugins.kotlin.android)
@@ -7,6 +9,18 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.isFile) {
+        localPropertiesFile.inputStream().use(::load)
+    }
+}
+
+val agenticApiBaseUrl = providers.gradleProperty("agenticApiBaseUrl")
+    .orElse(providers.provider { localProperties.getProperty("agenticApiBaseUrl") })
+    .orElse("http://192.168.137.3:8000/")
+    .get()
+
 android {
     namespace = "com.example.vedaahar"
     compileSdk {
@@ -14,7 +28,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.vedaahar"
+        applicationId = "com.vedamrit"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -22,7 +36,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "MAPTILER_API_KEY", "\"HCZeFeM9c5CLiXZG5S8d\"")
-        buildConfigField("String", "AGENTIC_API_BASE_URL", "\"http://10.0.2.2:8000/\"")
+        buildConfigField("String", "AGENTIC_API_BASE_URL", "\"$agenticApiBaseUrl\"")
     }
 
     buildTypes {
@@ -52,7 +66,7 @@ kotlin {
 
 dependencies {
     // Import the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
 
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation("com.google.firebase:firebase-analytics")
@@ -67,6 +81,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
@@ -83,6 +98,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.okhttp.mockwebserver)
+    testImplementation(libs.json)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

@@ -16,6 +16,27 @@ data class CanonicalAssessmentDto(
     val agni: Map<String, Any?>
 )
 
+data class CanonicalAssessmentRequest(
+    @SerializedName("assessment_profile")
+    val assessmentProfile: Map<String, Any?>
+)
+
+data class AssessmentResultResponse(
+    val id: Long,
+    @SerializedName("prakriti_result")
+    val prakritiResult: Map<String, Any?>,
+    @SerializedName("vikriti_result")
+    val vikritiResult: Map<String, Any?>,
+    @SerializedName("agni_result")
+    val agniResult: Map<String, Any?>,
+    @SerializedName("canonical_payload")
+    val canonicalPayload: Map<String, Any?>?,
+    @SerializedName("created_at")
+    val createdAt: String?,
+    @SerializedName("updated_at")
+    val updatedAt: String?
+)
+
 data class WellnessPlanResponse(
     val id: Long,
     @SerializedName("assessment_id")
@@ -81,4 +102,48 @@ data class FinalReportResponse(
     val finalizedAt: String?,
     @SerializedName("created_at")
     val createdAt: String?
+)
+
+data class PatientProfileDto(
+    val id: Long? = null,
+    @SerializedName("user_id")
+    val userId: Long? = null,
+    val name: String? = null,
+    val age: Int? = null,
+    @SerializedName("date_of_birth")
+    val dateOfBirth: String? = null,
+    val gender: String? = null,
+    @SerializedName("height_cm")
+    val heightCm: String? = null,
+    @SerializedName("weight_kg")
+    val weightKg: String? = null,
+    @SerializedName("dietary_preference")
+    val dietaryPreference: String? = null,
+    val goal: String? = null,
+    @SerializedName("activity_level")
+    val activityLevel: String? = null,
+    val allergies: List<String>? = null,
+    val intolerances: List<String>? = null,
+    @SerializedName("food_intolerances")
+    val foodIntolerances: List<String>? = null,
+    @SerializedName("foods_to_avoid")
+    val foodsToAvoid: List<String>? = null,
+    @SerializedName("health_conditions")
+    val healthConditions: List<String>? = null,
+    @SerializedName("current_medicines")
+    val currentMedicines: List<String>? = null,
+    @SerializedName("medicine_allergies")
+    val medicineAllergies: List<String>? = null,
+    @SerializedName("medication_restrictions")
+    val medicationRestrictions: List<String>? = null,
+    @SerializedName("doctor_restrictions")
+    val doctorRestrictions: List<String>? = null,
+    @SerializedName("pregnancy_status")
+    val pregnancyStatus: String? = null,
+    @SerializedName("pregnancy_information")
+    val pregnancyInformation: String? = null,
+    @SerializedName("created_at")
+    val createdAt: String? = null,
+    @SerializedName("updated_at")
+    val updatedAt: String? = null
 )

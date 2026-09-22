@@ -43,6 +43,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -82,17 +83,31 @@ import com.example.vedaahar.ui.theme.SoftBlueGray
 private val LoginGold = Color(0xFFF1E6DC)
 private val LoginCard = Color(0xFFFFFFFF)
 private val LoginErrorRed = Color(0xFF7A4E32)
+private val LoginSuccessGreen = Color(0xFF2F6F4E)
 private val CinzelDecorative = FontFamily(Font(R.font.cinzel_decorative_regular))
 
 private fun validateLoginIdentifier(value: String): String? {
-    if (value.isBlank()) return "Enter email or phone number"
-
-    return if (value.contains("@")) {
-        val emailPattern = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
-        if (emailPattern.matches(value)) null else "Enter a valid email address"
+    return if (value.isBlank()) {
+        "Enter your login details"
     } else {
-        val phonePattern = Regex("^[6-9][0-9]{9}$")
-        if (phonePattern.matches(value)) null else "Enter a valid 10-digit phone number"
+        null
+    }
+}
+
+private fun validateRegisterEmail(value: String): String? {
+    val email = value.trim()
+    return when {
+        email.isBlank() -> "Enter your email"
+        !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> "Enter a valid email address"
+        else -> null
+    }
+}
+
+private fun validateRegisterPassword(value: String): String? {
+    return when {
+        value.isBlank() -> "Enter a password"
+        value.length < 8 -> "Use at least 8 characters"
+        else -> null
     }
 }
 
@@ -160,15 +175,36 @@ fun LoginScreen(
     onCreateAccount: (String, String) -> Unit,
     loading: Boolean = false,
     errorMessage: String? = null,
+    successMessage: String? = null,
     modifier: Modifier = Modifier
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
     var emailTouched by remember { mutableStateOf(false) }
-    val emailError = validateLoginIdentifier(email)
+    var passwordTouched by remember { mutableStateOf(false) }
+    var confirmPasswordTouched by remember { mutableStateOf(false) }
+    var registering by remember { mutableStateOf(false) }
+    val emailError = if (registering) validateRegisterEmail(email) else validateLoginIdentifier(email)
+    val passwordError = if (registering) validateRegisterPassword(password) else null
+    val confirmPasswordError = if (registering && confirmPassword != password) "Passwords do not match" else null
     val isEmailValid = emailError == null
+    val isPasswordValid = passwordError == null && password.isNotEmpty()
+    val isConfirmPasswordValid = !registering || (confirmPassword.isNotEmpty() && confirmPasswordError == null)
     val isLoginEnabled = isEmailValid && password.isNotEmpty()
+    val isRegisterEnabled = isEmailValid && isPasswordValid && isConfirmPasswordValid
+
+    LaunchedEffect(successMessage) {
+        if (!successMessage.isNullOrBlank()) {
+            registering = false
+            password = ""
+            confirmPassword = ""
+            passwordTouched = false
+            confirmPasswordTouched = false
+        }
+    }
 
     Surface(modifier = modifier.fillMaxSize(), color = Cream) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -197,15 +233,36 @@ fun LoginScreen(
                     showEmailError = emailTouched && emailError != null,
                     isEmailValid = emailTouched && isEmailValid,
                     password = password,
-                    onPasswordChange = { password = it },
+                    onPasswordChange = {
+                        passwordTouched = true
+                        password = it
+                    },
+                    passwordError = passwordError,
+                    showPasswordError = registering && passwordTouched && passwordError != null,
                     passwordVisible = passwordVisible,
                     onPasswordVisibilityChange = { passwordVisible = !passwordVisible },
+                    confirmPassword = confirmPassword,
+                    onConfirmPasswordChange = {
+                        confirmPasswordTouched = true
+                        confirmPassword = it
+                    },
+                    confirmPasswordError = confirmPasswordError,
+                    showConfirmPasswordError = registering && confirmPasswordTouched && confirmPasswordError != null,
+                    confirmPasswordVisible = confirmPasswordVisible,
+                    onConfirmPasswordVisibilityChange = { confirmPasswordVisible = !confirmPasswordVisible },
                     onLogin = { onLogin(email, password) },
                     isLoginEnabled = isLoginEnabled && !loading,
-                    onCreateAccount = onCreateAccount
-                        .let { callback -> { callback(email, password) } },
+                    onCreateAccount = { onCreateAccount(email.trim(), password) },
+                    isRegisterEnabled = isRegisterEnabled && !loading,
+                    registering = registering,
+                    onRegisteringChange = {
+                        registering = it
+                        passwordTouched = false
+                        confirmPasswordTouched = false
+                    },
                     loading = loading,
-                    errorMessage = errorMessage
+                    errorMessage = errorMessage,
+                    successMessage = successMessage
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -251,13 +308,25 @@ private fun LoginCard(
     isEmailValid: Boolean,
     password: String,
     onPasswordChange: (String) -> Unit,
+    passwordError: String?,
+    showPasswordError: Boolean,
     passwordVisible: Boolean,
     onPasswordVisibilityChange: () -> Unit,
+    confirmPassword: String,
+    onConfirmPasswordChange: (String) -> Unit,
+    confirmPasswordError: String?,
+    showConfirmPasswordError: Boolean,
+    confirmPasswordVisible: Boolean,
+    onConfirmPasswordVisibilityChange: () -> Unit,
     onLogin: () -> Unit,
     isLoginEnabled: Boolean,
     onCreateAccount: () -> Unit,
+    isRegisterEnabled: Boolean,
+    registering: Boolean,
+    onRegisteringChange: (Boolean) -> Unit,
     loading: Boolean,
-    errorMessage: String?
+    errorMessage: String?,
+    successMessage: String?
 ) {
     Column(
         modifier = Modifier
@@ -274,10 +343,10 @@ private fun LoginCard(
             .padding(20.dp)
     ) {
         LoginField(
-            label = "Email / Phone Number",
+            label = "Email",
             value = email,
             onValueChange = onEmailChange,
-            placeholder = "Enter your email or phone number",
+            placeholder = "Enter your email",
             leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null) },
             trailingIcon = if (isEmailValid) {
                 {
@@ -290,7 +359,7 @@ private fun LoginCard(
             } else {
                 null
             },
-            keyboardType = if (email.isNotEmpty() && email.all(Char::isDigit)) KeyboardType.Phone else KeyboardType.Email,
+            keyboardType = KeyboardType.Email,
             errorText = emailError,
             showError = showEmailError,
             isValid = isEmailValid
@@ -313,25 +382,68 @@ private fun LoginCard(
                 }
             },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardType = KeyboardType.Password
+            keyboardType = KeyboardType.Password,
+            errorText = passwordError,
+            showError = showPasswordError,
+            isValid = registering && password.isNotEmpty() && passwordError == null
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Forgot Password?",
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = ForestGreen,
-                fontWeight = FontWeight.SemiBold
-            ),
-            modifier = Modifier.align(Alignment.End)
-        )
+        if (registering) {
+            Spacer(modifier = Modifier.height(16.dp))
+            LoginField(
+                label = "Confirm Password",
+                value = confirmPassword,
+                onValueChange = onConfirmPasswordChange,
+                placeholder = "Re-enter your password",
+                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
+                trailingIcon = {
+                    IconButton(onClick = onConfirmPasswordVisibilityChange) {
+                        Icon(
+                            imageVector = if (confirmPasswordVisible) LoginEyeOffIcon else LoginEyeIcon,
+                            contentDescription = if (confirmPasswordVisible) "Hide password" else "Show password"
+                        )
+                    }
+                },
+                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardType = KeyboardType.Password,
+                errorText = confirmPasswordError,
+                showError = showConfirmPasswordError,
+                isValid = confirmPassword.isNotEmpty() && confirmPasswordError == null
+            )
+        } else {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Forgot Password?",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = ForestGreen,
+                    fontWeight = FontWeight.SemiBold
+                ),
+                modifier = Modifier.align(Alignment.End)
+            )
+        }
 
         Spacer(modifier = Modifier.height(22.dp))
-        PremiumLoginButton(text = if (loading) "Signing in..." else "Login", enabled = isLoginEnabled, onClick = onLogin)
+        PremiumLoginButton(
+            text = when {
+                loading && registering -> "Creating account..."
+                loading -> "Signing in..."
+                registering -> "Create Account"
+                else -> "Login"
+            },
+            enabled = if (registering) isRegisterEnabled else isLoginEnabled,
+            onClick = if (registering) onCreateAccount else onLogin
+        )
         if (!errorMessage.isNullOrBlank()) {
             Text(
                 text = errorMessage,
                 color = LoginErrorRed,
+                fontSize = 12.sp,
+                lineHeight = 17.sp
+            )
+        } else if (!successMessage.isNullOrBlank()) {
+            Text(
+                text = successMessage,
+                color = LoginSuccessGreen,
                 fontSize = 12.sp,
                 lineHeight = 17.sp
             )
@@ -343,16 +455,18 @@ private fun LoginCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Don't have an account?",
+                text = if (registering) "Already have an account?" else "Don't have an account?",
                 style = MaterialTheme.typography.bodyMedium.copy(color = SoftBlueGray)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Row(
-                modifier = Modifier.clickable(enabled = isLoginEnabled && !loading, onClick = onCreateAccount),
+                modifier = Modifier.clickable(enabled = !loading) {
+                    onRegisteringChange(!registering)
+                },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Create Account",
+                    text = if (registering) "Login" else "Create Account",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = ForestGreen,
                         fontWeight = FontWeight.Bold
@@ -595,6 +709,3 @@ private fun FloatingLeafCluster(modifier: Modifier = Modifier, alpha: Float) {
 private fun LoginScreenPreview() {
     LoginScreen(onLogin = { _, _ -> }, onCreateAccount = { _, _ -> })
 }
-
-
-

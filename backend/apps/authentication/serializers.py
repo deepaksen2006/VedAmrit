@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -9,23 +10,26 @@ User = get_user_model()
 
 
 class PatientRegisterSerializer(serializers.Serializer):
-    identifier = serializers.CharField(max_length=150)
+    identifier = serializers.EmailField(max_length=150)
     password = serializers.CharField(write_only=True, min_length=8)
 
     def validate_identifier(self, value):
-        identifier = value.strip()
+        identifier = value.strip().lower()
         if not identifier:
-            raise serializers.ValidationError("Identifier is required.")
+            raise serializers.ValidationError("Email is required.")
         if User.objects.filter(username=identifier).exists() or User.objects.filter(email=identifier).exists():
-            raise serializers.ValidationError("An account already exists for this identifier.")
+            raise serializers.ValidationError("An account already exists for this email.")
         return identifier
+
+    def validate(self, attrs):
+        validate_password(attrs["password"])
+        return attrs
 
     def create(self, validated_data):
         identifier = validated_data["identifier"]
-        email = identifier if "@" in identifier else ""
         return User.objects.create_user(
             username=identifier,
-            email=email,
+            email=identifier,
             password=validated_data["password"],
         )
 

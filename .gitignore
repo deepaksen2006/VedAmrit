@@ -13,6 +13,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+.env
+backend/.env
 
 # Python / Django local artifacts
 __pycache__/
@@ -22,6 +24,13 @@ __pycache__/
 .venv*/
 venv/
 backend/tmp_agent_engine_reports/
+backend/reports/
 backend/agent_engine/rag/vectorstore/
 backend/db.sqlite3
 backend/db.sqlite3-*
+
+# Firebase Admin credentials are backend-only secrets.
+firebase-adminsdk*.json
+*service-account*.json
+backend/*firebase*.json
+backend/*service-account*.json

@@ -15,7 +15,9 @@ from apps.agentic_reports.models import (
     AssessmentResult,
     DoctorReview,
     DoctorReviewStatus,
+    DoctorAssignment,
     FinalReport,
+    PatientProfile,
     ValidationStatus,
     WellnessPlan,
 )
@@ -65,25 +67,78 @@ def _first_error(response: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _persisted_engine_payload(
+    profile: PatientProfile,
+    assessment: AssessmentResult,
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    list_fields = (
+        "allergies",
+        "foods_to_avoid",
+        "health_conditions",
+        "medicine_allergies",
+        "medication_restrictions",
+        "doctor_restrictions",
+    )
+    patient_profile = {
+        "name": profile.name,
+        "age": profile.age,
+        "gender": profile.gender,
+        "height_cm": float(profile.height_cm) if profile.height_cm is not None else None,
+        "weight_kg": float(profile.weight_kg) if profile.weight_kg is not None else None,
+        "dietary_preference": profile.dietary_preference,
+        "goal": profile.goal,
+        "activity_level": profile.activity_level,
+        "intolerances": profile.intolerances or [],
+        "food_intolerances": profile.intolerances or [],
+        "pregnancy_information": profile.pregnancy_status,
+        "current_medicines": profile.current_medicines or [],
+    }
+    patient_profile.update({field: getattr(profile, field) or [] for field in list_fields})
+    return {
+        "patient_profile": patient_profile,
+        "assessment": {
+            "prakriti": assessment.prakriti_result,
+            "vikriti": assessment.vikriti_result,
+            "agni": assessment.agni_result,
+        },
+        "plan_days": payload.get("plan_days", 7),
+        "runtime": {**(payload.get("runtime") or {}), "assessment_source": "persisted_db"},
+    }
+
+
 def create_wellness_plan(user, payload: dict[str, Any]) -> WellnessPlanCreationResult:
-    request = parse_agent_engine_request(payload)
-    assessment_block = _assessment_payload(payload)
-    assessment = AssessmentResult.objects.create(
-        user=user,
-        prakriti_result=request.prakriti_result,
-        vikriti_result=request.vikriti_result,
-        agni_result=request.agni_result,
-        canonical_payload=assessment_block,
+    profile = PatientProfile.objects.filter(user=user).first()
+    assessment = AssessmentResult.objects.filter(user=user).order_by("-created_at").first()
+    if profile is not None and assessment is not None:
+        engine_payload = _persisted_engine_payload(profile, assessment, payload)
+    else:
+        # Keep direct callers compatible during migration.
+        engine_payload = payload
+        request = parse_agent_engine_request(engine_payload)
+        assessment_block = _assessment_payload(payload)
+        assessment = AssessmentResult.objects.create(
+            user=user,
+            prakriti_result=request.prakriti_result,
+            vikriti_result=request.vikriti_result,
+            agni_result=request.agni_result,
+            canonical_payload=assessment_block,
+        )
+    request = parse_agent_engine_request(engine_payload)
+    assignment = (
+        DoctorAssignment.objects.filter(patient_profile=profile, active=True).first()
+        if profile is not None
+        else None
     )
     agent_run = AgentRun.objects.create(
         user=user,
         assessment=assessment,
         status=AgentRunStatus.RUNNING,
-        request_payload=payload,
+        request_payload=engine_payload,
     )
 
     try:
-        response = generate_personalized_plan(payload)
+        response = generate_personalized_plan(engine_payload)
     except Exception as exc:
         agent_run.mark_failed(
             code="agent_execution_exception",
@@ -110,6 +165,7 @@ def create_wellness_plan(user, payload: dict[str, Any]) -> WellnessPlanCreationR
         user=user,
         assessment=assessment,
         agent_run=agent_run,
+        assignment=assignment,
         version=1,
         diet_plan=response.get("diet_plan") or {},
         lifestyle_plan=response.get("lifestyle_plan") or {},
@@ -150,7 +206,7 @@ def create_plan_revision(
         assessment=parent_plan.assessment,
         agent_run=agent_run,
         lineage_id=parent_plan.lineage_id,
-        parent_plan=parent_plan,
+        parent_plan=latest or parent_plan,
         version=next_version,
         diet_plan=diet_plan if diet_plan is not None else parent_plan.diet_plan,
         lifestyle_plan=lifestyle_plan if lifestyle_plan is not None else parent_plan.lifestyle_plan,

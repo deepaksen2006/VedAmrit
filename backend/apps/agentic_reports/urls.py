@@ -4,6 +4,9 @@ from apps.agentic_reports import views
 
 
 urlpatterns = [
+    path("assessments/", views.AssessmentResultListCreateView.as_view(), name="agentic-assessment-list-create"),
+    path("assessments/latest/", views.LatestAssessmentResultView.as_view(), name="agentic-assessment-latest"),
+    path("doctor/assignments/", views.DoctorAssignmentListCreateView.as_view(), name="agentic-doctor-assignments"),
     path("plans/", views.AgenticPlanListCreateView.as_view(), name="agentic-plan-list-create"),
     path("plans/<int:pk>/", views.AgenticPlanDetailView.as_view(), name="agentic-plan-detail"),
     path("plans/<int:pk>/status/", views.AgenticPlanStatusView.as_view(), name="agentic-plan-status"),

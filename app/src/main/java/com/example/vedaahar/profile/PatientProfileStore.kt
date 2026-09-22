@@ -25,25 +25,29 @@ object PatientProfileStore {
     private const val PregnancyInformation = "pregnancy_information"
 
     fun save(context: Context, state: PatientProfileUiState) {
+        save(context, state.toStoredProfile())
+    }
+
+    fun save(context: Context, profile: StoredPatientProfile) {
         context.getSharedPreferences(PrefName, Context.MODE_PRIVATE)
             .edit()
-            .putString(FullName, state.fullName.trim())
-            .putString(Age, state.age.trim())
-            .putString(Gender, state.gender.trim())
-            .putString(HeightCm, state.height.trim())
-            .putString(WeightKg, state.weight.trim())
-            .putString(DietaryPreference, state.dietaryPreference.trim())
-            .putString(Goal, state.goal.trim())
-            .putString(ActivityLevel, state.activityLevel.trim())
-            .putString(Allergies, state.allergies.toJsonArrayString())
-            .putString(FoodIntolerances, state.foodIntolerances.toJsonArrayString())
-            .putString(FoodsToAvoid, state.foodsToAvoid.toJsonArrayString())
-            .putString(HealthConditions, state.healthConditions.toJsonArrayString())
-            .putString(MedicineAllergies, state.medicineAllergies.toJsonArrayString())
-            .putString(CurrentMedicines, state.currentMedicines.toJsonArrayString())
-            .putString(MedicationRestrictions, state.medicationRestrictions.toJsonArrayString())
-            .putString(DoctorRestrictions, state.doctorRestrictions.toJsonArrayString())
-            .putString(PregnancyInformation, state.pregnancyInformation.trim())
+            .putString(FullName, profile.fullName.trim())
+            .putString(Age, profile.age.trim())
+            .putString(Gender, profile.gender.trim())
+            .putString(HeightCm, profile.heightCm.trim())
+            .putString(WeightKg, profile.weightKg.trim())
+            .putString(DietaryPreference, profile.dietaryPreference.trim())
+            .putString(Goal, profile.goal.trim())
+            .putString(ActivityLevel, profile.activityLevel.trim())
+            .putStringOrRemove(Allergies, profile.allergies?.toJsonArrayString())
+            .putStringOrRemove(FoodIntolerances, profile.foodIntolerances?.toJsonArrayString())
+            .putStringOrRemove(FoodsToAvoid, profile.foodsToAvoid?.toJsonArrayString())
+            .putStringOrRemove(HealthConditions, profile.healthConditions?.toJsonArrayString())
+            .putStringOrRemove(MedicineAllergies, profile.medicineAllergies?.toJsonArrayString())
+            .putStringOrRemove(CurrentMedicines, profile.currentMedicines?.toJsonArrayString())
+            .putStringOrRemove(MedicationRestrictions, profile.medicationRestrictions?.toJsonArrayString())
+            .putStringOrRemove(DoctorRestrictions, profile.doctorRestrictions?.toJsonArrayString())
+            .putString(PregnancyInformation, profile.pregnancyInformation.trim())
             .apply()
     }
 
@@ -88,6 +92,35 @@ object PatientProfileStore {
                 .mapNotNull { index -> array.optString(index).trim().takeIf(String::isNotBlank) }
         }.getOrDefault(emptyList())
     }
+
+    private fun android.content.SharedPreferences.Editor.putStringOrRemove(
+        key: String,
+        value: String?
+    ): android.content.SharedPreferences.Editor {
+        return if (value == null) remove(key) else putString(key, value)
+    }
+}
+
+fun PatientProfileUiState.toStoredProfile(): StoredPatientProfile {
+    return StoredPatientProfile(
+        fullName = fullName,
+        age = age,
+        gender = gender,
+        heightCm = height,
+        weightKg = weight,
+        dietaryPreference = dietaryPreference,
+        goal = goal,
+        activityLevel = activityLevel,
+        allergies = allergies,
+        foodIntolerances = foodIntolerances,
+        foodsToAvoid = foodsToAvoid,
+        healthConditions = healthConditions,
+        medicineAllergies = medicineAllergies,
+        currentMedicines = currentMedicines,
+        medicationRestrictions = medicationRestrictions,
+        doctorRestrictions = doctorRestrictions,
+        pregnancyInformation = pregnancyInformation
+    )
 }
 
 data class StoredPatientProfile(

@@ -72,13 +72,17 @@ object AgenticPlanRequestMapper {
 
         return runCatching {
             val root = JSONObject(rawAssessment)
-            val prakriti = root.optJSONObject("prakriti_result")
+            val assessment = root.optJSONObject("assessment") ?: root
+            val prakriti = assessment.canonicalObject("prakriti", "prakriti_result")
                 ?: error("assessment.prakriti_result is missing")
-            val vikriti = root.optJSONObject("vikriti_result")
+            val vikriti = assessment.canonicalObject("vikriti", "vikriti_result")
                 ?: error("assessment.vikriti_result is missing")
-            val agni = root.optJSONObject("agni_result")
+            val agni = assessment.canonicalObject("agni", "agni_result")
                 ?: error("assessment.agni_result is missing")
-            validateCanonicalAssessment(prakriti, vikriti, agni)
+            val prakritiMap = prakriti.toKotlinMap()
+            val vikritiMap = vikriti.toKotlinMap()
+            val agniMap = agni.toKotlinMap()
+            validateCanonicalAssessment(prakritiMap, vikritiMap, agniMap)
 
             AgenticRequestMappingResult.Success(
                 AgenticPlanRequest(
@@ -87,9 +91,9 @@ object AgenticPlanRequestMapper {
                         dietaryPreference = dietaryPreference
                     ),
                     assessment = CanonicalAssessmentDto(
-                        prakriti = prakriti.toKotlinMap(),
-                        vikriti = vikriti.toKotlinMap(),
-                        agni = agni.toKotlinMap()
+                        prakriti = prakritiMap,
+                        vikriti = vikritiMap,
+                        agni = agniMap
                     )
                 )
             )
@@ -100,9 +104,9 @@ object AgenticPlanRequestMapper {
 }
 
 private fun validateCanonicalAssessment(
-    prakriti: JSONObject,
-    vikriti: JSONObject,
-    agni: JSONObject
+    prakriti: Map<String, Any?>,
+    vikriti: Map<String, Any?>,
+    agni: Map<String, Any?>
 ) {
     requireCanonicalField(
         result = prakriti,
@@ -124,20 +128,29 @@ private fun validateCanonicalAssessment(
         "assessment.vikriti.scores" to vikriti,
         "assessment.agni.scores" to agni
     ).forEach { (label, result) ->
-        if (result.optJSONObject("scores") == null) error("$label must be present as an object")
+        if (result["scores"] !is Map<*, *>) error("$label must be present as an object")
     }
 }
 
 private fun requireCanonicalField(
-    result: JSONObject,
+    result: Map<String, Any?>,
     fieldOptions: List<String>,
     label: String
 ) {
     val hasValue = fieldOptions.any { field ->
-        val value = result.opt(field)
+        val value = result[field]
         value != null && value != JSONObject.NULL && value.toString().isNotBlank()
     }
     if (!hasValue) error("$label is missing")
+}
+
+private fun JSONObject.canonicalObject(vararg aliases: String): JSONObject? {
+    for (alias in aliases) {
+        val value = opt(alias)
+        if (value is JSONObject) return value
+        if (value != null && value != JSONObject.NULL) error("assessment.$alias must be an object")
+    }
+    return null
 }
 
 private fun StoredPatientProfile.toPatientProfilePayload(

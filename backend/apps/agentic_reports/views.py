@@ -10,15 +10,22 @@ from agent_engine.contracts import AgentEngineInputError
 
 from apps.agentic_reports.models import (
     AgentRunStatus,
+    AssessmentResult,
+    DoctorAssignment,
     DoctorReviewStatus,
+    PatientProfile,
     WellnessPlan,
 )
 from apps.agentic_reports.serializers import (
     AgenticPlanGenerationRequestSerializer,
+    AssessmentResultSerializer,
+    CanonicalAssessmentRequestSerializer,
     DoctorChangesRequestSerializer,
     DoctorDecisionRequestSerializer,
     DoctorReviewSerializer,
     FinalReportSerializer,
+    PatientProfileSerializer,
+    DoctorAssignmentSerializer,
     WellnessPlanListSerializer,
     WellnessPlanSerializer,
     WellnessPlanStatusSerializer,
@@ -51,10 +58,90 @@ def _patient_queryset(user):
 
 def _doctor_queryset():
     return (
-        WellnessPlan.objects.select_related("assessment", "agent_run", "user", "parent_plan")
+        WellnessPlan.objects.select_related(
+            "assessment", "agent_run", "user", "parent_plan", "assignment"
+        )
         .filter(doctor_status=DoctorReviewStatus.PENDING)
         .order_by("-created_at")
     )
+
+
+class PatientProfileView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        profile, _created = PatientProfile.objects.get_or_create(user=self.request.user)
+        return profile
+
+    def get(self, request):
+        serializer = PatientProfileSerializer(self.get_object())
+        return Response(serializer.data)
+
+    def put(self, request):
+        serializer = PatientProfileSerializer(self.get_object(), data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def patch(self, request):
+        serializer = PatientProfileSerializer(self.get_object(), data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
+class DoctorAssignmentListCreateView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        assignments = DoctorAssignment.objects.select_related(
+            "patient_profile", "doctor"
+        ).order_by("-created_at")
+        return Response(DoctorAssignmentSerializer(assignments, many=True).data)
+
+    def post(self, request):
+        serializer = DoctorAssignmentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        assignment = serializer.save()
+        WellnessPlan.objects.filter(
+            user=assignment.patient_profile.user,
+            assignment__isnull=True,
+        ).update(assignment=assignment)
+        return Response(
+            DoctorAssignmentSerializer(assignment).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class AssessmentResultListCreateView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        assessments = AssessmentResult.objects.filter(user=request.user).order_by("-created_at")
+        return Response(AssessmentResultSerializer(assessments, many=True).data)
+
+    def post(self, request):
+        serializer = CanonicalAssessmentRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        assessment = AssessmentResult.objects.create(
+            user=request.user,
+            prakriti_result=data["prakriti_result"],
+            vikriti_result=data["vikriti_result"],
+            agni_result=data["agni_result"],
+            canonical_payload=data["canonical_payload"],
+        )
+        return Response(AssessmentResultSerializer(assessment).data, status=status.HTTP_201_CREATED)
+
+
+class LatestAssessmentResultView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        assessment = AssessmentResult.objects.filter(user=request.user).order_by("-created_at").first()
+        if assessment is None:
+            raise NotFound("Assessment result not found.")
+        return Response(AssessmentResultSerializer(assessment).data)
 
 
 def _get_plan_for_user_or_doctor(request, pk: int) -> WellnessPlan:
@@ -65,7 +152,12 @@ def _get_plan_for_user_or_doctor(request, pk: int) -> WellnessPlan:
         raise NotFound("Plan not found.") from exc
     if plan.user_id == request.user.id:
         return plan
-    if _is_verified_doctor(request.user):
+    if (
+        _is_verified_doctor(request.user)
+        and plan.assignment_id
+        and plan.assignment.doctor_id == request.user.doctor_profile.id
+        and plan.assignment.active
+    ):
         return plan
     raise NotFound("Plan not found.")
 
@@ -74,7 +166,12 @@ def _get_plan_for_verified_doctor(request, pk: int) -> WellnessPlan:
     if not _is_verified_doctor(request.user):
         raise PermissionDenied("Verified doctor access is required.")
     return get_object_or_404(
-        WellnessPlan.objects.select_related("assessment", "agent_run", "user", "parent_plan"),
+        WellnessPlan.objects.select_related(
+            "assessment", "agent_run", "user", "parent_plan", "assignment"
+        ).filter(
+            assignment__doctor=request.user.doctor_profile,
+            assignment__active=True,
+        ),
         pk=pk,
     )
 
@@ -132,7 +229,13 @@ class DoctorReviewQueueView(APIView):
     def get(self, request):
         if not _is_verified_doctor(request.user):
             raise PermissionDenied("Verified doctor access is required.")
-        serializer = WellnessPlanListSerializer(_doctor_queryset(), many=True)
+        serializer = WellnessPlanListSerializer(
+            _doctor_queryset().filter(
+                assignment__doctor=request.user.doctor_profile,
+                assignment__active=True,
+            ),
+            many=True,
+        )
         return Response(serializer.data)
 
 

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import uuid
+from decimal import Decimal
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 
@@ -28,6 +30,85 @@ class DoctorReviewStatus(models.TextChoices):
     APPROVED = "APPROVED", "Approved"
     CHANGES_REQUESTED = "CHANGES_REQUESTED", "Changes requested"
     REJECTED = "REJECTED", "Rejected"
+
+
+class PatientProfile(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="patient_profile",
+    )
+    name = models.CharField(max_length=180, blank=True)
+    age = models.PositiveSmallIntegerField(
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(1), MaxValueValidator(120)],
+    )
+    date_of_birth = models.DateField(blank=True, null=True)
+    gender = models.CharField(max_length=40, blank=True)
+    height_cm = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(Decimal("50.00")), MaxValueValidator(Decimal("250.00"))],
+    )
+    weight_kg = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(Decimal("10.00")), MaxValueValidator(Decimal("300.00"))],
+    )
+    dietary_preference = models.CharField(max_length=80, blank=True)
+    goal = models.CharField(max_length=120, blank=True)
+    activity_level = models.CharField(max_length=80, blank=True)
+    allergies = models.JSONField(blank=True, null=True, default=None)
+    intolerances = models.JSONField(blank=True, null=True, default=None)
+    foods_to_avoid = models.JSONField(blank=True, null=True, default=None)
+    health_conditions = models.JSONField(blank=True, null=True, default=None)
+    current_medicines = models.JSONField(blank=True, null=True, default=None)
+    medicine_allergies = models.JSONField(blank=True, null=True, default=None)
+    medication_restrictions = models.JSONField(blank=True, null=True, default=None)
+    doctor_restrictions = models.JSONField(blank=True, null=True, default=None)
+    pregnancy_status = models.CharField(max_length=80, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["user_id"]
+        indexes = [
+            models.Index(fields=["user"]),
+        ]
+
+    def clean(self) -> None:
+        list_fields = [
+            "allergies",
+            "intolerances",
+            "foods_to_avoid",
+            "health_conditions",
+            "current_medicines",
+            "medicine_allergies",
+            "medication_restrictions",
+            "doctor_restrictions",
+        ]
+        errors = {}
+        for field in list_fields:
+            value = getattr(self, field)
+            if value is None:
+                continue
+            if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
+                errors[field] = "Expected a list of strings, [] for none, or null when not answered."
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        label = self.name or f"user {self.user_id}"
+        return f"PatientProfile for {label}"
 
 
 class AssessmentResult(models.Model):
@@ -125,6 +206,39 @@ class AgentRun(models.Model):
         return f"AgentRun {self.pk} ({self.status})"
 
 
+class DoctorAssignment(models.Model):
+    patient_profile = models.ForeignKey(
+        PatientProfile,
+        on_delete=models.PROTECT,
+        related_name="doctor_assignments",
+    )
+    doctor = models.ForeignKey(
+        DoctorProfile,
+        on_delete=models.PROTECT,
+        related_name="patient_assignments",
+    )
+    active = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    ended_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["patient_profile", "doctor"],
+                condition=models.Q(active=True),
+                name="unique_active_patient_doctor_assignment",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["doctor", "active"]),
+            models.Index(fields=["patient_profile", "active"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"Assignment patient={self.patient_profile_id} doctor={self.doctor_id}"
+
+
 class WellnessPlan(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -140,6 +254,13 @@ class WellnessPlan(models.Model):
         AgentRun,
         on_delete=models.PROTECT,
         related_name="wellness_plan",
+        blank=True,
+        null=True,
+    )
+    assignment = models.ForeignKey(
+        DoctorAssignment,
+        on_delete=models.PROTECT,
+        related_name="wellness_plans",
         blank=True,
         null=True,
     )
