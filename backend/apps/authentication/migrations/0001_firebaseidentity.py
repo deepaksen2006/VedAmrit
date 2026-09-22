@@ -33,6 +33,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="firebaseidentity",
-            index=models.Index(fields=["firebase_uid"], name="authenticat_firebas_87b8e1_idx"),
+            index=models.Index(fields=["firebase_uid"], name="authenticat_firebas_d30079_idx"),
         ),
     ]

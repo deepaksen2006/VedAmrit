@@ -21,6 +21,9 @@ class FirebaseOrJWTAuthentication(authentication.BaseAuthentication):
     def __init__(self) -> None:
         self.jwt_authentication = JWTAuthentication()
 
+    def authenticate_header(self, request) -> str:
+        return self.keyword
+
     def authenticate(self, request):
         header = authentication.get_authorization_header(request).decode("utf-8")
         if not header:
