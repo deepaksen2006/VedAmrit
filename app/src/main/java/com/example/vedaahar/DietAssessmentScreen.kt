@@ -80,6 +80,7 @@ import com.example.vedaahar.agentic.AiLifestylePlan
 import com.example.vedaahar.agentic.AiWellnessPlanPresentation
 import com.example.vedaahar.agentic.toPresentation
 import com.example.vedaahar.network.ApiClient
+import com.example.vedaahar.network.AuthTokenStore
 import com.example.vedaahar.agni.AgniOption
 import com.example.vedaahar.agni.AgniResult
 import com.example.vedaahar.agni.AgniResultStore
@@ -115,7 +116,6 @@ import com.example.vedaahar.ui.theme.LightSage
 import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.ui.theme.SageGreen
 import com.example.vedaahar.ui.theme.SoftBlueGray
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -501,7 +501,7 @@ fun DoshaTestHubScreen(
     val assessmentRepository = remember(context) {
         AssessmentRepository(
             api = ApiClient.agenticApi(context.applicationContext),
-            accessTokenProvider = { FirebaseAuth.getInstance().currentUser?.uid }
+            accessTokenProvider = { AuthTokenStore(context.applicationContext).getAccessToken() }
         )
     }
     var selectedAssessment by remember { mutableStateOf<DoshaHubAssessment?>(null) }
@@ -809,7 +809,7 @@ fun SequentialDoshaTestScreen(
     val assessmentRepository = remember(context) {
         AssessmentRepository(
             api = ApiClient.agenticApi(context.applicationContext),
-            accessTokenProvider = { FirebaseAuth.getInstance().currentUser?.uid }
+            accessTokenProvider = { AuthTokenStore(context.applicationContext).getAccessToken() }
         )
     }
     var currentQuestionIndex by remember { mutableIntStateOf(0) }
@@ -1130,7 +1130,7 @@ fun DietAssessmentScreen(
             application = application,
             repository = AgenticRepository(
                 api = ApiClient.agenticApi(application),
-                accessTokenProvider = { FirebaseAuth.getInstance().currentUser?.uid }
+                accessTokenProvider = { AuthTokenStore(context.applicationContext).getAccessToken() }
             )
         )
     }
@@ -3671,6 +3671,7 @@ private fun AyurvedicDravyaContent(tips: List<String>) {
         }
     }
 }
+
 
 
 

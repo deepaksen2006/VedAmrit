@@ -4,9 +4,6 @@ plugins {
     id("com.android.application")
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-
-    // Add the Google services Gradle plugin
-    id("com.google.gms.google-services")
 }
 
 val localProperties = Properties().apply {
@@ -18,7 +15,7 @@ val localProperties = Properties().apply {
 
 val agenticApiBaseUrl = providers.gradleProperty("agenticApiBaseUrl")
     .orElse(providers.provider { localProperties.getProperty("agenticApiBaseUrl") })
-    .orElse("http://192.168.137.3:8000/")
+    .orElse("http://172.16.106.25:8000/")
     .get()
 
 android {
@@ -37,10 +34,16 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "MAPTILER_API_KEY", "\"HCZeFeM9c5CLiXZG5S8d\"")
         buildConfigField("String", "AGENTIC_API_BASE_URL", "\"$agenticApiBaseUrl\"")
+        buildConfigField("boolean", "LOCAL_NO_AUTH_MODE", "false")
     }
 
     buildTypes {
+        debug {
+            buildConfigField("boolean", "LOCAL_NO_AUTH_MODE", "true")
+        }
+
         release {
+            buildConfigField("boolean", "LOCAL_NO_AUTH_MODE", "false")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -65,21 +68,6 @@ kotlin {
 }
 
 dependencies {
-    // Import the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
-
-    // When using the BoM, don't specify versions in Firebase dependencies
-    implementation("com.google.firebase:firebase-analytics")
-
-    // Firebase Authentication
-    implementation("com.google.firebase:firebase-auth")
-
-    // Firestore Database
-    implementation("com.google.firebase:firebase-firestore")
-
-    // Firebase Storage
-    implementation("com.google.firebase:firebase-storage")
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.lifecycle.runtime.ktx)

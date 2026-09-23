@@ -4,10 +4,15 @@ import android.app.Application
 import com.example.vedaahar.auth.AuthRepository
 import com.example.vedaahar.auth.AuthUiState
 import com.example.vedaahar.auth.AuthViewModel
-import com.example.vedaahar.auth.FirebaseAuthGateway
 import com.example.vedaahar.PatientProfileViewModel
+import com.example.vedaahar.network.AuthApi
+import com.example.vedaahar.network.TokenStorage
 import com.example.vedaahar.network.dto.AgenticPlanRequest
+import com.example.vedaahar.network.dto.AuthRequest
+import com.example.vedaahar.network.dto.AuthResponse
 import com.example.vedaahar.network.dto.FinalReportResponse
+import com.example.vedaahar.network.dto.TokenRefreshRequest
+import com.example.vedaahar.network.dto.TokenRefreshResponse
 import com.example.vedaahar.network.dto.WellnessPlanResponse
 import com.example.vedaahar.network.dto.WellnessPlanStatusResponse
 import com.example.vedaahar.profile.PatientProfileGateway
@@ -16,11 +21,12 @@ import com.example.vedaahar.profile.StoredPatientProfile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import retrofit2.Response
 
 class ViewModelFactoryTest {
     @Test
     fun authFactoryCreatesViewModelWithProvidedRepository() {
-        val repository = AuthRepository(FakeFirebaseAuthGateway())
+        val repository = AuthRepository(FakeAuthApi(), FakeTokenStore())
 
         val viewModel = AuthViewModel.Factory(Application(), repository)
             .create(AuthViewModel::class.java)
@@ -51,11 +57,26 @@ class ViewModelFactoryTest {
         assertEquals("", viewModel.uiState.value.fullName)
     }
 
-    private class FakeFirebaseAuthGateway : FirebaseAuthGateway {
-        override suspend fun signIn(email: String, password: String) = Unit
-        override suspend fun createAccount(email: String, password: String) = Unit
-        override fun hasCurrentUser(): Boolean = false
-        override fun signOut() = Unit
+    private class FakeAuthApi : AuthApi {
+        override suspend fun register(request: AuthRequest): Response<AuthResponse> {
+            return Response.success(AuthResponse("access", "refresh", null))
+        }
+
+        override suspend fun login(request: AuthRequest): Response<AuthResponse> {
+            return Response.success(AuthResponse("access", "refresh", null))
+        }
+
+        override suspend fun refresh(request: TokenRefreshRequest): Response<TokenRefreshResponse> {
+            return Response.success(TokenRefreshResponse("access"))
+        }
+    }
+
+    private class FakeTokenStore : TokenStorage {
+        override fun getAccessToken(): String? = null
+        override fun getRefreshToken(): String? = null
+        override fun hasTokens(): Boolean = false
+        override fun saveTokens(accessToken: String, refreshToken: String?) = Unit
+        override fun clear() = Unit
     }
 
     private class FakeAgenticPlanGateway : AgenticPlanGateway {

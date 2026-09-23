@@ -9,7 +9,6 @@ VedAmrit is an Android wellness application focused on Ayurvedic diet guidance, 
 - Dashboard flow for diet assessment, health reminders, yoga and meditation, ingredient book, shopping, and community care.
 - Community care locator using MapTiler and OpenStreetMap-style location data.
 - Doctor module with registration/login API contract, verified doctor listings, consultations, and diet-plan draft models.
-- Firebase integration for analytics, authentication, Firestore, and storage.
 - Django REST backend apps for doctors, consultations, diet plans, JWT authentication, media, and PostgreSQL configuration.
 
 ## Tech Stack
@@ -22,7 +21,6 @@ VedAmrit is an Android wellness application focused on Ayurvedic diet guidance, 
 - Navigation Compose
 - Android Gradle Plugin 8.13.2
 - Gradle 8.13
-- Firebase BoM, Analytics, Auth, Firestore, and Storage
 - MapTiler support for map/location previews
 
 ### Backend
@@ -61,15 +59,14 @@ VedAmrit is an Android wellness application focused on Ayurvedic diet guidance, 
 - Android Studio
 - JDK 11 or newer
 - Android SDK with compile SDK 36
-- Firebase project configuration
 
 ### Run the App
 
 1. Open the project root in Android Studio.
-2. Add or confirm Firebase configuration at:
+2. Set the backend API URL in `local.properties` for your device/network:
 
 ```text
-app/google-services.json
+agenticApiBaseUrl=http://<CURRENT_PC_IP>:8000/
 ```
 
 3. Sync Gradle.
@@ -128,7 +125,6 @@ http://127.0.0.1:8000/
 ## Configuration Notes
 
 - `local.properties` is ignored and should stay local to each machine.
-- Firebase credentials are expected through `app/google-services.json`.
 - The Android app defines a `MAPTILER_API_KEY` build config value in `app/build.gradle.kts`.
 - For production, move secrets and API keys out of committed source and into secure build-time configuration.
 - The doctor Android repository currently includes mocked sample data, while API request/response contracts and Django backend modules are present for backend integration.
@@ -156,4 +152,4 @@ python manage.py runserver
 - Keep generated folders such as `.gradle/`, `build/`, and Python `__pycache__/` out of version control.
 - Use Android Studio for Compose previews, Gradle sync, and emulator/device testing.
 - Use Django migrations when backend models change.
-- Validate Firebase and MapTiler configuration before testing authentication, storage, maps, or location-related flows.
+- Validate Django, PostgreSQL, and MapTiler configuration before testing authentication, maps, or location-related flows.

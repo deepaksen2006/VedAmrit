@@ -36,6 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.vedaahar.BuildConfig
 import com.example.vedaahar.auth.AuthUiState
 import com.example.vedaahar.auth.AuthRepository
 import com.example.vedaahar.auth.AuthViewModel
@@ -46,10 +47,11 @@ import com.example.vedaahar.document.ui.UploadMedicalDocumentScreen
 import com.example.vedaahar.document.ui.MyMedicalDocumentsScreen
 import com.example.vedaahar.symptoms.SymptomsAnalysisModuleScreen
 import com.example.vedaahar.network.ApiClient
+import com.example.vedaahar.network.AuthTokenStore
+import com.example.vedaahar.profile.LocalPatientProfileRepository
 import com.example.vedaahar.profile.PatientProfileRepository
 import com.example.vedaahar.ui.theme.Cream
 import com.example.vedaahar.ui.theme.ForestGreen
-import com.google.firebase.auth.FirebaseAuth
 
 private object VedaAhaarRoute {
     const val Loading = "loading"
@@ -104,20 +106,28 @@ fun VedaAhaarNavHost(
 ) {
     val context = LocalContext.current
     val application = remember(context) { context.applicationContext as Application }
-    val authViewModelFactory = remember(application) {
+    val tokenStore = remember(application) { AuthTokenStore(application) }
+    val authViewModelFactory = remember(application, tokenStore) {
         AuthViewModel.Factory(
             application = application,
-            repository = AuthRepository(FirebaseAuth.getInstance())
+            repository = AuthRepository(
+                authApi = ApiClient.authApi(),
+                tokenStore = tokenStore
+            )
         )
     }
     val authViewModel: AuthViewModel = viewModel(factory = authViewModelFactory)
-    val patientProfileViewModelFactory = remember(application) {
+    val patientProfileViewModelFactory = remember(application, tokenStore) {
         PatientProfileViewModel.Factory(
-            repository = PatientProfileRepository(
-                api = ApiClient.profileApi(application),
-                accessTokenProvider = { FirebaseAuth.getInstance().currentUser?.uid },
-                context = application
-            )
+            repository = if (BuildConfig.LOCAL_NO_AUTH_MODE) {
+                LocalPatientProfileRepository(application)
+            } else {
+                PatientProfileRepository(
+                    api = ApiClient.profileApi(application),
+                    accessTokenProvider = { tokenStore.getAccessToken() },
+                    context = application
+                )
+            }
         )
     }
     val authState by authViewModel.uiState.collectAsState()
@@ -187,15 +197,13 @@ fun VedaAhaarNavHost(
     }
 
     LaunchedEffect(Unit) {
-        authViewModel.restoreSession {
-            persistAndUpdate(isLoggedIn = true)
-        }
-        onboardingState = OnboardingState(
-            loading = false,
-            isLoggedIn = authState is AuthUiState.Authenticated,
-            consentCompleted = preferences.getBoolean(OnboardingPrefs.ConsentCompleted, false),
-            profileCompleted = preferences.getBoolean(OnboardingPrefs.ProfileCompleted, false),
-            doshaTestCompleted = preferences.getBoolean(OnboardingPrefs.DoshaTestCompleted, false)
+        authViewModel.restoreSession(
+            onAuthenticated = {
+                persistAndUpdate(isLoggedIn = true)
+            },
+            onUnauthenticated = {
+                persistAndUpdate(isLoggedIn = false)
+            }
         )
     }
 
@@ -441,7 +449,9 @@ fun VedaAhaarNavHost(
                     }
                 },
                 onCreateAccount = { identifier, password ->
-                    authViewModel.register(identifier, password)
+                    authViewModel.register(identifier, password) {
+                        navigateToAllowedRoute(persistAndUpdate(isLoggedIn = true))
+                    }
                 },
                 loading = authState is AuthUiState.Loading,
                 errorMessage = (authState as? AuthUiState.Error)?.message,

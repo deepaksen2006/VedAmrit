@@ -2,133 +2,125 @@ package com.example.vedaahar.auth
 
 import com.example.vedaahar.agentic.AgenticApiErrorType
 import com.example.vedaahar.agentic.AgenticApiResult
-import com.google.android.gms.tasks.Task
-import com.google.firebase.FirebaseApiNotAvailableException
-import com.google.firebase.FirebaseException
-import com.google.firebase.FirebaseNetworkException
-import com.google.firebase.auth.AuthResult
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.FirebaseAuthInvalidUserException
-import com.google.firebase.auth.FirebaseAuthUserCollisionException
-import com.google.firebase.auth.FirebaseAuthWeakPasswordException
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
+import com.example.vedaahar.network.AuthApi
+import com.example.vedaahar.network.TokenStorage
+import com.example.vedaahar.network.dto.AuthRequest
+import com.example.vedaahar.network.dto.AuthResponse
+import com.example.vedaahar.network.dto.TokenRefreshRequest
+import com.google.gson.JsonSyntaxException
+import retrofit2.Response
+import java.io.IOException
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 
 class AuthRepository(
-    private val gateway: FirebaseAuthGateway = FirebaseAuthGateway.Live()
+    private val authApi: AuthApi,
+    private val tokenStore: TokenStorage
 ) {
-    constructor(firebaseAuth: FirebaseAuth) : this(FirebaseAuthGateway.Live(firebaseAuth))
-
-    suspend fun login(email: String, password: String): AgenticApiResult<Unit> {
-        return authenticate {
-            gateway.signIn(email.trim(), password)
+    suspend fun login(email: String, password: String): AgenticApiResult<AuthResponse> {
+        return authenticate(saveSession = true) {
+            authApi.login(AuthRequest(email.trim(), password))
         }
     }
 
-    suspend fun register(email: String, password: String): AgenticApiResult<Unit> {
-        return authenticate {
-            gateway.createAccount(email.trim(), password)
+    suspend fun register(email: String, password: String): AgenticApiResult<AuthResponse> {
+        return authenticate(saveSession = false) {
+            authApi.register(AuthRequest(email.trim(), password))
         }
     }
 
-    fun isSessionAvailable(): Boolean = gateway.hasCurrentUser()
+    suspend fun refreshSession(): Boolean {
+        val refresh = tokenStore.getRefreshToken() ?: return false
+        return runCatching {
+            val response = authApi.refresh(TokenRefreshRequest(refresh))
+            if (response.isSuccessful) {
+                val access = response.body()?.access
+                if (access.isNullOrBlank()) {
+                    tokenStore.clear()
+                    false
+                } else {
+                    tokenStore.saveTokens(accessToken = access, refreshToken = refresh)
+                    true
+                }
+            } else {
+                tokenStore.clear()
+                false
+            }
+        }.getOrElse {
+            false
+        }
+    }
+
+    fun isSessionAvailable(): Boolean = tokenStore.hasTokens()
 
     fun logout() {
-        gateway.signOut()
+        tokenStore.clear()
     }
 
-    private suspend fun authenticate(block: suspend () -> Unit): AgenticApiResult<Unit> {
+    private suspend fun authenticate(
+        saveSession: Boolean,
+        block: suspend () -> Response<AuthResponse>
+    ): AgenticApiResult<AuthResponse> {
         return try {
-            block()
-            AgenticApiResult.Success(Unit)
-        } catch (exception: Exception) {
-            exception.toAuthError()
-        }
-    }
-
-    private fun Exception.toAuthError(): AgenticApiResult.Error {
-        return when (this) {
-            is FirebaseAuthUserCollisionException -> AgenticApiResult.Error(
-                AgenticApiErrorType.BadRequest,
-                "An account already exists for this email."
+            val response = block()
+            if (response.isSuccessful) {
+                val body = response.body()
+                    ?: return AgenticApiResult.Error(
+                        AgenticApiErrorType.Parse,
+                        "Authentication response was empty."
+                    )
+                if (saveSession) {
+                    tokenStore.saveTokens(body.access, body.refresh)
+                }
+                AgenticApiResult.Success(body)
+            } else {
+                AgenticApiResult.Error(response.errorType(), response.errorMessage())
+            }
+        } catch (_: SocketTimeoutException) {
+            AgenticApiResult.Error(
+                AgenticApiErrorType.Timeout,
+                "The authentication request timed out. Check that Django is running and reachable from your phone."
             )
-            is FirebaseAuthWeakPasswordException -> AgenticApiResult.Error(
-                AgenticApiErrorType.BadRequest,
-                reason?.takeIf { it.isNotBlank() } ?: "Use a stronger password."
-            )
-            is FirebaseAuthInvalidUserException -> AgenticApiResult.Error(
-                AgenticApiErrorType.AuthenticationExpired,
-                "No Firebase account exists for this email."
-            )
-            is FirebaseAuthInvalidCredentialsException -> AgenticApiResult.Error(
-                AgenticApiErrorType.AuthenticationExpired,
-                firebaseCredentialMessage()
-            )
-            is FirebaseNetworkException -> AgenticApiResult.Error(
+        } catch (_: ConnectException) {
+            AgenticApiResult.Error(
                 AgenticApiErrorType.Network,
-                "Network is unavailable. Check your connection and try again."
+                "Could not connect to Django. Check the API IP address, server, and Windows Firewall."
             )
-            is FirebaseApiNotAvailableException -> AgenticApiResult.Error(
-                AgenticApiErrorType.BackendFailure,
-                "Firebase Authentication is not available on this device."
+        } catch (_: IOException) {
+            AgenticApiResult.Error(
+                AgenticApiErrorType.Network,
+                "Network is unavailable or the backend cannot be reached."
             )
-            is FirebaseException -> AgenticApiResult.Error(
-                AgenticApiErrorType.BackendFailure,
-                "Firebase Authentication is not configured correctly."
+        } catch (_: JsonSyntaxException) {
+            AgenticApiResult.Error(
+                AgenticApiErrorType.Parse,
+                "Authentication response could not be read."
             )
-            else -> AgenticApiResult.Error(
+        } catch (_: RuntimeException) {
+            AgenticApiResult.Error(
                 AgenticApiErrorType.Unknown,
                 "Authentication failed. Please try again."
             )
         }
     }
 
-    private fun FirebaseAuthInvalidCredentialsException.firebaseCredentialMessage(): String {
-        return when (errorCode) {
-            "ERROR_INVALID_EMAIL" -> "Enter a valid email address."
-            "ERROR_WRONG_PASSWORD", "ERROR_INVALID_CREDENTIAL" -> "Incorrect email or password."
-            else -> "Incorrect email or password."
+    private fun <T> Response<T>.errorType(): AgenticApiErrorType {
+        return when (code()) {
+            400 -> AgenticApiErrorType.BadRequest
+            401 -> AgenticApiErrorType.AuthenticationExpired
+            403 -> AgenticApiErrorType.AuthorizationDenied
+            in 500..599 -> AgenticApiErrorType.BackendFailure
+            else -> AgenticApiErrorType.Unknown
         }
     }
-}
 
-interface FirebaseAuthGateway {
-    suspend fun signIn(email: String, password: String)
-    suspend fun createAccount(email: String, password: String)
-    fun hasCurrentUser(): Boolean
-    fun signOut()
-
-    class Live(
-        private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
-    ) : FirebaseAuthGateway {
-        override suspend fun signIn(email: String, password: String) {
-            firebaseAuth.signInWithEmailAndPassword(email, password).await()
-        }
-
-        override suspend fun createAccount(email: String, password: String) {
-            firebaseAuth.createUserWithEmailAndPassword(email, password).await()
-        }
-
-        override fun hasCurrentUser(): Boolean = firebaseAuth.currentUser != null
-
-        override fun signOut() {
-            firebaseAuth.signOut()
-        }
-    }
-}
-
-private suspend fun <T> Task<T>.await(): T {
-    return suspendCancellableCoroutine { continuation ->
-        addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                continuation.resume(task.result)
-            } else {
-                continuation.resumeWithException(
-                    task.exception ?: IllegalStateException("Firebase task failed.")
-                )
-            }
+    private fun <T> Response<T>.errorMessage(): String {
+        return when (code()) {
+            400 -> "The email or password is invalid, or the account already exists."
+            401 -> "Incorrect email or password."
+            403 -> "Authentication was rejected by the backend."
+            in 500..599 -> "The authentication service returned HTTP ${code()}. Check Django and PostgreSQL."
+            else -> "Authentication failed with HTTP ${code()}."
         }
     }
 }

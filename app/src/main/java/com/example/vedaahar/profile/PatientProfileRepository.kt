@@ -96,6 +96,25 @@ class PatientProfileRepository(
     }
 }
 
+class LocalPatientProfileRepository(
+    private val cache: PatientProfileCache
+) : PatientProfileGateway {
+    constructor(context: Context) : this(SharedPreferencesPatientProfileCache(context))
+
+    override suspend fun loadProfile(): PatientProfileLoadResult {
+        return PatientProfileLoadResult.Cache(
+            cache.current(),
+            "Local development profile loaded."
+        )
+    }
+
+    override suspend fun saveProfile(profile: StoredPatientProfile): AgenticApiResult<StoredPatientProfile> {
+        val localProfile = profile.withEmptyLists()
+        cache.save(localProfile)
+        return AgenticApiResult.Success(localProfile)
+    }
+}
+
 interface PatientProfileCache {
     fun current(): StoredPatientProfile
     fun save(profile: StoredPatientProfile)
@@ -152,6 +171,19 @@ fun PatientProfileDto.toStoredProfile(): StoredPatientProfile {
         medicationRestrictions = medicationRestrictions,
         doctorRestrictions = doctorRestrictions,
         pregnancyInformation = pregnancyInformation ?: pregnancyStatus.orEmpty()
+    )
+}
+
+private fun StoredPatientProfile.withEmptyLists(): StoredPatientProfile {
+    return copy(
+        allergies = allergies.orEmpty(),
+        foodIntolerances = foodIntolerances.orEmpty(),
+        foodsToAvoid = foodsToAvoid.orEmpty(),
+        healthConditions = healthConditions.orEmpty(),
+        medicineAllergies = medicineAllergies.orEmpty(),
+        currentMedicines = currentMedicines.orEmpty(),
+        medicationRestrictions = medicationRestrictions.orEmpty(),
+        doctorRestrictions = doctorRestrictions.orEmpty()
     )
 }
 

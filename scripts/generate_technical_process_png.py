@@ -107,7 +107,7 @@ mini_box(
     390,
     250,
     "Database",
-    ["PostgreSQL", "Firebase Firestore", "SharedPreferences"],
+    ["PostgreSQL", "SharedPreferences"],
     fill=CREAM,
 )
 mini_box(
@@ -116,7 +116,7 @@ mini_box(
     390,
     250,
     "Cloud / Auth",
-    ["Firebase Authentication", "Firebase Storage", "Firebase Analytics", "Google Services"],
+    ["Django Authentication", "Simple JWT", "Bearer Token Authorization"],
     fill=BLUE,
 )
 mini_box(
@@ -158,7 +158,7 @@ mini_box(
     390,
     190,
     "Libraries",
-    ["Firebase BoM", "psycopg2-binary", "Pillow", "python-dotenv, Leaflet CDN"],
+    ["Retrofit", "psycopg2-binary", "Pillow", "python-dotenv, Leaflet CDN"],
     fill=LIGHT_GREEN,
 )
 

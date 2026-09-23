@@ -95,7 +95,7 @@ def arrow(x1, y1, x2, y2, color=DARK_GREEN, width=4):
 draw.text((90, 58), "VedaAahar Complete Technical App Architecture", fill=INK, font=TITLE)
 draw.text(
     (92, 126),
-    "Android Native healthcare app with Ayurvedic diet intelligence, doctor consultation, Firebase, Django backend, and map-based community care.",
+    "Android Native healthcare app with Ayurvedic diet intelligence, doctor consultation, Django backend, and map-based community care.",
     fill=MUTED,
     font=SUBTITLE,
 )
@@ -104,7 +104,7 @@ draw.text(
 flow_y = 220
 flow = [
     ("Landing", "Welcome page"),
-    ("Auth", "Firebase Auth + Django Auth + JWT"),
+    ("Auth", "Django Auth + Simple JWT"),
     ("Consent", "DPDP-style privacy consent"),
     ("Profile", "Patient demographics and health profile"),
     ("15 Categories", "Health, lifestyle, goal, food and location inputs"),
@@ -171,8 +171,8 @@ layers = [
     ("Frontend / Mobile", "Android Native, Kotlin, Jetpack Compose, Material Design 3, AndroidX Compose UI, Navigation Compose"),
     ("State & Local Storage", "AndroidX Lifecycle ViewModel, Compose State, SharedPreferences"),
     ("Backend API", "Python, Django, Django REST Framework, WSGI, Simple JWT, Django Auth"),
-    ("Databases", "PostgreSQL, Firebase Firestore, SharedPreferences"),
-    ("Firebase Cloud", "Firebase Authentication, Firebase Storage, Firebase Analytics, Google Services"),
+    ("Databases", "PostgreSQL, SharedPreferences"),
+    ("Backend Auth", "Django password hashing, Simple JWT access and refresh tokens"),
     ("Maps", "MapTiler, MapTiler Geocoding API, OpenStreetMap, Leaflet, Android WebView, HTML, CSS, JavaScript"),
     ("Build / Test", "Gradle, Gradle Wrapper, Android Gradle Plugin, Kotlin Gradle Plugin, ProGuard/R8, JUnit, Espresso, Compose UI Test"),
 ]
@@ -186,7 +186,7 @@ arrow(1300, 1470, 1300, 1535, color=GREEN)
 draw.rounded_rectangle((90, 2070, 2510, 2140), radius=24, fill=DARK_GREEN)
 draw.text(
     (130, 2090),
-    "End-to-end flow: User -> Compose UI -> ViewModel/Local State -> Firebase + Django REST API -> PostgreSQL/Firestore -> Diet Report, Consultation, Community Care",
+    "End-to-end flow: User -> Compose UI -> ViewModel/Local State -> Django REST API -> PostgreSQL -> Diet Report, Consultation, Community Care",
     fill="white",
     font=BODY,
 )
