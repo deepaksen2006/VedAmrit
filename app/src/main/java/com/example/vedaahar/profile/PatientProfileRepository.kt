@@ -1,6 +1,7 @@
 package com.example.vedaahar.profile
 
 import android.content.Context
+import com.example.vedaahar.network.PatientSession
 import com.example.vedaahar.agentic.AgenticApiErrorType
 import com.example.vedaahar.agentic.AgenticApiResult
 import com.example.vedaahar.network.ProfileApi
@@ -129,11 +130,12 @@ interface PatientProfileCache {
 
 class SharedPreferencesPatientProfileCache(context: Context) : PatientProfileCache {
     private val appContext = context.applicationContext
+    private val owner = PatientSession.currentKey(context)
 
-    override fun current(): StoredPatientProfile = PatientProfileStore.current(appContext)
+    override fun current(): StoredPatientProfile = PatientProfileStore.current(appContext, owner)
 
     override fun save(profile: StoredPatientProfile) {
-        PatientProfileStore.save(appContext, profile)
+        PatientProfileStore.save(appContext, profile, owner)
     }
 }
 

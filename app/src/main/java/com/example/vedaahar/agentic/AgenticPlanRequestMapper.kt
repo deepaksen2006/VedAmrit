@@ -2,6 +2,8 @@ package com.example.vedaahar.agentic
 
 import android.content.Context
 import com.example.vedaahar.assessment.AssessmentProfileStore
+import com.example.vedaahar.assessment.AssessmentSyncStore
+import com.example.vedaahar.assessment.AssessmentSyncStatus
 import com.example.vedaahar.network.dto.AgenticPlanRequest
 import com.example.vedaahar.network.dto.CanonicalAssessmentDto
 import com.example.vedaahar.profile.PatientProfileStore
@@ -22,6 +24,10 @@ object AgenticPlanRequestMapper {
     private val SupportedActivityLevels = setOf("sedentary", "low", "moderate", "high")
 
     fun fromStoredState(context: Context): AgenticRequestMappingResult {
+        val synced = AssessmentSyncStore(context).read()
+        if (synced?.status != AssessmentSyncStatus.SYNCED || !synced.ready || synced.serverId == null || synced.serverVersion == null) {
+            return AgenticRequestMappingResult.MissingData(listOf("assessment.sync (sync all three assessments first)"))
+        }
         val rawAssessment = AssessmentProfileStore.currentRaw(context)
             ?: return AgenticRequestMappingResult.MissingData(
                 listOf(
@@ -30,10 +36,13 @@ object AgenticPlanRequestMapper {
                     "assessment.agni"
                 )
             )
-        return fromRawAssessmentAndProfile(
+        val mapping = fromRawAssessmentAndProfile(
             rawAssessment = rawAssessment,
             profile = PatientProfileStore.current(context)
         )
+        return if (mapping is AgenticRequestMappingResult.Success) mapping.copy(
+            request = mapping.request.copy(assessmentId = synced.serverId, assessmentVersion = synced.serverVersion)
+        ) else mapping
     }
 
     fun fromRawAssessmentAndProfile(

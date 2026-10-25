@@ -1,6 +1,7 @@
 package com.example.vedaahar.profile
 
 import android.content.Context
+import com.example.vedaahar.network.PatientSession
 import com.example.vedaahar.PatientProfileUiState
 import org.json.JSONArray
 
@@ -28,8 +29,8 @@ object PatientProfileStore {
         save(context, state.toStoredProfile())
     }
 
-    fun save(context: Context, profile: StoredPatientProfile) {
-        context.getSharedPreferences(PrefName, Context.MODE_PRIVATE)
+    fun save(context: Context, profile: StoredPatientProfile, owner: String? = PatientSession.currentKey(context)) {
+        (PatientSession.preferences(context, PrefName, owner) ?: return)
             .edit()
             .putString(FullName, profile.fullName.trim())
             .putString(Age, profile.age.trim())
@@ -51,8 +52,8 @@ object PatientProfileStore {
             .apply()
     }
 
-    fun current(context: Context): StoredPatientProfile {
-        val preferences = context.getSharedPreferences(PrefName, Context.MODE_PRIVATE)
+    fun current(context: Context, owner: String? = PatientSession.currentKey(context)): StoredPatientProfile {
+        val preferences = PatientSession.preferences(context, PrefName, owner) ?: return StoredPatientProfile("", "", "", "", "")
         return StoredPatientProfile(
             fullName = preferences.getString(FullName, "").orEmpty(),
             age = preferences.getString(Age, "").orEmpty(),

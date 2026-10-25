@@ -7,7 +7,9 @@ data class AgenticPlanRequest(
     val patientProfile: Map<String, Any?>,
     val assessment: CanonicalAssessmentDto,
     @SerializedName("plan_days")
-    val planDays: Int? = null
+    val planDays: Int? = null,
+    @SerializedName("assessment_id") val assessmentId: Long? = null,
+    @SerializedName("assessment_version") val assessmentVersion: String? = null
 )
 
 data class CanonicalAssessmentDto(
@@ -18,7 +20,8 @@ data class CanonicalAssessmentDto(
 
 data class CanonicalAssessmentRequest(
     @SerializedName("assessment_profile")
-    val assessmentProfile: Map<String, Any?>
+    val assessmentProfile: Map<String, Any?>,
+    @SerializedName("submission_id") val submissionId: String? = null
 )
 
 data class AssessmentResultResponse(
@@ -34,7 +37,9 @@ data class AssessmentResultResponse(
     @SerializedName("created_at")
     val createdAt: String?,
     @SerializedName("updated_at")
-    val updatedAt: String?
+    val updatedAt: String?,
+    @SerializedName("assessment_version") val assessmentVersion: String? = null,
+    @SerializedName("submission_id") val submissionId: String? = null
 )
 
 data class WellnessPlanResponse(
@@ -68,7 +73,8 @@ data class WellnessPlanResponse(
     @SerializedName("created_at")
     val createdAt: String?,
     @SerializedName("updated_at")
-    val updatedAt: String?
+    val updatedAt: String?,
+    @SerializedName("assessment_version") val assessmentVersion: String? = null
 )
 
 data class WellnessPlanStatusResponse(

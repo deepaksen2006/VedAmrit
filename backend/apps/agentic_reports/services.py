@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from django.db import transaction
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from agent_engine.contracts import parse_agent_engine_request
@@ -22,6 +23,7 @@ from apps.agentic_reports.models import (
     WellnessPlan,
 )
 from apps.doctors.models import DoctorProfile
+from apps.agentic_reports.assessment_sync import select_assessment, assessment_version, AssessmentConflict
 
 
 class AgentRunFailed(RuntimeError):
@@ -103,13 +105,17 @@ def _persisted_engine_payload(
             "agni": assessment.agni_result,
         },
         "plan_days": payload.get("plan_days", 7),
-        "runtime": {**(payload.get("runtime") or {}), "assessment_source": "persisted_db"},
+        "runtime": {**(payload.get("runtime") or {}), "assessment_source": "persisted_db",
+                    "assessment_id": assessment.pk, "assessment_version": assessment_version(assessment)},
     }
 
 
 def create_wellness_plan(user, payload: dict[str, Any]) -> WellnessPlanCreationResult:
     profile = PatientProfile.objects.filter(user=user).first()
-    assessment = AssessmentResult.objects.filter(user=user).order_by("-created_at").first()
+    assessment = select_assessment(user, payload)
+    if payload.get("assessment_id") and profile is None:
+        from rest_framework.exceptions import ValidationError
+        raise ValidationError({"patient_profile": "Save the authenticated patient's profile before generating a plan."})
     if profile is not None and assessment is not None:
         engine_payload = _persisted_engine_payload(profile, assessment, payload)
     else:
@@ -124,6 +130,9 @@ def create_wellness_plan(user, payload: dict[str, Any]) -> WellnessPlanCreationR
             agni_result=request.agni_result,
             canonical_payload=assessment_block,
         )
+    engine_payload.setdefault("runtime", {}).update(
+        assessment_id=assessment.pk, assessment_version=assessment_version(assessment)
+    )
     request = parse_agent_engine_request(engine_payload)
     assignment = (
         DoctorAssignment.objects.filter(patient_profile=profile, active=True).first()
@@ -160,21 +169,32 @@ def create_wellness_plan(user, payload: dict[str, Any]) -> WellnessPlanCreationR
         )
         raise AgentRunFailed(agent_run, agent_run.error_message)
 
-    agent_run.mark_completed(response_payload=response, rag_status=rag_status)
-    wellness_plan = WellnessPlan.objects.create(
-        user=user,
-        assessment=assessment,
-        agent_run=agent_run,
-        assignment=assignment,
-        version=1,
-        diet_plan=response.get("diet_plan") or {},
-        lifestyle_plan=response.get("lifestyle_plan") or {},
-        assessment_summary=response.get("assessment") or {},
-        validation=response.get("validation") or {},
-        validation_status=_validation_status(response.get("validation") or {}),
-        workflow_status=str(workflow.get("workflow_status") or workflow.get("status") or ""),
-        doctor_status=DoctorReviewStatus.PENDING,
-    )
+    response["assessment"] = {**(response.get("assessment") or {}),
+                              "assessment_id": assessment.pk, "assessment_version": assessment_version(assessment)}
+    try:
+        with transaction.atomic():
+            get_user_model().objects.select_for_update().get(pk=user.pk)
+            latest = AssessmentResult.objects.filter(user=user).order_by("-created_at", "-pk").first()
+            if latest is None or latest.pk != assessment.pk or assessment_version(latest) != engine_payload["runtime"]["assessment_version"]:
+                raise AssessmentConflict("Assessment changed during generation. Sync and generate again.")
+            agent_run.mark_completed(response_payload=response, rag_status=rag_status)
+            wellness_plan = WellnessPlan.objects.create(
+                user=user,
+                assessment=assessment,
+                agent_run=agent_run,
+                assignment=assignment,
+                version=1,
+                diet_plan=response.get("diet_plan") or {},
+                lifestyle_plan=response.get("lifestyle_plan") or {},
+                assessment_summary=response.get("assessment") or {},
+                validation=response.get("validation") or {},
+                validation_status=_validation_status(response.get("validation") or {}),
+                workflow_status=str(workflow.get("workflow_status") or workflow.get("status") or ""),
+                doctor_status=DoctorReviewStatus.PENDING,
+            )
+    except AssessmentConflict:
+        agent_run.mark_failed(code="assessment_changed_during_generation", message="Assessment changed during generation.")
+        raise
     return WellnessPlanCreationResult(
         assessment=assessment,
         agent_run=agent_run,

@@ -1,6 +1,7 @@
 package com.example.vedaahar.dosha
 
 import android.content.Context
+import com.example.vedaahar.network.PatientSession
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,7 @@ class DoshaAssessmentViewModel(
     private val context: Context,
     answerPreferencesName: String = "dosha_assessment"
 ) : ViewModel() {
-    private val preferences = context.getSharedPreferences(answerPreferencesName, Context.MODE_PRIVATE)
+    private val preferences = requireNotNull(PatientSession.preferences(context, answerPreferencesName)) { "Sign in before assessing." }
     private val _uiState = MutableStateFlow(loadState())
     val uiState: StateFlow<DoshaAssessmentUiState> = _uiState.asStateFlow()
 

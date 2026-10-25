@@ -1,6 +1,7 @@
 package com.example.vedaahar.dosha
 
 import android.content.Context
+import com.example.vedaahar.network.PatientSession
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -17,7 +18,7 @@ object DoshaResultStore {
     }
 
     fun history(context: Context): List<SavedDoshaAssessment> {
-        val preferences = context.getSharedPreferences(PreferencesName, Context.MODE_PRIVATE)
+        val preferences = PatientSession.preferences(context, PreferencesName) ?: return emptyList()
         val rawHistory = preferences.getString(HistoryKey, "[]").orEmpty()
         val jsonArray = runCatching { JSONArray(rawHistory) }.getOrDefault(JSONArray())
         return buildList {
@@ -29,7 +30,7 @@ object DoshaResultStore {
     }
 
     fun save(context: Context, result: DoshaResult, savedAtMillis: Long = System.currentTimeMillis()): SavedDoshaAssessment? {
-        val preferences = context.getSharedPreferences(PreferencesName, Context.MODE_PRIVATE)
+        val preferences = PatientSession.preferences(context, PreferencesName) ?: return null
         val existing = history(context)
         val previous = existing.lastOrNull()
         val updatedHistory = JSONArray()

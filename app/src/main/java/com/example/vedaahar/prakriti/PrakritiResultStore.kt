@@ -1,30 +1,40 @@
 package com.example.vedaahar.prakriti
 
 import android.content.Context
+import com.example.vedaahar.network.PatientSession
+import com.example.vedaahar.assessment.AssessmentSyncStore
+import com.example.vedaahar.assessment.AssessmentProfileStore
 import org.json.JSONObject
 
 object PrakritiResultStore {
     private const val PREF_NAME = "vedaahar_prakriti_result"
     private const val KEY_RESULT = "latest_result"
 
-    fun save(context: Context, result: PrakritiResult) {
-        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+    fun save(context: Context, result: PrakritiResult, owner: String? = PatientSession.currentKey(context), trackChange: Boolean = true) {
+        if (owner == null) return
+        if (trackChange) AssessmentSyncStore(context, owner).markEditing("prakriti")
+        PatientSession.preferences(context, PREF_NAME, owner)!!
             .edit()
             .putString(KEY_RESULT, result.toJson().toString())
             .apply()
+        if (trackChange) {
+            AssessmentSyncStore(context, owner).componentCompleted("prakriti")
+            AssessmentProfileStore.stageIfComplete(context, owner)
+        }
     }
 
-    fun current(context: Context): PrakritiResult? {
-        val raw = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).getString(KEY_RESULT, null)
+    fun current(context: Context, owner: String? = PatientSession.currentKey(context)): PrakritiResult? {
+        if (AssessmentSyncStore(context, owner).read()?.editingComponents?.contains("prakriti") == true) return null
+        val raw = PatientSession.preferences(context, PREF_NAME, owner)?.getString(KEY_RESULT, null)
             ?: return null
         return runCatching { raw.toPrakritiResult() }.getOrNull()
     }
 
-    fun clear(context: Context) {
-        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .clear()
-            .apply()
+    fun clear(context: Context, owner: String? = PatientSession.currentKey(context)) {
+        PatientSession.preferences(context, PREF_NAME, owner)
+            ?.edit()
+            ?.clear()
+            ?.apply()
     }
 }
 
@@ -40,7 +50,7 @@ private fun PrakritiResult.toJson(): JSONObject {
     }
 }
 
-private fun String.toPrakritiResult(): PrakritiResult {
+internal fun String.toPrakritiResult(): PrakritiResult {
     val json = JSONObject(this)
     return PrakritiResult(
         scores = json.getJSONObject("scores").toDoshaIntMap(),

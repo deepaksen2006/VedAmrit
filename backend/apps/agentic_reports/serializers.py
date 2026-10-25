@@ -34,6 +34,8 @@ class DoctorAssignmentSerializer(serializers.ModelSerializer):
 
 
 class AgenticPlanGenerationRequestSerializer(serializers.Serializer):
+    assessment_id = serializers.IntegerField(required=False, min_value=1)
+    assessment_version = serializers.RegexField(r"^[0-9a-f]{64}$", required=False)
     patient_profile = serializers.DictField(required=False, write_only=True)
     assessment = serializers.DictField(required=False)
     assessments = serializers.DictField(required=False)
@@ -44,16 +46,29 @@ class AgenticPlanGenerationRequestSerializer(serializers.Serializer):
     doctor_id = serializers.IntegerField(required=False, write_only=True)
 
     def validate(self, attrs):
+        if ("assessment_id" in attrs) != ("assessment_version" in attrs):
+            raise serializers.ValidationError("assessment_id and assessment_version must be supplied together.")
         attrs.pop("user_id", None)
         attrs.pop("doctor_id", None)
         return attrs
 
 
 class AssessmentResultSerializer(serializers.ModelSerializer):
+    assessment_version = serializers.SerializerMethodField()
+    submission_id = serializers.SerializerMethodField()
+
+    def get_assessment_version(self, obj):
+        from .assessment_sync import assessment_version
+        return assessment_version(obj)
+
+    def get_submission_id(self, obj):
+        return (obj.canonical_payload.get("sync") or {}).get("submission_id")
     class Meta:
         model = AssessmentResult
         fields = [
             "id",
+            "assessment_version",
+            "submission_id",
             "prakriti_result",
             "vikriti_result",
             "agni_result",
@@ -111,6 +126,7 @@ def _validate_canonical_assessments(prakriti, vikriti, agni):
 
 
 class CanonicalAssessmentRequestSerializer(serializers.Serializer):
+    submission_id = serializers.UUIDField(required=False)
     assessment = serializers.DictField(required=False)
     assessments = serializers.DictField(required=False)
     assessment_profile = serializers.DictField(required=False)
@@ -130,10 +146,11 @@ class CanonicalAssessmentRequestSerializer(serializers.Serializer):
         vikriti = _canonical_result(block, "vikriti")
         agni = _canonical_result(block, "agni")
         _validate_canonical_assessments(prakriti, vikriti, agni)
+        canonical = {key: value for key, value in block.items() if key not in {"submission_id", "canonical_payload"}}
         attrs["prakriti_result"] = prakriti
         attrs["vikriti_result"] = vikriti
         attrs["agni_result"] = agni
-        attrs["canonical_payload"] = block
+        attrs["canonical_payload"] = canonical
         return attrs
 
 
@@ -276,6 +293,11 @@ def public_rag_status(raw_status):
 
 
 class WellnessPlanSerializer(serializers.ModelSerializer):
+    assessment_version = serializers.SerializerMethodField()
+
+    def get_assessment_version(self, obj):
+        from .assessment_sync import assessment_version
+        return assessment_version(obj.assessment)
     assessment_id = serializers.IntegerField(source="assessment.id", read_only=True)
     agent_run_id = serializers.IntegerField(source="agent_run.id", read_only=True)
     assignment_id = serializers.IntegerField(source="assignment.id", read_only=True)
@@ -287,6 +309,7 @@ class WellnessPlanSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "assessment_id",
+            "assessment_version",
             "agent_run_id",
             "assignment_id",
             "lineage_id",

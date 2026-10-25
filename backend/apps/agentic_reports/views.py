@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from agent_engine.contracts import AgentEngineInputError
+from apps.agentic_reports.assessment_sync import persist_assessment
 
 from apps.agentic_reports.models import (
     AgentRunStatus,
@@ -124,21 +125,15 @@ class AssessmentResultListCreateView(APIView):
         serializer = CanonicalAssessmentRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        assessment = AssessmentResult.objects.create(
-            user=request.user,
-            prakriti_result=data["prakriti_result"],
-            vikriti_result=data["vikriti_result"],
-            agni_result=data["agni_result"],
-            canonical_payload=data["canonical_payload"],
-        )
-        return Response(AssessmentResultSerializer(assessment).data, status=status.HTTP_201_CREATED)
+        assessment, created = persist_assessment(request.user, data)
+        return Response(AssessmentResultSerializer(assessment).data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
 class LatestAssessmentResultView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        assessment = AssessmentResult.objects.filter(user=request.user).order_by("-created_at").first()
+        assessment = AssessmentResult.objects.filter(user=request.user).order_by("-created_at", "-pk").first()
         if assessment is None:
             raise NotFound("Assessment result not found.")
         return Response(AssessmentResultSerializer(assessment).data)

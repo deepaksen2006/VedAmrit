@@ -1,6 +1,10 @@
 package com.example.vedaahar.assessment
 
 import android.content.Context
+import com.example.vedaahar.network.PatientSession
+import com.example.vedaahar.prakriti.PrakritiResultStore
+import com.example.vedaahar.vikriti.VikritiResultStore
+import com.example.vedaahar.agni.AgniResultStore
 import com.example.vedaahar.agni.AgniResult
 import com.example.vedaahar.prakriti.PrakritiResult
 import com.example.vedaahar.symptoms.SymptomsAnalysisResult
@@ -9,15 +13,13 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 object AssessmentProfileStore {
-    private const val PREF_NAME = "vedaahar_assessment_profile"
-    private const val KEY_PROFILE = "assessment_profile"
-
     fun save(
         context: Context,
         prakritiResult: PrakritiResult,
         vikritiResult: VikritiResult,
         agniResult: AgniResult,
-        symptomsResult: SymptomsAnalysisResult? = null
+        symptomsResult: SymptomsAnalysisResult? = null,
+        owner: String? = PatientSession.currentKey(context)
     ) {
         val profile = JSONObject().apply {
             put("prakriti_result", prakritiResult.toJson())
@@ -25,21 +27,23 @@ object AssessmentProfileStore {
             put("agni_result", agniResult.toJson())
             symptomsResult?.let { put("symptoms_result", it.toJson()) }
         }
-        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_PROFILE, profile.toString())
-            .apply()
+        AssessmentSyncStore(context, owner).saveLocal(profile.toString())
+    }
+
+    fun stageIfComplete(context: Context, owner: String?) {
+        val prakriti = PrakritiResultStore.current(context, owner) ?: return
+        val vikriti = VikritiResultStore.current(context, owner) ?: return
+        val agni = AgniResultStore.current(context, owner) ?: return
+        save(context, prakriti, vikriti, agni, owner = owner)
     }
 
     fun currentRaw(context: Context): String? {
-        return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).getString(KEY_PROFILE, null)
+        return AssessmentSyncStore(context).read()?.raw
     }
 
-    fun clear(context: Context) {
-        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .clear()
-            .apply()
+    fun clear(context: Context, owner: String? = PatientSession.currentKey(context)) {
+        AssessmentSyncStore(context, owner).markEditing()
+        AssessmentDraftStore.clearAll(context, owner)
     }
 }
 

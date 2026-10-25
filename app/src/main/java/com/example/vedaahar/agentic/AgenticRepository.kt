@@ -46,7 +46,17 @@ class AgenticRepository(
                 "Django login is required before generating an AI wellness plan."
             )
         }
-        return call { api.generatePlan(request) }
+        val result = call { api.generatePlan(request) }
+        if (result is AgenticApiResult.Error && result.type == AgenticApiErrorType.ReportNotReady) {
+            return AgenticApiResult.Error(AgenticApiErrorType.BadRequest,
+                "Assessment changed on the server. Restore/sync the current assessment before generating again.")
+        }
+        if (result is AgenticApiResult.Success && request.assessmentId != null &&
+            (result.value.assessmentId != request.assessmentId || result.value.assessmentVersion != request.assessmentVersion)) {
+            return AgenticApiResult.Error(AgenticApiErrorType.BadRequest,
+                "The plan used a different assessment. Sync the current assessment before trying again.")
+        }
+        return result
     }
 
     override suspend fun plans(): AgenticApiResult<List<WellnessPlanResponse>> = authenticatedCall { api.plans() }

@@ -7,6 +7,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.vedaahar.network.dto.FinalReportResponse
 import com.example.vedaahar.network.dto.WellnessPlanResponse
+import com.example.vedaahar.network.PatientSession
+import com.example.vedaahar.assessment.AssessmentSyncStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -36,6 +38,8 @@ class AgenticPlanViewModel(
 
     fun generatePlan() {
         if (requestInFlight) return
+        val owner = PatientSession.currentKey(getApplication())
+        val assessmentSnapshot = AssessmentSyncStore(getApplication()).read()
 
         when (val mapping = AgenticPlanRequestMapper.fromStoredState(getApplication())) {
             is AgenticRequestMappingResult.MissingData -> {
@@ -51,7 +55,12 @@ class AgenticPlanViewModel(
                 requestInFlight = true
                 viewModelScope.launch {
                     when (val result = repository.generatePlan(mapping.request)) {
-                        is AgenticApiResult.Success -> setCurrentPlan(result.value)
+                        is AgenticApiResult.Success -> {
+                            if (owner != PatientSession.currentKey(getApplication()) ||
+                                assessmentSnapshot != AssessmentSyncStore(getApplication()).read()) {
+                                _uiState.value = AgenticPlanUiState.Error("Patient or assessment changed during generation. Sync the current assessment and generate again.")
+                            } else setCurrentPlan(result.value)
+                        }
                         is AgenticApiResult.Error -> _uiState.value = AgenticPlanUiState.Error(result.message, result.type)
                     }
                     requestInFlight = false
@@ -62,6 +71,7 @@ class AgenticPlanViewModel(
 
     fun refreshCurrentPlan() {
         if (requestInFlight) return
+        val owner = PatientSession.currentKey(getApplication())
         val planId = (_uiState.value as? AgenticPlanUiState.Success)?.plan?.id ?: _latestPlanId.value
         if (planId == null) {
             _uiState.value = AgenticPlanUiState.Error("No generated wellness plan has been saved yet.")
@@ -77,7 +87,13 @@ class AgenticPlanViewModel(
         requestInFlight = true
         viewModelScope.launch {
             when (val result = repository.plan(planId)) {
-                is AgenticApiResult.Success -> setCurrentPlan(result.value)
+                is AgenticApiResult.Success -> {
+                    val assessment = AssessmentSyncStore(getApplication()).read()
+                    if (owner != PatientSession.currentKey(getApplication()) || assessment?.serverId != result.value.assessmentId ||
+                        assessment?.serverVersion != result.value.assessmentVersion || assessment?.ready != true || assessment.localChanges) {
+                        _uiState.value = AgenticPlanUiState.Error("This saved plan uses a different assessment. Sync the current assessment and generate a new plan.")
+                    } else setCurrentPlan(result.value)
+                }
                 is AgenticApiResult.Error -> {
                     _uiState.value = if (current is AgenticPlanUiState.Success) {
                         current.copy(refreshing = false, notice = result.message)

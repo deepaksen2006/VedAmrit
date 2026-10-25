@@ -156,7 +156,7 @@ class AgenticReportPersistenceTests(TestCase):
         self.assertEqual(assessment.vikriti_result["dominantDosha"], "Pitta")
         self.assertEqual(assessment.agni_result["dominantAgni"], "Samagni")
 
-    def test_persisted_profile_and_assessment_override_generation_payload(self):
+    def test_persisted_profile_used_with_matching_assessment_payload(self):
         profile = PatientProfile.objects.create(
             user=self.user,
             name="Persisted Patient",
@@ -188,7 +188,9 @@ class AgenticReportPersistenceTests(TestCase):
             "apps.agentic_reports.services.generate_personalized_plan",
             return_value=successful_agent_response(),
         ) as generate:
-            result = create_wellness_plan(self.user, sample_payload())
+            payload = sample_payload()
+            payload["assessment"]["prakriti"] = assessment.prakriti_result
+            result = create_wellness_plan(self.user, payload)
 
         engine_payload = generate.call_args.args[0]
         self.assertEqual(result.assessment.pk, assessment.pk)

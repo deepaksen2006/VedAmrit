@@ -81,6 +81,7 @@ import com.example.vedaahar.agentic.AiWellnessPlanPresentation
 import com.example.vedaahar.agentic.toPresentation
 import com.example.vedaahar.network.ApiClient
 import com.example.vedaahar.network.AuthTokenStore
+import com.example.vedaahar.network.PatientSession
 import com.example.vedaahar.agni.AgniOption
 import com.example.vedaahar.agni.AgniResult
 import com.example.vedaahar.agni.AgniResultStore
@@ -88,7 +89,10 @@ import com.example.vedaahar.agni.AgniType
 import com.example.vedaahar.agni.agniQuestions
 import com.example.vedaahar.agni.generateAgniResult
 import com.example.vedaahar.assessment.AssessmentProfileStore
-import com.example.vedaahar.assessment.AssessmentRepository
+import com.example.vedaahar.assessment.AssessmentDraftStore
+import com.example.vedaahar.assessment.AssessmentSyncStore
+import com.example.vedaahar.assessment.AssessmentSyncSection
+import com.example.vedaahar.assessment.rememberAssessmentSync
 import com.example.vedaahar.dosha.DoshaResultStore
 import com.example.vedaahar.prakriti.PrakritiDosha
 import com.example.vedaahar.prakriti.PrakritiOption
@@ -497,25 +501,26 @@ fun DoshaTestHubScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val assessmentOwner = remember { PatientSession.currentKey(context) }
     val coroutineScope = rememberCoroutineScope()
-    val assessmentRepository = remember(context) {
-        AssessmentRepository(
-            api = ApiClient.agenticApi(context.applicationContext),
-            accessTokenProvider = { AuthTokenStore(context.applicationContext).getAccessToken() }
-        )
-    }
     var selectedAssessment by remember { mutableStateOf<DoshaHubAssessment?>(null) }
     var showCombinedResult by remember { mutableStateOf(false) }
-    var currentQuestionIndex by remember { mutableIntStateOf(0) }
-    var answers by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
-    var assessmentResult by remember { mutableStateOf(PrakritiResultStore.current(context)) }
-    var vikritiQuestionIndex by remember { mutableIntStateOf(0) }
-    var vikritiAnswers by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-    var vikritiResult by remember { mutableStateOf(VikritiResultStore.current(context)) }
-    var agniQuestionIndex by remember { mutableIntStateOf(0) }
-    var agniAnswers by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
-    var agniResult by remember { mutableStateOf(AgniResultStore.current(context)) }
+    var currentQuestionIndex by remember { mutableIntStateOf(AssessmentDraftStore.intAnswers(context, "prakriti", assessmentOwner).size.coerceAtMost(prakritiQuestions.lastIndex)) }
+    var answers by remember { mutableStateOf(AssessmentDraftStore.intAnswers(context, "prakriti", assessmentOwner)) }
+    var assessmentResult by remember { mutableStateOf(PrakritiResultStore.current(context, assessmentOwner)) }
+    var vikritiQuestionIndex by remember { mutableIntStateOf(AssessmentDraftStore.answers(context, "vikriti", assessmentOwner).size.coerceAtMost(vikritiQuestions.lastIndex)) }
+    var vikritiAnswers by remember { mutableStateOf(AssessmentDraftStore.answers(context, "vikriti", assessmentOwner)) }
+    var vikritiResult by remember { mutableStateOf(VikritiResultStore.current(context, assessmentOwner)) }
+    var agniQuestionIndex by remember { mutableIntStateOf(AssessmentDraftStore.intAnswers(context, "agni", assessmentOwner).size.coerceAtMost(agniQuestions.lastIndex)) }
+    var agniAnswers by remember { mutableStateOf(AssessmentDraftStore.intAnswers(context, "agni", assessmentOwner)) }
+    var agniResult by remember { mutableStateOf(AgniResultStore.current(context, assessmentOwner)) }
     var autoAdvanceLocked by remember { mutableStateOf(false) }
+
+    val assessmentSync = rememberAssessmentSync {
+        assessmentResult = PrakritiResultStore.current(context, assessmentOwner)
+        vikritiResult = VikritiResultStore.current(context, assessmentOwner)
+        agniResult = AgniResultStore.current(context, assessmentOwner)
+    }
 
     fun saveProfileWhenComplete(
         prakriti: PrakritiResult? = assessmentResult,
@@ -523,21 +528,16 @@ fun DoshaTestHubScreen(
         agni: AgniResult? = agniResult
     ) {
         if (prakriti != null && vikriti != null && agni != null) {
-            AssessmentProfileStore.save(context, prakriti, vikriti, agni)
-            AssessmentProfileStore.currentRaw(context)?.let { rawAssessment ->
-                coroutineScope.launch {
-                    assessmentRepository.persistCanonicalAssessment(rawAssessment)
-                }
-            }
+            AssessmentProfileStore.save(context, prakriti, vikriti, agni, owner = assessmentOwner)
         }
     }
 
     fun restartCompleteAssessment() {
-        PrakritiResultStore.clear(context)
-        VikritiResultStore.clear(context)
-        AgniResultStore.clear(context)
+        PrakritiResultStore.clear(context, assessmentOwner)
+        VikritiResultStore.clear(context, assessmentOwner)
+        AgniResultStore.clear(context, assessmentOwner)
         SymptomsAnalysisStore.clear(context)
-        AssessmentProfileStore.clear(context)
+        AssessmentProfileStore.clear(context, assessmentOwner)
         selectedAssessment = DoshaHubAssessment.Prakriti
         showCombinedResult = false
         currentQuestionIndex = 0
@@ -610,6 +610,7 @@ fun DoshaTestHubScreen(
                         .padding(horizontal = 18.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    AssessmentSyncSection(assessmentSync)
                     if (showCombinedResult) {
                         CombinedAssessmentResultContent(
                             prakritiResult = assessmentResult,
@@ -644,8 +645,10 @@ fun DoshaTestHubScreen(
                                     currentQuestionIndex = currentQuestionIndex,
                                     answers = answers,
                                     onAnswerSelected = { questionId, optionId ->
+                                        AssessmentSyncStore(context, assessmentOwner).markEditing("prakriti")
                                         val selectedIndex = currentQuestionIndex
                                         answers = answers + (questionId to optionId)
+                                        AssessmentDraftStore.save(context, "prakriti", answers.mapKeys { it.key.toString() }, assessmentOwner)
                                         if (selectedIndex < prakritiQuestions.lastIndex && !autoAdvanceLocked) {
                                             autoAdvanceLocked = true
                                             coroutineScope.launch {
@@ -661,7 +664,7 @@ fun DoshaTestHubScreen(
                                         if (!autoAdvanceLocked && answers.size == prakritiQuestions.size) {
                                             autoAdvanceLocked = true
                                             val generatedPrakriti = generatePrakritiResult(answers)
-                                            PrakritiResultStore.save(context, generatedPrakriti)
+                                            PrakritiResultStore.save(context, generatedPrakriti, owner = assessmentOwner)
                                             assessmentResult = generatedPrakriti
                                             saveProfileWhenComplete(prakriti = generatedPrakriti)
                                             selectedAssessment = null
@@ -694,8 +697,10 @@ fun DoshaTestHubScreen(
                                     currentQuestionIndex = vikritiQuestionIndex,
                                     answers = vikritiAnswers,
                                     onAnswerSelected = { questionId, optionId ->
+                                        AssessmentSyncStore(context, assessmentOwner).markEditing("vikriti")
                                         val selectedIndex = vikritiQuestionIndex
                                         vikritiAnswers = vikritiAnswers + (questionId to optionId)
+                                        AssessmentDraftStore.save(context, "vikriti", vikritiAnswers, assessmentOwner)
                                         if (selectedIndex < vikritiQuestions.lastIndex && !autoAdvanceLocked) {
                                             autoAdvanceLocked = true
                                             coroutineScope.launch {
@@ -714,7 +719,7 @@ fun DoshaTestHubScreen(
                                                 answers = vikritiAnswers,
                                                 prakritiType = assessmentResult?.prakritiType ?: "Not assessed"
                                             )
-                                            VikritiResultStore.save(context, generatedVikriti)
+                                            VikritiResultStore.save(context, generatedVikriti, owner = assessmentOwner)
                                             vikritiResult = generatedVikriti
                                             saveProfileWhenComplete(vikriti = generatedVikriti)
                                             selectedAssessment = null
@@ -747,8 +752,10 @@ fun DoshaTestHubScreen(
                                     currentQuestionIndex = agniQuestionIndex,
                                     answers = agniAnswers,
                                     onAnswerSelected = { questionId, optionId ->
+                                        AssessmentSyncStore(context, assessmentOwner).markEditing("agni")
                                         val selectedIndex = agniQuestionIndex
                                         agniAnswers = agniAnswers + (questionId to optionId)
+                                        AssessmentDraftStore.save(context, "agni", agniAnswers.mapKeys { it.key.toString() }, assessmentOwner)
                                         if (selectedIndex < agniQuestions.lastIndex && !autoAdvanceLocked) {
                                             autoAdvanceLocked = true
                                             coroutineScope.launch {
@@ -764,7 +771,7 @@ fun DoshaTestHubScreen(
                                         if (!autoAdvanceLocked && agniAnswers.size == agniQuestions.size) {
                                             autoAdvanceLocked = true
                                             val generatedAgni = generateAgniResult(agniAnswers)
-                                            AgniResultStore.save(context, generatedAgni)
+                                            AgniResultStore.save(context, generatedAgni, owner = assessmentOwner)
                                             agniResult = generatedAgni
                                             saveProfileWhenComplete(agni = generatedAgni)
                                             selectedAssessment = null
@@ -805,22 +812,17 @@ fun SequentialDoshaTestScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val assessmentOwner = remember { PatientSession.currentKey(context) }
     val coroutineScope = rememberCoroutineScope()
-    val assessmentRepository = remember(context) {
-        AssessmentRepository(
-            api = ApiClient.agenticApi(context.applicationContext),
-            accessTokenProvider = { AuthTokenStore(context.applicationContext).getAccessToken() }
-        )
-    }
-    var currentQuestionIndex by remember { mutableIntStateOf(0) }
-    var answers by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
-    var prakritiResult by remember { mutableStateOf(PrakritiResultStore.current(context)) }
-    var vikritiQuestionIndex by remember { mutableIntStateOf(0) }
-    var vikritiAnswers by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-    var vikritiResult by remember { mutableStateOf(VikritiResultStore.current(context)) }
-    var agniQuestionIndex by remember { mutableIntStateOf(0) }
-    var agniAnswers by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
-    var agniResult by remember { mutableStateOf(AgniResultStore.current(context)) }
+    var currentQuestionIndex by remember { mutableIntStateOf(AssessmentDraftStore.intAnswers(context, "prakriti", assessmentOwner).size.coerceAtMost(prakritiQuestions.lastIndex)) }
+    var answers by remember { mutableStateOf(AssessmentDraftStore.intAnswers(context, "prakriti", assessmentOwner)) }
+    var prakritiResult by remember { mutableStateOf(PrakritiResultStore.current(context, assessmentOwner)) }
+    var vikritiQuestionIndex by remember { mutableIntStateOf(AssessmentDraftStore.answers(context, "vikriti", assessmentOwner).size.coerceAtMost(vikritiQuestions.lastIndex)) }
+    var vikritiAnswers by remember { mutableStateOf(AssessmentDraftStore.answers(context, "vikriti", assessmentOwner)) }
+    var vikritiResult by remember { mutableStateOf(VikritiResultStore.current(context, assessmentOwner)) }
+    var agniQuestionIndex by remember { mutableIntStateOf(AssessmentDraftStore.intAnswers(context, "agni", assessmentOwner).size.coerceAtMost(agniQuestions.lastIndex)) }
+    var agniAnswers by remember { mutableStateOf(AssessmentDraftStore.intAnswers(context, "agni", assessmentOwner)) }
+    var agniResult by remember { mutableStateOf(AgniResultStore.current(context, assessmentOwner)) }
     var autoAdvanceLocked by remember { mutableStateOf(false) }
     var currentStep by remember {
         mutableStateOf(
@@ -833,27 +835,29 @@ fun SequentialDoshaTestScreen(
         )
     }
 
+    val assessmentSync = rememberAssessmentSync {
+        prakritiResult = PrakritiResultStore.current(context, assessmentOwner)
+        vikritiResult = VikritiResultStore.current(context, assessmentOwner)
+        agniResult = AgniResultStore.current(context, assessmentOwner)
+        if (prakritiResult != null && vikritiResult != null && agniResult != null) currentStep = DoshaSequentialStep.CompleteResult
+    }
+
     fun saveProfileWhenComplete(
         prakriti: PrakritiResult? = prakritiResult,
         vikriti: VikritiResult? = vikritiResult,
         agni: AgniResult? = agniResult
     ) {
         if (prakriti != null && vikriti != null && agni != null) {
-            AssessmentProfileStore.save(context, prakriti, vikriti, agni)
-            AssessmentProfileStore.currentRaw(context)?.let { rawAssessment ->
-                coroutineScope.launch {
-                    assessmentRepository.persistCanonicalAssessment(rawAssessment)
-                }
-            }
+            AssessmentProfileStore.save(context, prakriti, vikriti, agni, owner = assessmentOwner)
         }
     }
 
     fun restartCompleteAssessment() {
-        PrakritiResultStore.clear(context)
-        VikritiResultStore.clear(context)
-        AgniResultStore.clear(context)
+        PrakritiResultStore.clear(context, assessmentOwner)
+        VikritiResultStore.clear(context, assessmentOwner)
+        AgniResultStore.clear(context, assessmentOwner)
         SymptomsAnalysisStore.clear(context)
-        AssessmentProfileStore.clear(context)
+        AssessmentProfileStore.clear(context, assessmentOwner)
         currentQuestionIndex = 0
         answers = emptyMap()
         prakritiResult = null
@@ -920,6 +924,7 @@ fun SequentialDoshaTestScreen(
                         .padding(horizontal = 18.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    AssessmentSyncSection(assessmentSync)
                     when (currentStep) {
                         DoshaSequentialStep.PrakritiQuestions -> {
                             if (prakritiResult == null) {
@@ -927,6 +932,7 @@ fun SequentialDoshaTestScreen(
                                     currentQuestionIndex = currentQuestionIndex,
                                     answers = answers,
                                     onAnswerSelected = { questionId, optionId ->
+                                        AssessmentSyncStore(context, assessmentOwner).markEditing("prakriti")
                                         val selectedIndex = currentQuestionIndex
                                         val updatedAnswers = answers + (questionId to optionId)
                                         answers = updatedAnswers
@@ -945,7 +951,7 @@ fun SequentialDoshaTestScreen(
                                         if (!autoAdvanceLocked && answers.size == prakritiQuestions.size) {
                                             autoAdvanceLocked = true
                                             val generatedPrakriti = generatePrakritiResult(answers)
-                                            PrakritiResultStore.save(context, generatedPrakriti)
+                                            PrakritiResultStore.save(context, generatedPrakriti, owner = assessmentOwner)
                                             prakritiResult = generatedPrakriti
                                             currentStep = DoshaSequentialStep.VikritiQuestions
                                             autoAdvanceLocked = false
@@ -987,6 +993,7 @@ fun SequentialDoshaTestScreen(
                                         currentQuestionIndex = vikritiQuestionIndex,
                                         answers = vikritiAnswers,
                                         onAnswerSelected = { questionId, optionId ->
+                                        AssessmentSyncStore(context, assessmentOwner).markEditing("vikriti")
                                             val selectedIndex = vikritiQuestionIndex
                                             val updatedAnswers = vikritiAnswers + (questionId to optionId)
                                             vikritiAnswers = updatedAnswers
@@ -1008,7 +1015,7 @@ fun SequentialDoshaTestScreen(
                                                     answers = vikritiAnswers,
                                                     prakritiType = prakritiResult?.prakritiType ?: "Not assessed"
                                                 )
-                                                VikritiResultStore.save(context, generatedVikriti)
+                                                VikritiResultStore.save(context, generatedVikriti, owner = assessmentOwner)
                                                 vikritiResult = generatedVikriti
                                                 currentStep = DoshaSequentialStep.AgniQuestions
                                                 autoAdvanceLocked = false
@@ -1051,6 +1058,7 @@ fun SequentialDoshaTestScreen(
                                         currentQuestionIndex = agniQuestionIndex,
                                         answers = agniAnswers,
                                         onAnswerSelected = { questionId, optionId ->
+                                        AssessmentSyncStore(context, assessmentOwner).markEditing("agni")
                                             val selectedIndex = agniQuestionIndex
                                             val updatedAnswers = agniAnswers + (questionId to optionId)
                                             agniAnswers = updatedAnswers
@@ -1069,7 +1077,7 @@ fun SequentialDoshaTestScreen(
                                             if (!autoAdvanceLocked && agniAnswers.size == agniQuestions.size) {
                                                 autoAdvanceLocked = true
                                                 val generatedAgni = generateAgniResult(agniAnswers)
-                                                AgniResultStore.save(context, generatedAgni)
+                                                AgniResultStore.save(context, generatedAgni, owner = assessmentOwner)
                                                 agniResult = generatedAgni
                                                 saveProfileWhenComplete(agni = generatedAgni)
                                                 currentStep = DoshaSequentialStep.CompleteResult
@@ -1137,27 +1145,34 @@ fun DietAssessmentScreen(
     val agenticViewModel: AgenticPlanViewModel = viewModel(factory = agenticViewModelFactory)
     val agenticState by agenticViewModel.uiState.collectAsState()
     val latestPlanId by agenticViewModel.latestPlanId.collectAsState()
-    val savedPrakriti = remember { PrakritiResultStore.current(context) }
-    val savedVikriti = remember { VikritiResultStore.current(context) }
-    val savedAgni = remember { AgniResultStore.current(context) }
+    var savedPrakriti by remember { mutableStateOf(PrakritiResultStore.current(context)) }
+    var savedVikriti by remember { mutableStateOf(VikritiResultStore.current(context)) }
+    var savedAgni by remember { mutableStateOf(AgniResultStore.current(context)) }
+
+    val assessmentSync = rememberAssessmentSync {
+        savedPrakriti = PrakritiResultStore.current(context)
+        savedVikriti = VikritiResultStore.current(context)
+        savedAgni = AgniResultStore.current(context)
+    }
 
     if (savedPrakriti == null || savedVikriti == null || savedAgni == null) {
         MissingDoshaTestDietScreen(
             onBack = onBack,
             onTakeDoshaTest = onTakeDoshaTest,
-            modifier = modifier
+            modifier = modifier,
+            syncStatus = { AssessmentSyncSection(assessmentSync) }
         )
         return
     }
 
-    val assessmentPrakriti = savedPrakriti.prakritiType.ifBlank { prakriti }
+    val assessmentPrakriti = savedPrakriti!!.prakritiType.ifBlank { prakriti }
     val selectedPrakriti = assessmentPrakriti
     var activeTabIndex by remember { mutableIntStateOf(0) }
     val result = remember(selectedPrakriti) { getDietPlanForConstitution(selectedPrakriti) }
     val generatedPlan = (agenticState as? AgenticPlanUiState.Success)?.plan
     val generatedPresentation = remember(generatedPlan) { generatedPlan?.toPresentation() }
-    val currentVikriti = savedVikriti.dominantDosha
-    val currentAgni = savedAgni.displayResult
+    val currentVikriti = savedVikriti!!.dominantDosha
+    val currentAgni = savedAgni!!.displayResult
     val tabs = listOf("Body Analysis", "Foods To Eat", "Foods To Avoid", "7-Day Diet Plan", "Lifestyle Tips", "Ayurvedic Dravya")
 
     Surface(modifier = modifier.fillMaxSize(), color = Cream) {
@@ -1281,6 +1296,8 @@ fun DietAssessmentScreen(
                     )
 
                     DietDataSourceBanner(generatedPresentation)
+
+                    AssessmentSyncSection(assessmentSync)
 
                     AgenticPlanSyncCard(
                         state = agenticState,
@@ -1414,6 +1431,10 @@ private fun AgenticPlanSyncCard(
                         color = ForestGreen,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        "Assessment #${state.plan.assessmentId ?: "unknown"} ? version ${state.plan.assessmentVersion?.take(12) ?: "unverified"}",
+                        color = SoftBlueGray, fontSize = 11.sp
                     )
                     presentation?.let {
                         StatusLine("Validation", it.validationStatus ?: "Unknown", it.validationMessage)
@@ -1886,7 +1907,8 @@ private fun CombinedResultCard(
 private fun MissingDoshaTestDietScreen(
     onBack: () -> Unit,
     onTakeDoshaTest: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    syncStatus: @Composable () -> Unit = {}
 ) {
     Surface(modifier = modifier.fillMaxSize(), color = Cream) {
         Box(
@@ -1932,6 +1954,7 @@ private fun MissingDoshaTestDietScreen(
                         .padding(horizontal = 18.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    syncStatus()
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()

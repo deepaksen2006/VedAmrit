@@ -1,6 +1,7 @@
 package com.example.vedaahar.symptoms
 
 import android.content.Context
+import com.example.vedaahar.network.PatientSession
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -9,23 +10,23 @@ object SymptomsAnalysisStore {
     private const val KEY_RESULT = "latest_result"
 
     fun save(context: Context, result: SymptomsAnalysisResult) {
-        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_RESULT, result.toJson().toString())
-            .apply()
+        PatientSession.preferences(context, PREF_NAME)
+            ?.edit()
+            ?.putString(KEY_RESULT, result.toJson().toString())
+            ?.apply()
     }
 
     fun current(context: Context): SymptomsAnalysisResult? {
-        val raw = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).getString(KEY_RESULT, null)
+        val raw = PatientSession.preferences(context, PREF_NAME)?.getString(KEY_RESULT, null)
             ?: return null
         return runCatching { raw.toSymptomsAnalysisResult() }.getOrNull()
     }
 
     fun clear(context: Context) {
-        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .clear()
-            .apply()
+        PatientSession.preferences(context, PREF_NAME)
+            ?.edit()
+            ?.clear()
+            ?.apply()
     }
 }
 

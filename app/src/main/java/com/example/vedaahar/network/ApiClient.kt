@@ -12,12 +12,14 @@ object ApiClient {
 
     fun agenticApi(context: Context): AgenticApi {
         val tokenStore = AuthTokenStore(context)
-        return createAuthenticatedApi(BuildConfig.AGENTIC_API_BASE_URL, tokenStore, AgenticApi::class.java)
+        return createAuthenticatedApi(BuildConfig.AGENTIC_API_BASE_URL, tokenStore, AgenticApi::class.java,
+            PatientSession.currentKey(context))
     }
 
     fun profileApi(context: Context): ProfileApi {
         val tokenStore = AuthTokenStore(context)
-        return createAuthenticatedApi(BuildConfig.AGENTIC_API_BASE_URL, tokenStore, ProfileApi::class.java)
+        return createAuthenticatedApi(BuildConfig.AGENTIC_API_BASE_URL, tokenStore, ProfileApi::class.java,
+            PatientSession.currentKey(context))
     }
 
     fun createAuthApi(baseUrl: String): AuthApi {
@@ -38,7 +40,8 @@ object ApiClient {
     fun <T> createAuthenticatedApi(
         baseUrl: String,
         tokenStore: TokenStorage,
-        service: Class<T>
+        service: Class<T>,
+        expectedPatientKey: String? = null
     ): T {
         val authApi = createAuthApi(baseUrl)
         val client = OkHttpClient.Builder()
@@ -47,7 +50,9 @@ object ApiClient {
             .writeTimeout(60, TimeUnit.SECONDS)
             .addInterceptor(AuthInterceptor(
                 tokenProvider = { tokenStore.getAccessToken() },
-                refreshTokenProvider = { tokenStore.getRefreshToken() }
+                refreshTokenProvider = { tokenStore.getRefreshToken() },
+                expectedPatientKey = expectedPatientKey,
+                patientKeyForToken = { PatientSession.keyFor(it, baseUrl) }
             ))
             .authenticator(TokenRefreshAuthenticator(tokenStore, authApi))
             .build()

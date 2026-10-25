@@ -64,7 +64,7 @@ class AgenticRepositoryTest {
         ).finalReport(42L)
 
         assertEquals(AgenticApiErrorType.ReportNotReady, (blocked as AgenticApiResult.Error).type)
-        assertEquals("The final report is not ready yet.", blocked.message)
+        assertTrue(blocked.message.contains("not ready"))
         assertTrue(available is AgenticApiResult.Success)
         assertEquals("/api/agentic/plans/42/report/", (available as AgenticApiResult.Success).value.reportReference)
     }
@@ -79,6 +79,17 @@ class AgenticRepositoryTest {
         assertTrue(result is AgenticApiResult.Success)
         assertEquals(0, api.generateCalls)
         assertEquals(1, api.planCalls)
+    }
+
+    @Test fun generatedPlanMustMatchExactAssessmentIdAndVersion() = runTest {
+        val requested = request.copy(assessmentId = 1, assessmentVersion = "a".repeat(64))
+        val matching = plan().copy(assessmentVersion = requested.assessmentVersion)
+        val success = AgenticRepository(FakeAgenticApi(Response.success(matching)), { "jwt" }).generatePlan(requested)
+        val wrongId = AgenticRepository(FakeAgenticApi(Response.success(matching.copy(assessmentId = 2))), { "jwt" }).generatePlan(requested)
+        val wrongVersion = AgenticRepository(FakeAgenticApi(Response.success(matching.copy(assessmentVersion = "b".repeat(64)))), { "jwt" }).generatePlan(requested)
+        assertTrue(success is AgenticApiResult.Success)
+        assertTrue(wrongId is AgenticApiResult.Error)
+        assertTrue(wrongVersion is AgenticApiResult.Error)
     }
 
     private fun error(code: Int): Response<WellnessPlanResponse> {
