@@ -1,6 +1,7 @@
 package com.example.vedaahar.network
 
 import android.content.Context
+import android.content.SharedPreferences
 
 interface TokenStorage {
     fun getAccessToken(): String?
@@ -10,8 +11,10 @@ interface TokenStorage {
     fun clear()
 }
 
-class AuthTokenStore(context: Context) : TokenStorage {
-    private val preferences = context.applicationContext.getSharedPreferences(PrefName, Context.MODE_PRIVATE)
+class AuthTokenStore internal constructor(private val preferences: SharedPreferences) : TokenStorage {
+    constructor(context: Context) : this(
+        context.applicationContext.getSharedPreferences(PrefName, Context.MODE_PRIVATE)
+    )
 
     override fun getAccessToken(): String? = preferences.getString(AccessToken, null)
 
@@ -20,6 +23,8 @@ class AuthTokenStore(context: Context) : TokenStorage {
     override fun hasTokens(): Boolean = !getAccessToken().isNullOrBlank() && !getRefreshToken().isNullOrBlank()
 
     override fun saveTokens(accessToken: String, refreshToken: String?) {
+        require(accessToken.isNotBlank()) { "Access token must not be blank." }
+        require(refreshToken == null || refreshToken.isNotBlank()) { "Refresh token must not be blank." }
         preferences.edit()
             .putString(AccessToken, accessToken)
             .apply {

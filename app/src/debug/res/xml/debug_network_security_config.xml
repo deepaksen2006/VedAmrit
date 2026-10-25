@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <!-- Development builds only: supports emulator, USB reverse, and LAN hosts. -->
     <base-config cleartextTrafficPermitted="true" />
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">172.16.106.25</domain>
-    </domain-config>
 </network-security-config>

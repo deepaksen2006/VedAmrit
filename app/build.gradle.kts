@@ -1,4 +1,5 @@
 import java.util.Properties
+import java.net.URI
 
 plugins {
     id("com.android.application")
@@ -13,10 +14,32 @@ val localProperties = Properties().apply {
     }
 }
 
-val agenticApiBaseUrl = providers.gradleProperty("agenticApiBaseUrl")
+val developmentApiBaseUrl = providers.gradleProperty("agenticApiBaseUrl")
     .orElse(providers.provider { localProperties.getProperty("agenticApiBaseUrl") })
-    .orElse("http://172.16.106.25:8000/")
+    .orElse("http://10.0.2.2:8000/")
     .get()
+val releaseApiBaseUrl = providers.gradleProperty("agenticReleaseApiBaseUrl")
+    .orElse(providers.provider { localProperties.getProperty("agenticReleaseApiBaseUrl") })
+    .orElse("")
+    .get()
+
+fun validateApiBaseUrl(value: String, property: String, httpsOnly: Boolean) {
+    val uri = runCatching { URI(value) }.getOrNull()
+    require(uri != null && !uri.host.isNullOrBlank() &&
+        uri.scheme in (if (httpsOnly) setOf("https") else setOf("http", "https")) &&
+        uri.rawUserInfo == null && uri.rawQuery == null && uri.rawFragment == null &&
+        value.endsWith("/")) {
+        "$property must be an absolute ${if (httpsOnly) "HTTPS" else "HTTP(S)"} URL ending in /, without credentials, query, or fragment."
+    }
+}
+
+validateApiBaseUrl(developmentApiBaseUrl, "agenticApiBaseUrl", httpsOnly = false)
+val validateReleaseApiBaseUrl = tasks.register("validateReleaseApiBaseUrl") {
+    doLast { validateApiBaseUrl(releaseApiBaseUrl, "agenticReleaseApiBaseUrl", httpsOnly = true) }
+}
+tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    dependsOn(validateReleaseApiBaseUrl)
+}
 
 android {
     namespace = "com.example.vedaahar"
@@ -33,17 +56,15 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "MAPTILER_API_KEY", "\"HCZeFeM9c5CLiXZG5S8d\"")
-        buildConfigField("String", "AGENTIC_API_BASE_URL", "\"$agenticApiBaseUrl\"")
-        buildConfigField("boolean", "LOCAL_NO_AUTH_MODE", "false")
     }
 
     buildTypes {
         debug {
-            buildConfigField("boolean", "LOCAL_NO_AUTH_MODE", "true")
+            buildConfigField("String", "AGENTIC_API_BASE_URL", "\"$developmentApiBaseUrl\"")
         }
 
         release {
-            buildConfigField("boolean", "LOCAL_NO_AUTH_MODE", "false")
+            buildConfigField("String", "AGENTIC_API_BASE_URL", "\"$releaseApiBaseUrl\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

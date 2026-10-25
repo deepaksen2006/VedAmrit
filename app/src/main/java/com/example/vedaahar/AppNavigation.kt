@@ -36,7 +36,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.vedaahar.BuildConfig
 import com.example.vedaahar.auth.AuthUiState
 import com.example.vedaahar.auth.AuthRepository
 import com.example.vedaahar.auth.AuthViewModel
@@ -48,7 +47,6 @@ import com.example.vedaahar.document.ui.MyMedicalDocumentsScreen
 import com.example.vedaahar.symptoms.SymptomsAnalysisModuleScreen
 import com.example.vedaahar.network.ApiClient
 import com.example.vedaahar.network.AuthTokenStore
-import com.example.vedaahar.profile.LocalPatientProfileRepository
 import com.example.vedaahar.profile.PatientProfileRepository
 import com.example.vedaahar.ui.theme.Cream
 import com.example.vedaahar.ui.theme.ForestGreen
@@ -119,15 +117,11 @@ fun VedaAhaarNavHost(
     val authViewModel: AuthViewModel = viewModel(factory = authViewModelFactory)
     val patientProfileViewModelFactory = remember(application, tokenStore) {
         PatientProfileViewModel.Factory(
-            repository = if (BuildConfig.LOCAL_NO_AUTH_MODE) {
-                LocalPatientProfileRepository(application)
-            } else {
-                PatientProfileRepository(
-                    api = ApiClient.profileApi(application),
-                    accessTokenProvider = { tokenStore.getAccessToken() },
-                    context = application
-                )
-            }
+            repository = PatientProfileRepository(
+                api = ApiClient.profileApi(application),
+                accessTokenProvider = { tokenStore.getAccessToken() },
+                context = application
+            )
         )
     }
     val authState by authViewModel.uiState.collectAsState()
@@ -205,6 +199,15 @@ fun VedaAhaarNavHost(
                 persistAndUpdate(isLoggedIn = false)
             }
         )
+    }
+
+    // Login already renders errors inline; restoration errors also need to be
+    // visible when the existing navigation flow returns to the welcome screen.
+    LaunchedEffect(authState) {
+        val error = authState as? AuthUiState.Error
+        if (error != null && currentRoute != VedaAhaarRoute.Login) {
+            Toast.makeText(context, error.message, Toast.LENGTH_LONG).show()
+        }
     }
 
     LaunchedEffect(onboardingState, currentRoute) {

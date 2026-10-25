@@ -8,6 +8,8 @@ import com.example.vedaahar.network.dto.AuthRequest
 import com.example.vedaahar.network.dto.AuthResponse
 import com.example.vedaahar.network.dto.TokenRefreshRequest
 import com.google.gson.JsonSyntaxException
+import com.google.gson.JsonParser
+import kotlinx.coroutines.CancellationException
 import retrofit2.Response
 import java.io.IOException
 import java.net.ConnectException
@@ -29,25 +31,39 @@ class AuthRepository(
         }
     }
 
-    suspend fun refreshSession(): Boolean {
-        val refresh = tokenStore.getRefreshToken() ?: return false
-        return runCatching {
+    suspend fun refreshSession(): AgenticApiResult<Unit> {
+        val refresh = tokenStore.getRefreshToken()?.takeIf { it.isNotBlank() }
+        if (refresh == null) {
+            tokenStore.clear()
+            return AgenticApiResult.Error(AgenticApiErrorType.AuthenticationRequired, "Please sign in to continue.")
+        }
+        return try {
             val response = authApi.refresh(TokenRefreshRequest(refresh))
             if (response.isSuccessful) {
                 val access = response.body()?.access
                 if (access.isNullOrBlank()) {
                     tokenStore.clear()
-                    false
+                    AgenticApiResult.Error(AgenticApiErrorType.Parse, "The server returned an invalid session. Please sign in again.")
                 } else {
                     tokenStore.saveTokens(accessToken = access, refreshToken = refresh)
-                    true
+                    AgenticApiResult.Success(Unit)
                 }
             } else {
-                tokenStore.clear()
-                false
+                if (response.code() in setOf(400, 401, 403)) {
+                    tokenStore.clear()
+                    AgenticApiResult.Error(AgenticApiErrorType.AuthenticationExpired, "Your session expired. Please sign in again.")
+                } else {
+                    AgenticApiResult.Error(response.errorType(), "Could not restore your session. Please retry signing in when Django is available.")
+                }
             }
-        }.getOrElse {
-            false
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: SocketTimeoutException) {
+            AgenticApiResult.Error(AgenticApiErrorType.Timeout, "Session restore timed out. Check your connection and try again.")
+        } catch (_: IOException) {
+            AgenticApiResult.Error(AgenticApiErrorType.Network, "Could not reach Django to restore your session. Check your connection and try again.")
+        } catch (_: RuntimeException) {
+            AgenticApiResult.Error(AgenticApiErrorType.Parse, "The server session response could not be read. Please sign in again.")
         }
     }
 
@@ -69,6 +85,12 @@ class AuthRepository(
                         AgenticApiErrorType.Parse,
                         "Authentication response was empty."
                     )
+                if (body.access.isNullOrBlank() || body.refresh.isNullOrBlank()) {
+                    return AgenticApiResult.Error(
+                        AgenticApiErrorType.Parse,
+                        "Authentication response did not contain valid session tokens. Please try again."
+                    )
+                }
                 if (saveSession) {
                     tokenStore.saveTokens(body.access, body.refresh)
                 }
@@ -76,6 +98,8 @@ class AuthRepository(
             } else {
                 AgenticApiResult.Error(response.errorType(), response.errorMessage())
             }
+        } catch (error: CancellationException) {
+            throw error
         } catch (_: SocketTimeoutException) {
             AgenticApiResult.Error(
                 AgenticApiErrorType.Timeout,
@@ -115,6 +139,23 @@ class AuthRepository(
     }
 
     private fun <T> Response<T>.errorMessage(): String {
+        if (code() in setOf(400, 401, 403)) {
+            val validationMessage = runCatching {
+                val json = JsonParser.parseString(errorBody()?.string().orEmpty()).asJsonObject
+                listOf("detail", "non_field_errors", "identifier", "password").mapNotNull { field ->
+                    val value = json.get(field) ?: return@mapNotNull null
+                    val message = if (value.isJsonArray) {
+                        value.asJsonArray.filter { it.isJsonPrimitive }.joinToString(" ") { it.asString }
+                    } else if (value.isJsonPrimitive) value.asString else ""
+                    if (message.isBlank()) null else when (field) {
+                        "identifier" -> "Email: $message"
+                        "password" -> "Password: $message"
+                        else -> message
+                    }
+                }.joinToString(" ").take(400)
+            }.getOrNull()
+            if (!validationMessage.isNullOrBlank()) return validationMessage
+        }
         return when (code()) {
             400 -> "The email or password is invalid, or the account already exists."
             401 -> "Incorrect email or password."

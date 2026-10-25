@@ -38,8 +38,8 @@ class PatientProfileRepository(
 
     override suspend fun loadProfile(): PatientProfileLoadResult {
         if (accessTokenProvider().isNullOrBlank()) {
-            return PatientProfileLoadResult.Cache(
-                cache.current(),
+            return PatientProfileLoadResult.Error(
+                AgenticApiErrorType.AuthenticationRequired,
                 "Sign in to sync your profile."
             )
         }
@@ -52,7 +52,11 @@ class PatientProfileRepository(
                 cache.save(profile)
                 PatientProfileLoadResult.Remote(profile)
             } else {
-                cachedLoad(response.errorMessage())
+                if (response.code() in setOf(401, 403)) {
+                    PatientProfileLoadResult.Error(response.errorType(), response.errorMessage())
+                } else {
+                    cachedLoad(response.errorMessage())
+                }
             }
         } catch (_: SocketTimeoutException) {
             cachedLoad("Profile sync timed out. Showing your saved local copy.")
