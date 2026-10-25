@@ -90,9 +90,12 @@ def successful_agent_response(validation_status: str = "PASS") -> dict:
             "vikriti": sample_payload()["assessment"]["vikriti"],
             "agni": sample_payload()["assessment"]["agni"],
         },
-        "diet_plan": {"duration_days": 1, "days": [{"day": 1}]},
+        "diet_plan": {"duration_days": 7, "days": [{"day": day, "meals": [
+            {"meal": meal, "foods": [{"food_name": "Test food", "portion_g": 100, "min_serving_g": 50, "max_serving_g": 200, "diet_type": "vegan",
+                "nutrition": {"calories": 100, "protein_g": 4, "carbs_g": 12, "fat_g": 2, "fiber_g": 1}}]}
+            for meal in ("breakfast", "lunch", "snack", "dinner")]} for day in range(1, 8)]},
         "lifestyle_plan": {"recommendations": [{"category": "daily_routine"}]},
-        "validation": {"status": validation_status, "warnings": []},
+        "validation": {"status": validation_status, "warnings": [], "draft_view_allowed": validation_status != "FAIL"},
         "workflow": {
             "status": "review_required",
             "workflow_status": "PENDING_DOCTOR_REVIEW",
@@ -268,7 +271,7 @@ class AgenticReportPersistenceTests(TestCase):
         v1.refresh_from_db()
         v2.refresh_from_db()
         self.assertEqual(v1.version, 1)
-        self.assertEqual(v1.diet_plan["duration_days"], 1)
+        self.assertEqual(v1.diet_plan["duration_days"], 7)
         self.assertEqual(v2.version, 2)
         self.assertEqual(v2.parent_plan, v1)
         self.assertEqual(v3.version, 3)
@@ -582,6 +585,12 @@ class AgenticReportsApiTests(APITestCase):
         self.client.force_authenticate(user=self.doctor_user)
 
     def create_api_plan(self, user=None, validation_status="PASS"):
+        from .assessment_sync import assessment_version
+        from .generation import profile_version
+        self.client.defaults["HTTP_X_VEDAMRIT_DRAFT_PREVIEW"] = "1"
+        draft_settings = self.settings(DEBUG=True, AGENTIC_DRAFT_PREVIEW_ENABLED=True)
+        draft_settings.enable()
+        self.addCleanup(draft_settings.disable)
         self.client.force_authenticate(user=user or self.patient)
         patient = user or self.patient
         PatientProfile.objects.update_or_create(
@@ -610,7 +619,13 @@ class AgenticReportsApiTests(APITestCase):
             "apps.agentic_reports.services.generate_personalized_plan",
             return_value=successful_agent_response(validation_status),
         ):
-            response = self.client.post("/api/agentic/plans/", sample_payload(), format="json")
+            payload = sample_payload()
+            assessment = AssessmentResult.objects.create(user=patient,
+                prakriti_result=payload["assessment"]["prakriti"], vikriti_result=payload["assessment"]["vikriti"],
+                agni_result=payload["assessment"]["agni"], canonical_payload=payload["assessment"])
+            payload.update(assessment_id=assessment.pk, assessment_version=assessment_version(assessment),
+                           profile_version=profile_version(PatientProfile.objects.get(user=patient)))
+            response = self.client.post("/api/agentic/plans/", payload, format="json")
         self.assertEqual(response.status_code, 201, response.data)
         profile, _ = PatientProfile.objects.get_or_create(user=patient)
         assignment, _ = DoctorAssignment.objects.get_or_create(
@@ -625,7 +640,7 @@ class AgenticReportsApiTests(APITestCase):
 
         self.assertIn("id", response.data)
         self.assertEqual(response.data["assessment_summary"]["source"], "android_canonical_results")
-        self.assertEqual(response.data["diet_plan"]["duration_days"], 1)
+        self.assertEqual(response.data["diet_plan"]["duration_days"], 7)
         self.assertEqual(response.data["validation_status"], "PASS")
         self.assertEqual(response.data["doctor_status"], "PENDING")
         self.assertEqual(response.data["rag_status"]["status"], "available")
@@ -842,12 +857,20 @@ class AgenticReportsApiTests(APITestCase):
         self.assertNotIn("agentic://", available.data["report_reference"])
 
     def test_agent_failure_returns_controlled_response(self):
+        from .assessment_sync import assessment_version
+        from .generation import profile_version
+        self.create_api_plan()
+        WellnessPlan.objects.all().delete()
+        AgentRun.objects.all().delete()
         self.authenticate_patient()
+        assessment = AssessmentResult.objects.filter(user=self.patient).latest("pk")
+        payload = {**sample_payload(), "assessment_id": assessment.pk, "assessment_version": assessment_version(assessment),
+                   "profile_version": profile_version(PatientProfile.objects.get(user=self.patient))}
         with patch(
             "apps.agentic_reports.services.generate_personalized_plan",
             return_value=failed_agent_response(),
         ):
-            response = self.client.post("/api/agentic/plans/", sample_payload(), format="json")
+            response = self.client.post("/api/agentic/plans/", payload, format="json")
 
         self.assertEqual(response.status_code, 502)
         self.assertEqual(response.data["error_code"], "agent_execution_failure")

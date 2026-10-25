@@ -32,6 +32,7 @@ object PatientProfileStore {
     fun save(context: Context, profile: StoredPatientProfile, owner: String? = PatientSession.currentKey(context)) {
         (PatientSession.preferences(context, PrefName, owner) ?: return)
             .edit()
+            .putString("profile_version", profile.profileVersion)
             .putString(FullName, profile.fullName.trim())
             .putString(Age, profile.age.trim())
             .putString(Gender, profile.gender.trim())
@@ -55,6 +56,7 @@ object PatientProfileStore {
     fun current(context: Context, owner: String? = PatientSession.currentKey(context)): StoredPatientProfile {
         val preferences = PatientSession.preferences(context, PrefName, owner) ?: return StoredPatientProfile("", "", "", "", "")
         return StoredPatientProfile(
+            profileVersion = preferences.getString("profile_version", null),
             fullName = preferences.getString(FullName, "").orEmpty(),
             age = preferences.getString(Age, "").orEmpty(),
             gender = preferences.getString(Gender, "").orEmpty(),
@@ -141,5 +143,6 @@ data class StoredPatientProfile(
     val currentMedicines: List<String>? = null,
     val medicationRestrictions: List<String>? = null,
     val doctorRestrictions: List<String>? = null,
-    val pregnancyInformation: String = ""
+    val pregnancyInformation: String = "",
+    val profileVersion: String? = null
 )

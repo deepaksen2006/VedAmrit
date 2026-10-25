@@ -159,7 +159,7 @@ def validate_report_state(state: dict[str, Any]) -> dict[str, Any]:
     if not profile:
         failed_checks.append("Patient profile is missing.")
     for field in ("allergies", "medicine_allergies", "food_intolerances", "foods_to_avoid", "health_conditions", "medication_restrictions", "pregnancy_information", "significant_dietary_restrictions"):
-        if profile.get(field) in (None, "", [], {}):
+        if field not in profile or profile.get(field) in (None, "", {}):
             warnings.append(f"REVIEW REQUIRED: {field.replace('_', ' ')} is unknown; record an explicit none or not applicable when confirmed.")
 
     prakriti = state.get("prakriti_result") or {}
@@ -204,7 +204,7 @@ def validate_report_state(state: dict[str, Any]) -> dict[str, Any]:
         if profile.get(field):
             warnings.append(f"REVIEW REQUIRED: doctor must reconcile patient-provided {field.replace('_', ' ')} with the plan.")
     for field in ("health_conditions", "medication_restrictions", "pregnancy_information", "symptom_severity", "significant_dietary_restrictions"):
-        if profile.get(field) and str(profile[field]).lower() not in {"none", "not applicable"}:
+        if profile.get(field) and str(profile[field]).lower() not in {"none", "not applicable", "not_applicable", "not_pregnant"}:
             warnings.append(f"REVIEW REQUIRED: doctor must reconcile {field.replace('_', ' ')} with the diet and lifestyle draft.")
     medicine_allergies = _items(profile.get("medicine_allergies")) - {"none", "not applicable"}
     for medicine in doctor_review.get("medicines") or []:

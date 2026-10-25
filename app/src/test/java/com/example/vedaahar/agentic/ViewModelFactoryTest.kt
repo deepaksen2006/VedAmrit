@@ -80,6 +80,8 @@ class ViewModelFactoryTest {
     }
 
     private class FakeAgenticPlanGateway : AgenticPlanGateway {
+        override suspend fun generationStatus(id: String): AgenticApiResult<com.example.vedaahar.network.dto.GenerationStatusResponse> = AgenticApiResult.Error(AgenticApiErrorType.NotFound, "Missing")
+
         override suspend fun generatePlan(request: AgenticPlanRequest): AgenticApiResult<WellnessPlanResponse> {
             return AgenticApiResult.Error(AgenticApiErrorType.Unknown, "unused")
         }

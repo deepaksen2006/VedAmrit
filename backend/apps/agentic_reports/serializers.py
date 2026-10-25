@@ -34,6 +34,8 @@ class DoctorAssignmentSerializer(serializers.ModelSerializer):
 
 
 class AgenticPlanGenerationRequestSerializer(serializers.Serializer):
+    generation_id = serializers.UUIDField(required=False)
+    profile_version = serializers.RegexField(r"^[0-9a-f]{64}$", required=False)
     assessment_id = serializers.IntegerField(required=False, min_value=1)
     assessment_version = serializers.RegexField(r"^[0-9a-f]{64}$", required=False)
     patient_profile = serializers.DictField(required=False, write_only=True)
@@ -50,6 +52,8 @@ class AgenticPlanGenerationRequestSerializer(serializers.Serializer):
             raise serializers.ValidationError("assessment_id and assessment_version must be supplied together.")
         attrs.pop("user_id", None)
         attrs.pop("doctor_id", None)
+        # Runtime paths/datasets are server configuration, never patient input.
+        attrs.pop("runtime", None)
         return attrs
 
 
@@ -155,6 +159,11 @@ class CanonicalAssessmentRequestSerializer(serializers.Serializer):
 
 
 class PatientProfileSerializer(serializers.ModelSerializer):
+    profile_version = serializers.SerializerMethodField()
+
+    def get_profile_version(self, obj):
+        from .generation import profile_version
+        return profile_version(obj)
     user_id = serializers.IntegerField(source="user.id", read_only=True)
     food_intolerances = serializers.ListField(
         child=serializers.CharField(),
@@ -177,6 +186,7 @@ class PatientProfileSerializer(serializers.ModelSerializer):
             "name",
             "age",
             "date_of_birth",
+            "profile_version",
             "gender",
             "height_cm",
             "weight_kg",
@@ -276,6 +286,7 @@ def public_rag_status(raw_status):
         "source_count",
         "sources",
         "fallback",
+        "evidence_count",
     }
     sanitized = {
         key: value
@@ -293,6 +304,48 @@ def public_rag_status(raw_status):
 
 
 class WellnessPlanSerializer(serializers.ModelSerializer):
+    inputs_current = serializers.SerializerMethodField()
+
+    def get_inputs_current(self, obj):
+        from .generation import inputs_current
+        return inputs_current(obj)
+
+    profile_version = serializers.SerializerMethodField()
+    generation_id = serializers.SerializerMethodField()
+    draft_view_allowed = serializers.SerializerMethodField()
+    draft_label = serializers.SerializerMethodField()
+
+    def get_profile_version(self, obj):
+        return (obj.agent_run.request_payload.get("runtime") or {}).get("profile_version") if obj.agent_run_id else None
+
+    def get_generation_id(self, obj):
+        return (obj.agent_run.request_payload.get("runtime") or {}).get("generation_id") if obj.agent_run_id else None
+
+    def get_draft_view_allowed(self, obj):
+        from django.conf import settings
+        from agent_engine.services.draft_validation import draft_failures
+        request = self.context.get("request")
+        valid = (obj.validation_status in {"PASS", "REVIEW_REQUIRED"}
+                 and (obj.validation or {}).get("draft_view_allowed") is True
+                 and not draft_failures(obj.diet_plan, obj.lifestyle_plan,
+                    obj.agent_run.request_payload.get("patient_profile") if obj.agent_run_id else None))
+        return bool(valid and (obj.doctor_status == "APPROVED" or (self.get_inputs_current(obj) and
+            settings.DEBUG and settings.AGENTIC_DRAFT_PREVIEW_ENABLED and request
+            and request.headers.get("X-VedAmrit-Draft-Preview") == "1")))
+
+    def get_draft_label(self, obj):
+        return "Doctor Reviewed" if obj.doctor_status == "APPROVED" else "AI-Generated Draft — Not Doctor Reviewed"
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get("request")
+        # Doctor detail endpoints already enforce verification and assignment.
+        doctor_review = request and request.user.pk != instance.user_id
+        if not doctor_review and not data["draft_view_allowed"]:
+            data["diet_plan"] = None
+            data["lifestyle_plan"] = None
+        return data
+
     assessment_version = serializers.SerializerMethodField()
 
     def get_assessment_version(self, obj):
@@ -311,6 +364,11 @@ class WellnessPlanSerializer(serializers.ModelSerializer):
             "assessment_id",
             "assessment_version",
             "agent_run_id",
+            "profile_version",
+            "generation_id",
+            "draft_view_allowed",
+            "draft_label",
+            "inputs_current",
             "assignment_id",
             "lineage_id",
             "parent_plan_id",
@@ -338,6 +396,22 @@ class WellnessPlanSerializer(serializers.ModelSerializer):
 
 
 class WellnessPlanListSerializer(serializers.ModelSerializer):
+    inputs_current = serializers.SerializerMethodField()
+
+    def get_inputs_current(self, obj):
+        from .generation import inputs_current
+        return inputs_current(obj)
+
+    profile_version = serializers.SerializerMethodField()
+    assessment_version = serializers.SerializerMethodField()
+
+    def get_profile_version(self, obj):
+        return (obj.agent_run.request_payload.get("runtime") or {}).get("profile_version") if obj.agent_run_id else None
+
+    def get_assessment_version(self, obj):
+        from .assessment_sync import assessment_version
+        return assessment_version(obj.assessment)
+
     assessment_id = serializers.IntegerField(source="assessment.id", read_only=True)
     agent_run_id = serializers.IntegerField(source="agent_run.id", read_only=True)
     assignment_id = serializers.IntegerField(source="assignment.id", read_only=True)
@@ -347,7 +421,10 @@ class WellnessPlanListSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "assessment_id",
+            "assessment_version",
+            "profile_version",
             "agent_run_id",
+            "inputs_current",
             "assignment_id",
             "lineage_id",
             "parent_plan_id",

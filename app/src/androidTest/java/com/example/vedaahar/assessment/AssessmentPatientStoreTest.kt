@@ -130,18 +130,36 @@ class AssessmentPatientStoreTest {
             dietaryPreference = "vegetarian", goal = "general wellness", activityLevel = "moderate",
             allergies = emptyList(), foodIntolerances = emptyList(), foodsToAvoid = emptyList(),
             healthConditions = emptyList(), medicineAllergies = emptyList(), medicationRestrictions = emptyList(),
-            doctorRestrictions = emptyList(), pregnancyInformation = "not_applicable"))
+            doctorRestrictions = emptyList(), pregnancyInformation = "not_applicable", profileVersion = "b".repeat(64)))
         assertTrue(AgenticPlanRequestMapper.fromStoredState(context) is AgenticRequestMappingResult.MissingData)
         val store = AssessmentSyncStore(context)
         val pending = store.read()!!
         store.replace(pending, pending.copy(status = AssessmentSyncStatus.SYNCED, localChanges = false,
             serverId = 7, serverVersion = "a".repeat(64)))
         val request = (AgenticPlanRequestMapper.fromStoredState(context) as AgenticRequestMappingResult.Success).request
+        assertEquals("b".repeat(64), request.profileVersion)
+        assertEquals(7, request.planDays)
         assertEquals(7L, request.assessmentId)
         assertEquals("a".repeat(64), request.assessmentVersion)
         signIn(2)
         assertTrue(AgenticPlanRequestMapper.fromStoredState(context) is AgenticRequestMappingResult.MissingData)
         assertEquals("", PatientProfileStore.current(context).fullName)
+    }
+
+    @Test fun durableGenerationIdsAreScopedToPatientAndInputs() {
+        val first = com.example.vedaahar.agentic.AgenticPlanStore.generationFor(context, "inputs-a")
+        assertEquals(first, com.example.vedaahar.agentic.AgenticPlanStore.generationFor(context, "inputs-a"))
+        assertEquals(first, com.example.vedaahar.agentic.AgenticPlanStore.pendingGeneration(context, "inputs-a"))
+        com.example.vedaahar.agentic.AgenticPlanStore.saveLatestPlanId(context, 42)
+        assertNull(com.example.vedaahar.agentic.AgenticPlanStore.pendingGeneration(context, "inputs-a"))
+        assertEquals(first, com.example.vedaahar.agentic.AgenticPlanStore.generationFor(context, "inputs-a"))
+        signIn(2)
+        assertNull(com.example.vedaahar.agentic.AgenticPlanStore.generation(context, "inputs-a"))
+        val second = com.example.vedaahar.agentic.AgenticPlanStore.generationFor(context, "inputs-a")
+        assertNotEquals(first, second)
+        signIn(1)
+        assertEquals(first, com.example.vedaahar.agentic.AgenticPlanStore.generation(context, "inputs-a"))
+        assertNotEquals(first, com.example.vedaahar.agentic.AgenticPlanStore.generationFor(context, "inputs-b"))
     }
 
     @Test fun unfinishedAnswersSurviveRecreationAndStayWithTheirPatient() {

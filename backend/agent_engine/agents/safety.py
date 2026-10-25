@@ -95,7 +95,7 @@ def safety_fact_checker_agent(state: dict[str, Any]) -> dict:
     for day_plan in plan_days:
         meals = day_plan.get("meals", [])
 
-        if not (3 <= len(meals) <= 4):
+        if len(meals) != 4 or {str(meal.get("meal", "")).lower() for meal in meals} != ALLOWED_MEAL_TYPES:
             checks["meal_structure"] = "FAIL"
             failed_checks.append(
                 f"Day {day_plan.get('day')} has invalid meal count."
@@ -159,8 +159,8 @@ def safety_fact_checker_agent(state: dict[str, Any]) -> dict:
     if patient_profile.get("allergies"):
         checks["patient_constraints"] = "REVIEW_REQUIRED"
         warnings.append(
-            "The dataset has no allergen or ingredient fields; allergy "
-            "validation is limited to exact food-name matches."
+            "Allergy filtering uses recorded ingredient/allergen metadata; "
+            "label accuracy and practitioner review remain necessary."
         )
 
     dataset_has_diet_type = bool(food_candidates) and all(
@@ -209,7 +209,9 @@ def safety_fact_checker_agent(state: dict[str, Any]) -> dict:
 
     status = "PASS"
 
-    if has_failure or needs_review:
+    if has_failure:
+        status = "FAIL"
+    elif needs_review:
         status = "REVIEW_REQUIRED"
 
     validation_result = {

@@ -9,7 +9,9 @@ data class AgenticPlanRequest(
     @SerializedName("plan_days")
     val planDays: Int? = null,
     @SerializedName("assessment_id") val assessmentId: Long? = null,
-    @SerializedName("assessment_version") val assessmentVersion: String? = null
+    @SerializedName("assessment_version") val assessmentVersion: String? = null,
+    @SerializedName("profile_version") val profileVersion: String? = null,
+    @SerializedName("generation_id") val generationId: String? = null
 )
 
 data class CanonicalAssessmentDto(
@@ -74,7 +76,12 @@ data class WellnessPlanResponse(
     val createdAt: String?,
     @SerializedName("updated_at")
     val updatedAt: String?,
-    @SerializedName("assessment_version") val assessmentVersion: String? = null
+    @SerializedName("assessment_version") val assessmentVersion: String? = null,
+    @SerializedName("profile_version") val profileVersion: String? = null,
+    @SerializedName("generation_id") val generationId: String? = null,
+    @SerializedName("draft_view_allowed") val draftViewAllowed: Boolean = false,
+    @SerializedName("draft_label") val draftLabel: String? = null,
+    @SerializedName("inputs_current") val inputsCurrent: Boolean = false
 )
 
 data class WellnessPlanStatusResponse(
@@ -111,6 +118,7 @@ data class FinalReportResponse(
 )
 
 data class PatientProfileDto(
+    @SerializedName("profile_version") val profileVersion: String? = null,
     val id: Long? = null,
     @SerializedName("user_id")
     val userId: Long? = null,
@@ -152,4 +160,15 @@ data class PatientProfileDto(
     val createdAt: String? = null,
     @SerializedName("updated_at")
     val updatedAt: String? = null
+)
+
+
+data class GenerationStatusResponse(
+    @SerializedName("generation_id") val generationId: String?,
+    val status: String,
+    @SerializedName("plan_id") val planId: Long?,
+    @SerializedName("assessment_id") val assessmentId: Long?,
+    @SerializedName("assessment_version") val assessmentVersion: String?,
+    @SerializedName("profile_version") val profileVersion: String?,
+    val message: String?
 )

@@ -1,6 +1,7 @@
 package com.example.vedaahar.agentic
 
 import com.example.vedaahar.network.dto.WellnessPlanResponse
+import com.example.vedaahar.BuildConfig
 
 data class AiWellnessPlanPresentation(
     val planId: Long,
@@ -61,7 +62,7 @@ data class AiSource(
     val source: String?,
     val page: String?
 ) {
-    val hasDisplayableProvenance: Boolean = !source.isNullOrBlank() || !page.isNullOrBlank()
+    val hasDisplayableProvenance: Boolean = !source.isNullOrBlank() && source != "Not provided" && source != "unknown"
 }
 
 data class NutritionMetric(
@@ -70,13 +71,15 @@ data class NutritionMetric(
 )
 
 fun WellnessPlanResponse.toPresentation(): AiWellnessPlanPresentation {
+    val displayable = draftViewAllowed && validationStatus?.uppercase() in setOf("PASS", "REVIEW_REQUIRED") &&
+        (doctorStatus?.uppercase() == "APPROVED" || BuildConfig.AGENTIC_DRAFT_PREVIEW)
     return AiWellnessPlanPresentation(
         planId = id,
-        diet = dietPlan?.toDietPlan(),
-        lifestyle = lifestylePlan?.toLifestylePlan(),
+        diet = if (displayable) dietPlan?.toDietPlan() else null,
+        lifestyle = if (displayable) lifestylePlan?.toLifestylePlan() else null,
         validationStatus = validationStatus,
         validationMessage = validationStatus.toValidationMessage(),
-        validationWarnings = validationWarnings.orEmpty().mapNotNull { it?.toString()?.takeIf(String::isNotBlank) },
+        validationWarnings = (validationWarnings.orEmpty() + (validation?.get("failed_checks") as? List<*>).orEmpty()).distinct().mapNotNull { it?.toString()?.takeIf(String::isNotBlank) },
         doctorStatus = doctorStatus,
         doctorStatusMessage = doctorStatus.toDoctorStatusMessage(),
         workflowStatus = workflowStatus,

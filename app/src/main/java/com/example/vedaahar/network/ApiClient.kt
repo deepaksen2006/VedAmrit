@@ -46,7 +46,7 @@ object ApiClient {
         val authApi = createAuthApi(baseUrl)
         val client = OkHttpClient.Builder()
             .connectTimeout(20, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(if (service == AgenticApi::class.java) 180 else 60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
             .addInterceptor(AuthInterceptor(
                 tokenProvider = { tokenStore.getAccessToken() },
@@ -54,6 +54,11 @@ object ApiClient {
                 expectedPatientKey = expectedPatientKey,
                 patientKeyForToken = { PatientSession.keyFor(it, baseUrl) }
             ))
+            .addInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                if (BuildConfig.AGENTIC_DRAFT_PREVIEW) request.header("X-VedAmrit-Draft-Preview", "1")
+                chain.proceed(request.build())
+            }
             .authenticator(TokenRefreshAuthenticator(tokenStore, authApi))
             .build()
 

@@ -9,6 +9,7 @@ import retrofit2.Response
 import java.io.IOException
 
 interface AgenticPlanGateway {
+    suspend fun generationStatus(id: String): AgenticApiResult<com.example.vedaahar.network.dto.GenerationStatusResponse>
     suspend fun generatePlan(request: AgenticPlanRequest): AgenticApiResult<WellnessPlanResponse>
     suspend fun plans(): AgenticApiResult<List<WellnessPlanResponse>>
     suspend fun plan(id: Long): AgenticApiResult<WellnessPlanResponse>
@@ -28,6 +29,7 @@ enum class AgenticApiErrorType {
     BadRequest,
     NotFound,
     ReportNotReady,
+    GenerationRunning,
     BackendFailure,
     Network,
     Timeout,
@@ -39,6 +41,7 @@ class AgenticRepository(
     private val api: AgenticApi,
     private val accessTokenProvider: () -> String?
 ) : AgenticPlanGateway {
+    override suspend fun generationStatus(id: String) = authenticatedCall { api.generationStatus(id) }
     override suspend fun generatePlan(request: AgenticPlanRequest): AgenticApiResult<WellnessPlanResponse> {
         if (accessTokenProvider().isNullOrBlank()) {
             return AgenticApiResult.Error(
@@ -49,7 +52,8 @@ class AgenticRepository(
         val result = call { api.generatePlan(request) }
         if (result is AgenticApiResult.Error && result.type == AgenticApiErrorType.ReportNotReady) {
             return AgenticApiResult.Error(AgenticApiErrorType.BadRequest,
-                "Assessment changed on the server. Restore/sync the current assessment before generating again.")
+                result.message.takeIf { it != "The final report is not ready yet." }
+                    ?: "Profile or assessment changed on the server. Reload/save your health profile and restore/sync assessments before generating again.")
         }
         if (result is AgenticApiResult.Success && request.assessmentId != null &&
             (result.value.assessmentId != request.assessmentId || result.value.assessmentVersion != request.assessmentVersion)) {
@@ -80,7 +84,9 @@ class AgenticRepository(
     private suspend fun <T> call(block: suspend () -> Response<T>): AgenticApiResult<T> {
         return try {
             val response = block()
-            if (response.isSuccessful) {
+            if (response.code() == 202) {
+                AgenticApiResult.Error(AgenticApiErrorType.GenerationRunning, "Generation is still running. Tap Refresh to check its status.")
+            } else if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null) AgenticApiResult.Success(body)
                 else AgenticApiResult.Error(AgenticApiErrorType.Parse, "The server returned an empty response.")
@@ -97,7 +103,11 @@ class AgenticRepository(
     }
 
     private fun <T> Response<T>.toError(): AgenticApiResult.Error {
-        val message = when (code()) {
+        val validationDetail = if (code() in setOf(400, 409)) runCatching {
+            val json = org.json.JSONObject(errorBody()?.string().orEmpty())
+            (json.opt("message") as? String) ?: (json.opt("detail") as? String)
+        }.getOrNull()?.take(500) else null
+        val message = validationDetail ?: when (code()) {
             400 -> "The profile or assessment data is incomplete."
             401 -> "Your Django session has expired. Please sign in again."
             403 -> "You are not authorized to access this plan."

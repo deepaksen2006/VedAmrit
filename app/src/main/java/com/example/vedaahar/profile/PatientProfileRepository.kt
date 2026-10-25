@@ -163,6 +163,7 @@ fun StoredPatientProfile.toDto(): PatientProfileDto {
 
 fun PatientProfileDto.toStoredProfile(): StoredPatientProfile {
     return StoredPatientProfile(
+        profileVersion = profileVersion,
         fullName = name.orEmpty(),
         age = age?.toString().orEmpty(),
         gender = gender.toDisplayGender(),

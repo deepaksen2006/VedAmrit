@@ -13,6 +13,9 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 
 interface AgenticApi {
+    @GET("api/agentic/generations/{id}/")
+    suspend fun generationStatus(@Path("id") id: String): Response<com.example.vedaahar.network.dto.GenerationStatusResponse>
+
     @POST("api/agentic/assessments/")
     suspend fun persistAssessment(@Body request: CanonicalAssessmentRequest): Response<AssessmentResultResponse>
 

@@ -92,6 +92,19 @@ class AgenticRepositoryTest {
         assertTrue(wrongVersion is AgenticApiResult.Error)
     }
 
+    @Test fun acceptedRunningResponseIsNotTreatedAsCompletedPlan() = runTest {
+        val api = FakeAgenticApi(Response.success(202, plan()))
+        val result = AgenticRepository(api) { "jwt" }.generatePlan(request)
+        assertEquals(AgenticApiErrorType.GenerationRunning, (result as AgenticApiResult.Error).type)
+    }
+
+    @Test fun staleProfileErrorKeepsActionableBackendDetail() = runTest {
+        val api = FakeAgenticApi(Response.error(409, """{"detail":"Reload/save your health profile."}""".toResponseBody()))
+        val result = AgenticRepository(api) { "jwt" }.generatePlan(request) as AgenticApiResult.Error
+        assertEquals(AgenticApiErrorType.BadRequest, result.type)
+        assertEquals("Reload/save your health profile.", result.message)
+    }
+
     private fun error(code: Int): Response<WellnessPlanResponse> {
         return Response.error(code, "{}".toResponseBody(null))
     }
@@ -138,6 +151,8 @@ class AgenticRepositoryTest {
             )
         )
     ) : AgenticApi {
+        override suspend fun generationStatus(id: String): Response<com.example.vedaahar.network.dto.GenerationStatusResponse> = Response.error(404, "".toResponseBody())
+
         var generateCalls = 0
             private set
         var planCalls = 0

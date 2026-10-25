@@ -77,6 +77,12 @@ class AgenticPlanPresentationTest {
         assertEquals("available", presentation.ragStatus)
     }
 
+    @Test fun failedOrUnverifiedContentIsHidden() {
+        assertEquals(null, planResponse(validationStatus = "FAIL").toPresentation().diet)
+        assertEquals(null, planResponse().copy(draftViewAllowed = false).toPresentation().lifestyle)
+        assertFalse(AiSource("Not provided", "68").hasDisplayableProvenance)
+    }
+
     private fun AiWellnessPlanPresentation.lifecycleRecommendation(): AiLifestyleRecommendation {
         return lifestyle?.recommendations?.first() ?: error("Missing lifestyle recommendation")
     }
@@ -86,6 +92,7 @@ class AgenticPlanPresentationTest {
         doctorStatus: String = "PENDING"
     ) = WellnessPlanResponse(
         id = 42L,
+        draftViewAllowed = true,
         assessmentId = 1L,
         agentRunId = 2L,
         lineageId = "lineage",
@@ -214,6 +221,7 @@ class AgenticPlanPresentationTest {
             "safety_flags": ["Doctor review pending"]
           },
           "validation": {"status": "REVIEW_REQUIRED", "warnings": ["Doctor review pending"]},
+          "draft_view_allowed": true,
           "validation_status": "REVIEW_REQUIRED",
           "validation_warnings": ["Doctor review pending"],
           "rag_status": {"available": true, "status": "available", "chunk_count": 1532},

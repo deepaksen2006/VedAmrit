@@ -1,6 +1,7 @@
 from typing import Any
 
 from agent_engine.services.food_restrictions import matches_food_restriction
+from agent_engine.agents.food_retrieval import DAIRY_KEYWORDS, NON_VEG_KEYWORDS
 
 
 class FoodFilter:
@@ -32,6 +33,8 @@ class FoodFilter:
         foods_to_avoid = self._normalize_list(
             patient_profile.get("foods_to_avoid", [])
         )
+        foods_to_avoid += self._normalize_list(patient_profile.get("food_intolerances", []))
+        foods_to_avoid += self._normalize_list(patient_profile.get("food_exclusions", []))
 
         allowed_foods = []
         excluded_foods = []
@@ -47,7 +50,7 @@ class FoodFilter:
 
             if reason:
                 excluded_foods.append({
-                    "food_id": food["food_id"],
+                    "food_id": food.get("food_id"),
                     "food_name": food["food_name"],
                     "reason": reason,
                 })
@@ -73,10 +76,14 @@ class FoodFilter:
         if dietary_preference == "vegan":
             if food_diet != "vegan":
                 return "Not suitable for vegan diet"
+            if any(matches_food_restriction(food, item) for item in DAIRY_KEYWORDS | NON_VEG_KEYWORDS):
+                return "Animal-derived ingredient is not suitable for vegan diet"
 
         elif dietary_preference == "vegetarian":
             if food_diet not in ["vegan", "vegetarian"]:
                 return "Not suitable for vegetarian diet"
+            if any(matches_food_restriction(food, item) for item in NON_VEG_KEYWORDS):
+                return "Animal ingredient is not suitable for vegetarian diet"
 
         # --------------------------------------------------
         # 2. ALLERGIES

@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any
+from itertools import combinations, chain
 
 from agent_engine.agents.diet_context import prepare_diet_context
 from agent_engine.agents.food_filter import FoodFilter
@@ -137,6 +138,12 @@ def _calculate_portion(
         "food_name": food.get("food_name"),
 
         "portion_g": portion_g,
+        "serving": dict(serving),
+        "min_serving_g": min_g,
+        "max_serving_g": max_g,
+        "ingredients": food.get("ingredients", []),
+        "allergens": food.get("allergens", []),
+        "diet_type": food.get("diet_type"),
 
         "nutrition": {
             "calories": round(
@@ -210,6 +217,14 @@ def fit_meal_portions_to_target(
         if abs(target_meal_calories - adj_cals) < abs(diff):
             result = adjusted
 
+    # Redistribute residual energy after one food hits a serving bound. Keep the
+    # existing 5g rounding and source limits rather than relaxing validation.
+    for _ in range(3):
+        for index, food in enumerate(meal_foods):
+            remaining = target_meal_calories - sum(item["nutrition"]["calories"] for item in result)
+            adjusted = _calculate_portion(food, result[index]["nutrition"]["calories"] + remaining)
+            if abs(remaining - (adjusted["nutrition"]["calories"] - result[index]["nutrition"]["calories"])) < abs(remaining):
+                result[index] = adjusted
     return result
 
 
@@ -245,12 +260,18 @@ def build_single_day_plan(
         if not suitable:
             suitable = dish_candidates
 
-        # Rotate through candidates based on day number and offset
-        pool = []
-        for i in range(count):
-            idx = (start_offset + (day_number - 1) * count + i) % len(suitable)
-            pool.append(suitable[idx])
-        return pool
+        offset = (start_offset + (day_number - 1) * count) % len(suitable)
+        rotated = suitable[offset:] + suitable[:offset]
+        preferred = rotated[:count]
+        target = target_daily_calories * MEAL_CALORIE_DISTRIBUTION[meal_name]
+        # Some pairs have minimum portions above the meal target. Select a
+        # feasible one/two-food pool from the same ranked, filtered candidates.
+        pools = chain([preferred], ([food] for food in rotated), combinations(rotated, 2))
+        for candidate in pools:
+            calculated = fit_meal_portions_to_target(list(candidate), target)
+            if abs(sum(item["nutrition"]["calories"] for item in calculated) - target) <= target * .10:
+                return list(candidate)
+        return preferred
 
     meal_pools = {
         "Breakfast": get_pool_for_meal("Breakfast", 1 if target_daily_calories * 0.25 < 350 else 2),
@@ -655,6 +676,7 @@ def diet_planning_agent(
     }
 
     return {
+        "food_candidates": ranked_candidates,
         "meal_plan": formatted_output[
             "diet_plan"
         ],

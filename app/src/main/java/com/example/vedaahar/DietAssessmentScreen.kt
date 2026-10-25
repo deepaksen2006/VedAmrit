@@ -51,6 +51,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -135,9 +136,9 @@ private val DietDanger = Color(0xFF7A4E32)
 private val DietPitta = Color(0xFF7A4E32)
 private val DietKapha = Color(0xFF1F6B4F)
 private const val AssessmentReportAssetName = "AI_Assessment_Report_1.pdf"
-private const val AssessmentReportDownloadFileName = "Ayurvedic-Assessment-Report.pdf"
+private const val AssessmentReportDownloadFileName = "Example-Ayurvedic-Assessment.pdf"
 private const val DietPlanAssetName = "Final_Personalized_Wellness_Report_.pdf"
-private const val DietPlanDownloadFileName = "7-Day-Personalized-Diet-Plan.pdf"
+private const val DietPlanDownloadFileName = "Example-Diet-Plan.pdf"
 
 private enum class DoshaHubAssessment {
     Prakriti,
@@ -1165,12 +1166,18 @@ fun DietAssessmentScreen(
         return
     }
 
+    LaunchedEffect(assessmentSync.record?.status, assessmentSync.record?.serverVersion) {
+        if (assessmentSync.record?.status == com.example.vedaahar.assessment.AssessmentSyncStatus.SYNCED) {
+            agenticViewModel.restoreLatestPlan()
+        } else agenticViewModel.reset()
+    }
+
     val assessmentPrakriti = savedPrakriti!!.prakritiType.ifBlank { prakriti }
     val selectedPrakriti = assessmentPrakriti
     var activeTabIndex by remember { mutableIntStateOf(0) }
     val result = remember(selectedPrakriti) { getDietPlanForConstitution(selectedPrakriti) }
     val generatedPlan = (agenticState as? AgenticPlanUiState.Success)?.plan
-    val generatedPresentation = remember(generatedPlan) { generatedPlan?.toPresentation() }
+    val generatedPresentation = remember(generatedPlan) { generatedPlan?.toPresentation()?.takeIf { it.diet != null && it.lifestyle != null } }
     val currentVikriti = savedVikriti!!.dominantDosha
     val currentAgni = savedAgni!!.displayResult
     val tabs = listOf("Body Analysis", "Foods To Eat", "Foods To Avoid", "7-Day Diet Plan", "Lifestyle Tips", "Ayurvedic Dravya")
@@ -1273,7 +1280,7 @@ fun DietAssessmentScreen(
                                 shape = RoundedCornerShape(50),
                                 colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
                             ) {
-                                Text("Download Your 7-Day Diet Plan", fontWeight = FontWeight.Bold)
+                                Text("Download Example Diet PDF", fontWeight = FontWeight.Bold)
                             }
 
                             // Status Badges
@@ -1384,7 +1391,7 @@ private fun AgenticPlanSyncCard(
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                 Button(
                     onClick = onGenerate,
-                    enabled = state !is AgenticPlanUiState.Loading && (state as? AgenticPlanUiState.Success)?.refreshing != true,
+                    enabled = state !is AgenticPlanUiState.Loading && state !is AgenticPlanUiState.Pending && (state as? AgenticPlanUiState.Success)?.refreshing != true,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
@@ -1398,13 +1405,13 @@ private fun AgenticPlanSyncCard(
                         Spacer(modifier = Modifier.width(10.dp))
                     }
                     Text(
-                        text = if (state is AgenticPlanUiState.Loading) "Generating..." else "Generate",
+                        text = if (state is AgenticPlanUiState.Loading) "Loading..." else "Generate",
                         fontWeight = FontWeight.Bold
                     )
                 }
                 OutlinedButton(
                     onClick = onRefresh,
-                    enabled = latestPlanId != null && state !is AgenticPlanUiState.Loading && (state as? AgenticPlanUiState.Success)?.refreshing != true,
+                    enabled = state !is AgenticPlanUiState.Loading && (state as? AgenticPlanUiState.Success)?.refreshing != true,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(50),
                     border = BorderStroke(1.dp, BeigeBorder),
@@ -1425,9 +1432,10 @@ private fun AgenticPlanSyncCard(
                     color = SoftBlueGray,
                     fontSize = 11.sp
                 )
+                is AgenticPlanUiState.Pending -> Text(state.message, color = SoftBlueGray, fontSize = 12.sp)
                 is AgenticPlanUiState.Success -> {
                     Text(
-                        text = "AI-generated draft: Plan #${state.plan.id}",
+                        text = state.plan.draftLabel ?: "AI-Generated Draft \u2014 Not Doctor Reviewed",
                         color = ForestGreen,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold
@@ -1436,11 +1444,15 @@ private fun AgenticPlanSyncCard(
                         "Assessment #${state.plan.assessmentId ?: "unknown"} ? version ${state.plan.assessmentVersion?.take(12) ?: "unverified"}",
                         color = SoftBlueGray, fontSize = 11.sp
                     )
+                    if (state.plan.draftViewAllowed != true) {
+                        Text("Generated content is unavailable: validation failed or development preview is disabled. Review warnings and your health profile.", color = DietDanger, fontSize = 12.sp)
+                    }
+                    Text("Profile version ${state.plan.profileVersion?.take(12) ?: "unverified"}", color = SoftBlueGray, fontSize = 11.sp)
                     presentation?.let {
                         StatusLine("Validation", it.validationStatus ?: "Unknown", it.validationMessage)
                         StatusLine("Doctor status", it.doctorStatus ?: "PENDING", it.doctorStatusMessage)
-                        if (it.ragAvailable == true) {
-                            Text("RAG: ${it.ragStatus ?: "available"}", color = SoftBlueGray, fontSize = 11.sp)
+                        if (it.ragStatus != null || it.ragAvailable != null) {
+                            Text("RAG: ${it.ragStatus ?: "unavailable; standard evidence fallback"}", color = SoftBlueGray, fontSize = 11.sp)
                         }
                         if (it.validationWarnings.isNotEmpty()) {
                             Text(
@@ -1521,13 +1533,13 @@ private fun DietDataSourceBanner(plan: AiWellnessPlanPresentation?) {
         Icon(Icons.Filled.Info, contentDescription = null, tint = ForestGreen, modifier = Modifier.size(18.dp))
         Column(verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.weight(1f)) {
             Text(
-                text = if (plan != null) "AI-generated personalized plan" else "Standard diet guidance",
+                text = if (plan?.doctorStatus == "APPROVED") "Doctor-reviewed personalized plan" else if (plan != null) "AI-Generated Draft \u2014 Not Doctor Reviewed" else "Standard diet guidance",
                 color = DarkForestGreen,
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp
             )
             Text(
-                text = if (plan != null) "Showing Agent 2 diet and Agent 3 lifestyle draft from plan #${plan.planId}." else "No generated plan is loaded; the existing static guidance is shown as fallback.",
+                text = if (plan != null) "Generated diet and lifestyle from plan #${plan.planId}; this is not a final medical report." else "No generated plan is loaded; the existing static guidance is shown as fallback.",
                 color = SoftBlueGray,
                 fontSize = 11.sp,
                 lineHeight = 15.sp
@@ -1786,7 +1798,7 @@ private fun CombinedAssessmentResultContent(
                 colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
             ) {
                 Text(
-                    text = "Download Your Report",
+                    text = "Download Example Assessment PDF",
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     maxLines = 2,
@@ -1798,6 +1810,7 @@ private fun CombinedAssessmentResultContent(
 }
 
 private fun downloadAssessmentReport(context: Context) {
+    Toast.makeText(context, "Example PDF only; this is not your personalized or doctor-approved report.", Toast.LENGTH_LONG).show()
     downloadBundledPdf(
         context = context,
         assetName = AssessmentReportAssetName,
@@ -1807,6 +1820,7 @@ private fun downloadAssessmentReport(context: Context) {
 }
 
 private fun downloadDietPlan(context: Context) {
+    Toast.makeText(context, "Example PDF only; this is not your personalized or doctor-approved report.", Toast.LENGTH_LONG).show()
     downloadBundledPdf(
         context = context,
         assetName = DietPlanAssetName,

@@ -24,6 +24,7 @@ from apps.agentic_reports.models import (
 )
 from apps.doctors.models import DoctorProfile
 from apps.agentic_reports.assessment_sync import select_assessment, assessment_version, AssessmentConflict
+from apps.agentic_reports.generation import profile_payload, profile_version, claim_generation, GenerationPending
 
 
 class AgentRunFailed(RuntimeError):
@@ -74,29 +75,7 @@ def _persisted_engine_payload(
     assessment: AssessmentResult,
     payload: dict[str, Any],
 ) -> dict[str, Any]:
-    list_fields = (
-        "allergies",
-        "foods_to_avoid",
-        "health_conditions",
-        "medicine_allergies",
-        "medication_restrictions",
-        "doctor_restrictions",
-    )
-    patient_profile = {
-        "name": profile.name,
-        "age": profile.age,
-        "gender": profile.gender,
-        "height_cm": float(profile.height_cm) if profile.height_cm is not None else None,
-        "weight_kg": float(profile.weight_kg) if profile.weight_kg is not None else None,
-        "dietary_preference": profile.dietary_preference,
-        "goal": profile.goal,
-        "activity_level": profile.activity_level,
-        "intolerances": profile.intolerances or [],
-        "food_intolerances": profile.intolerances or [],
-        "pregnancy_information": profile.pregnancy_status,
-        "current_medicines": profile.current_medicines or [],
-    }
-    patient_profile.update({field: getattr(profile, field) or [] for field in list_fields})
+    patient_profile = profile_payload(profile)
     return {
         "patient_profile": patient_profile,
         "assessment": {
@@ -106,13 +85,16 @@ def _persisted_engine_payload(
         },
         "plan_days": payload.get("plan_days", 7),
         "runtime": {**(payload.get("runtime") or {}), "assessment_source": "persisted_db",
-                    "assessment_id": assessment.pk, "assessment_version": assessment_version(assessment)},
+                    "assessment_id": assessment.pk, "assessment_version": assessment_version(assessment),
+                    "profile_version": profile_version(profile)},
     }
 
 
 def create_wellness_plan(user, payload: dict[str, Any]) -> WellnessPlanCreationResult:
     profile = PatientProfile.objects.filter(user=user).first()
     assessment = select_assessment(user, payload)
+    if profile is not None and payload.get("profile_version") and payload["profile_version"] != profile_version(profile):
+        raise AssessmentConflict("Your health profile changed on the server. Reload/save your profile before generating a plan.")
     if payload.get("assessment_id") and profile is None:
         from rest_framework.exceptions import ValidationError
         raise ValidationError({"patient_profile": "Save the authenticated patient's profile before generating a plan."})
@@ -139,12 +121,14 @@ def create_wellness_plan(user, payload: dict[str, Any]) -> WellnessPlanCreationR
         if profile is not None
         else None
     )
-    agent_run = AgentRun.objects.create(
-        user=user,
-        assessment=assessment,
-        status=AgentRunStatus.RUNNING,
-        request_payload=engine_payload,
-    )
+    agent_run, created = claim_generation(user, assessment, engine_payload, payload.get("generation_id"))
+    if not created:
+        if agent_run.status == AgentRunStatus.FAILED:
+            raise AgentRunFailed(agent_run, "The previous generation attempt failed.")
+        existing_plan = getattr(agent_run, "wellness_plan", None)
+        if existing_plan:
+            return WellnessPlanCreationResult(assessment, agent_run, existing_plan)
+        raise GenerationPending()
 
     try:
         response = generate_personalized_plan(engine_payload)
@@ -177,6 +161,8 @@ def create_wellness_plan(user, payload: dict[str, Any]) -> WellnessPlanCreationR
             latest = AssessmentResult.objects.filter(user=user).order_by("-created_at", "-pk").first()
             if latest is None or latest.pk != assessment.pk or assessment_version(latest) != engine_payload["runtime"]["assessment_version"]:
                 raise AssessmentConflict("Assessment changed during generation. Sync and generate again.")
+            if profile is not None and profile_version(PatientProfile.objects.get(pk=profile.pk)) != engine_payload["runtime"].get("profile_version"):
+                raise AssessmentConflict("Health profile changed during generation. Reload/save the profile and generate again.")
             agent_run.mark_completed(response_payload=response, rag_status=rag_status)
             wellness_plan = WellnessPlan.objects.create(
                 user=user,
@@ -195,6 +181,10 @@ def create_wellness_plan(user, payload: dict[str, Any]) -> WellnessPlanCreationR
     except AssessmentConflict:
         agent_run.mark_failed(code="assessment_changed_during_generation", message="Assessment changed during generation.")
         raise
+    except Exception as exc:
+        agent_run.mark_failed(code="plan_persistence_failed", message="Generated plan could not be persisted.",
+                              details={"exception_class": exc.__class__.__name__})
+        raise AgentRunFailed(agent_run, "Generated plan could not be persisted.") from exc
     return WellnessPlanCreationResult(
         assessment=assessment,
         agent_run=agent_run,

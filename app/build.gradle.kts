@@ -60,10 +60,12 @@ android {
 
     buildTypes {
         debug {
+            buildConfigField("boolean", "AGENTIC_DRAFT_PREVIEW", "true")
             buildConfigField("String", "AGENTIC_API_BASE_URL", "\"$developmentApiBaseUrl\"")
         }
 
         release {
+            buildConfigField("boolean", "AGENTIC_DRAFT_PREVIEW", "false")
             buildConfigField("String", "AGENTIC_API_BASE_URL", "\"$releaseApiBaseUrl\"")
             isMinifyEnabled = false
             proguardFiles(

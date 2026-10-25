@@ -10,6 +10,7 @@ from agent_engine.assessment_adapter import build_canonical_state
 from agent_engine.contracts import AgentEngineInputError, AgentEngineRequest, parse_agent_engine_request
 from agent_engine.graph import graph
 from agent_engine.rag import config as rag_config
+from agent_engine.services.draft_validation import draft_failures
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -80,8 +81,8 @@ def rag_availability_status() -> dict[str, Any]:
             },
         }
     try:
-        with sqlite3.connect(sqlite_path) as connection:
-            count = connection.execute("select count(*) from embeddings").fetchone()[0]
+        with sqlite3.connect(sqlite_path.resolve().as_uri() + "?mode=ro", uri=True) as connection:
+            count = connection.execute("select count(e.id) from collections c left join segments s on s.collection=c.id left join embeddings e on e.segment_id=s.id where c.name=?", (rag_config.collection_name(),)).fetchone()[0]
     except sqlite3.Error as exc:
         return {
             **base,
@@ -153,10 +154,22 @@ def _service_response(
         or {}
     )
     errors = result_state.get("errors") or []
+    safety = result_state.get("validation_result") or {}
+    failures = list(dict.fromkeys((validation.get("failed_checks") or []) + (safety.get("failed_checks") or []) + (safety.get("issues") or [])))
+    if safety.get("valid") is False and not failures:
+        failures.append("Diet validation failed.")
+    failures = list(dict.fromkeys(failures + draft_failures(diet_plan, result_state.get("lifestyle_plan"), request.patient_profile)))
+    validation = {**validation, "failed_checks": failures,
+                  "warnings": list(dict.fromkeys((validation.get("warnings") or []) + (safety.get("warnings") or []))),
+                  "status": "FAIL" if failures or safety.get("status") == "FAIL" else validation.get("status", "REVIEW_REQUIRED"),
+                  "diet_validation": {key: safety[key] for key in ("valid", "checks", "issues") if key in safety}}
+    validation["draft_view_allowed"] = validation["status"] != "FAIL" and bool(diet_plan) and bool(result_state.get("lifestyle_plan"))
     workflow_status = str(result_state.get("workflow_status") or "success").lower()
     status = "success"
     if errors:
         status = "error"
+    elif validation["status"] == "FAIL":
+        status = "validation_failed"
     elif "review" in workflow_status or (validation or {}).get("status") == "REVIEW_REQUIRED":
         status = "review_required"
 
@@ -172,7 +185,7 @@ def _service_response(
             "patient_id": result_state.get("patient_id"),
             "assessment_source": request.runtime.get("assessment_source", "android_canonical_results"),
             "errors": deepcopy(errors),
-            "rag": deepcopy(rag_status),
+            "rag": deepcopy(result_state.get("rag_status") or rag_status),
             "doctor_review_required": True,
             "final_response": result_state.get("final_response"),
         },

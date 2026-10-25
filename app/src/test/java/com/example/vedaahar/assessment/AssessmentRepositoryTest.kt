@@ -101,6 +101,8 @@ class AssessmentRepositoryTest {
             )
         )
     ) : AgenticApi {
+        override suspend fun generationStatus(id: String): Response<com.example.vedaahar.network.dto.GenerationStatusResponse> = Response.error(404, "".toResponseBody())
+
         var persistCalls = 0
             private set
         var lastRequest: CanonicalAssessmentRequest? = null

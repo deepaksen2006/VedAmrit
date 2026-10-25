@@ -10,7 +10,7 @@ from agent_engine.services.lifestyle_input import project_lifestyle_input
 
 def _value(profile: dict[str, Any], key: str) -> Any:
     value = profile.get(key)
-    return value if value not in (None, "", [], {}) else None
+    return value if value not in (None, "", {}) else None
 
 
 def _source(evidence: list[dict[str, Any]], topic: str) -> dict[str, Any] | None:
@@ -18,10 +18,15 @@ def _source(evidence: list[dict[str, Any]], topic: str) -> dict[str, Any] | None
     for item in evidence:
         content = str(item.get("content", "")).lower()
         metadata = item.get("metadata") or {}
-        if first_traceable is None and metadata:
-            first_traceable = {"source": metadata.get("source_book") or metadata.get("source_filename") or metadata.get("title") or "Not provided", "page": metadata.get("page_label") or metadata.get("page") or metadata.get("page_number") or "Not provided", "support": "Retrieved Ayurvedic passage for doctor verification; category-specific keyword matching did not identify a narrower source.", "verified": False}
+        source = metadata.get("source_book") or metadata.get("source_filename") or metadata.get("title")
+        if not source:
+            continue
+        page = next((metadata[key] for key in ("page_label", "page", "page_number") if metadata.get(key) is not None), None)
+        citation = {"source": source, "page": page, "support": "Retrieved Ayurvedic passage for doctor verification; retrieval does not verify this recommendation.", "verified": False}
+        if first_traceable is None:
+            first_traceable = citation
         if topic in content:
-            return {"source": metadata.get("source_book") or metadata.get("title") or "Not provided", "page": metadata.get("page_label") or metadata.get("page") or "Not provided", "support": "Retrieved Ayurvedic passage for doctor verification; topic matching alone does not verify a recommendation.", "verified": False}
+            return citation
     return first_traceable
 
 
@@ -48,6 +53,7 @@ def lifestyle_agent(state: dict[str, Any]) -> dict[str, Any]:
     diet = (state.get("agent2_output") or {}).get("diet_plan") or state.get("meal_plan") or {}
     factors["agent2_meal_schedule"] = [meal.get("meal") for day in diet.get("days", []) for meal in day.get("meals", [])] or list(diet.keys())
     query = json.dumps({k: v for k, v in factors.items() if v not in (None, "", [], {})}, sort_keys=True)
+    retrieval_error = False
     try:
         if not rag_available:
             evidence = []
@@ -55,6 +61,7 @@ def lifestyle_agent(state: dict[str, Any]) -> dict[str, Any]:
             evidence = get_lifestyle_rag_evidence(primary or "constitution", str(factors["goal"] or "wellness"), profile.get("health_conditions") or [], patient_context=query)
     except Exception:
         evidence = []
+        retrieval_error = True
     doshas = str(current or primary or "").lower()
     vata, pitta, kapha = "vata" in doshas, "pitta" in doshas, "kapha" in doshas
     recommendations = [
@@ -93,4 +100,8 @@ def lifestyle_agent(state: dict[str, Any]) -> dict[str, Any]:
         safety_flags.append("REVIEW REQUIRED: allergy, intolerance, avoided-food, or condition information is incomplete.")
     if symptoms:
         safety_flags.append("Condition-related symptoms require doctor review; this output is not a diagnosis.")
-    return {"lifestyle_plan": {"recommendations": recommendations, "safety_flags": safety_flags, "draft_status": "AI-GENERATED — DOCTOR REVIEW REQUIRED"}}
+    retrieval = {**rag_status, "available": bool(evidence), "evidence_count": len(evidence),
+                 "status": "retrieved" if evidence else ("retrieval_failed" if retrieval_error else "unavailable"),
+                 "fallback": not bool(evidence)}
+    return {"rag_status": retrieval, "lifestyle_plan": {"recommendations": recommendations, "safety_flags": safety_flags,
+            "draft_status": "AI-Generated Draft — Not Doctor Reviewed", "retrieval": retrieval}}

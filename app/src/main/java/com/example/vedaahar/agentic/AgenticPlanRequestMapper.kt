@@ -36,12 +36,16 @@ object AgenticPlanRequestMapper {
                     "assessment.agni"
                 )
             )
+        val profile = PatientProfileStore.current(context)
+        if (profile.profileVersion.isNullOrBlank()) return AgenticRequestMappingResult.MissingData(
+            listOf("patient_profile.version (reload/save your health profile online)"))
         val mapping = fromRawAssessmentAndProfile(
             rawAssessment = rawAssessment,
-            profile = PatientProfileStore.current(context)
+            profile = profile
         )
         return if (mapping is AgenticRequestMappingResult.Success) mapping.copy(
-            request = mapping.request.copy(assessmentId = synced.serverId, assessmentVersion = synced.serverVersion)
+            request = mapping.request.copy(assessmentId = synced.serverId, assessmentVersion = synced.serverVersion,
+                profileVersion = profile.profileVersion, planDays = 7)
         ) else mapping
     }
 

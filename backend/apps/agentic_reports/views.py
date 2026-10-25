@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
+from django.db import transaction
 from rest_framework import permissions, status
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.response import Response
@@ -78,13 +80,17 @@ class PatientProfileView(APIView):
         serializer = PatientProfileSerializer(self.get_object())
         return Response(serializer.data)
 
+    @transaction.atomic
     def put(self, request):
+        get_user_model().objects.select_for_update().get(pk=request.user.pk)
         serializer = PatientProfileSerializer(self.get_object(), data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
 
+    @transaction.atomic
     def patch(self, request):
+        get_user_model().objects.select_for_update().get(pk=request.user.pk)
         serializer = PatientProfileSerializer(self.get_object(), data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -182,6 +188,10 @@ class AgenticPlanListCreateView(APIView):
         serializer = AgenticPlanGenerationRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         payload = dict(serializer.validated_data)
+        if not all(payload.get(field) for field in ("assessment_id", "assessment_version")):
+            raise ValidationError({"detail": "Sync all three assessments and send their exact assessment_id and assessment_version."})
+        if not payload.get("profile_version"):
+            raise ValidationError({"detail": "Reload/save your health profile to obtain its current profile_version."})
         try:
             result = create_wellness_plan(request.user, payload)
         except AgentEngineInputError as exc:
@@ -200,6 +210,16 @@ class AgenticPlanListCreateView(APIView):
             WellnessPlanSerializer(result.wellness_plan, context={"request": request}).data,
             status=status.HTTP_201_CREATED,
         )
+
+
+class GenerationStatusView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, generation_id):
+        from .models import AgentRun
+        from .generation import generation_status
+        run = get_object_or_404(AgentRun.objects.filter(user=request.user), request_payload__runtime__generation_id=str(generation_id))
+        return Response(generation_status(run))
 
 
 class AgenticPlanDetailView(APIView):

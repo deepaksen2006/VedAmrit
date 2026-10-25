@@ -29,6 +29,11 @@ class AssessmentSynchronizationTests(APITestCase):
             "user_id": self.other.pk,  # must never decide ownership
         }, format="json")
 
+    def plan_payload(self, payload):
+        from .generation import profile_version
+        profile = PatientProfile.objects.filter(user=self.patient).first()
+        return {**payload, "profile_version": profile_version(profile) if profile else "0" * 64}
+
     def profile(self):
         PatientProfile.objects.create(user=self.patient, name="Sync patient", age=34, gender="female",
             height_cm=164, weight_kg=58, dietary_preference="vegetarian", goal="general wellness",
@@ -94,9 +99,9 @@ class AssessmentSynchronizationTests(APITestCase):
     def test_generation_pins_exact_assessment_and_audits_engine_input(self):
         self.profile()
         assessment = self.submit().data
-        payload = {**sample_payload(), "assessment_id": assessment["id"], "assessment_version": assessment["assessment_version"]}
+        payload = self.plan_payload({**sample_payload(), "assessment_id": assessment["id"], "assessment_version": assessment["assessment_version"]})
         with patch("apps.agentic_reports.services.generate_personalized_plan", return_value=successful_agent_response()) as generate:
-            plan = self.client.post("/api/agentic/plans/", payload, format="json")
+            plan = self.client.post("/api/agentic/plans/", self.plan_payload(payload), format="json")
         self.assertEqual(plan.status_code, 201, plan.data)
         self.assertEqual(plan.data["assessment_id"], assessment["id"])
         self.assertEqual(plan.data["assessment_version"], assessment["assessment_version"])
@@ -120,8 +125,8 @@ class AssessmentSynchronizationTests(APITestCase):
         ]
         with patch("apps.agentic_reports.services.generate_personalized_plan") as generate:
             for payload in cases:
-                result = self.client.post("/api/agentic/plans/", payload, format="json")
-                self.assertEqual(result.status_code, 409, result.data)
+                result = self.client.post("/api/agentic/plans/", self.plan_payload(payload), format="json")
+                self.assertEqual(result.status_code, 409 if payload.get("assessment_id") else 400, result.data)
             generate.assert_not_called()
         self.assertEqual(WellnessPlan.objects.count(), 0)
 
@@ -149,7 +154,7 @@ class AssessmentSynchronizationTests(APITestCase):
             return successful_agent_response()
         with patch("apps.agentic_reports.services.generate_personalized_plan", side_effect=generate):
             response = self.client.post("/api/agentic/plans/", {
-                **sample_payload(), "assessment_id": saved["id"], "assessment_version": saved["assessment_version"]
+                **self.plan_payload(sample_payload()), "assessment_id": saved["id"], "assessment_version": saved["assessment_version"]
             }, format="json")
         self.assertEqual(response.status_code, 409)
         self.assertEqual(WellnessPlan.objects.count(), 0)
