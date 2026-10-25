@@ -80,7 +80,10 @@ class PatientProfileRepository(
         return try {
             val response = api.putProfile(profile.toDto())
             if (response.isSuccessful) {
-                val saved = response.body()?.toStoredProfile() ?: profile
+                val saved = response.body()?.toStoredProfile() ?: return AgenticApiResult.Error(
+                    AgenticApiErrorType.Parse,
+                    "The server returned an empty saved profile. Please retry syncing your profile."
+                )
                 cache.save(saved)
                 AgenticApiResult.Success(saved)
             } else {

@@ -41,6 +41,24 @@ class PatientProfileRepositoryTest {
     }
 
     @Test
+    fun missingTokenIsAnAuthenticationErrorAndDoesNotLoadCachedProfile() = runTest {
+        val api = FakeProfileApi()
+        val repository = PatientProfileRepository(api, { null }, FakeProfileCache(storedProfile()))
+        val result = repository.loadProfile() as PatientProfileLoadResult.Error
+        assertEquals(AgenticApiErrorType.AuthenticationRequired, result.type)
+        assertEquals(0, api.profileCalls)
+    }
+
+    @Test
+    fun expiredSessionIsAnErrorInsteadOfSuccessfulCacheFallback() = runTest {
+        val api = FakeProfileApi(profileResponse = Response.error(401, "{}".toResponseBody(null)))
+        val repository = PatientProfileRepository(api, { "expired" }, FakeProfileCache(storedProfile()))
+        val result = repository.loadProfile() as PatientProfileLoadResult.Error
+        assertEquals(AgenticApiErrorType.AuthenticationExpired, result.type)
+        assertTrue(result.message.contains("sign in", ignoreCase = true))
+    }
+
+    @Test
     fun saveProfileRequiresJwtAndDoesNotCallApiWhenMissing() = runTest {
         val api = FakeProfileApi()
         val repository = PatientProfileRepository(api, accessTokenProvider = { null }, cache = FakeProfileCache())
@@ -77,6 +95,24 @@ class PatientProfileRepositoryTest {
 
         assertTrue(result is AgenticApiResult.Error)
         assertEquals(AgenticApiErrorType.BadRequest, (result as AgenticApiResult.Error).type)
+    }
+
+    @Test
+    fun emptySaveResponseIsNotReportedAsSynced() = runTest {
+        val cache = FakeProfileCache()
+        val api = FakeProfileApi(putResponse = Response.success(null))
+        val result = PatientProfileRepository(api, { "jwt" }, cache).saveProfile(storedProfile()) as AgenticApiResult.Error
+        assertEquals(AgenticApiErrorType.Parse, result.type)
+        org.junit.Assert.assertNull(cache.saved)
+    }
+
+    @Test
+    fun expiredTokenOnSaveIsVisibleAndDoesNotUpdateCache() = runTest {
+        val cache = FakeProfileCache()
+        val api = FakeProfileApi(putResponse = Response.error(401, "{}".toResponseBody(null)))
+        val result = PatientProfileRepository(api, { "expired" }, cache).saveProfile(storedProfile()) as AgenticApiResult.Error
+        assertEquals(AgenticApiErrorType.AuthenticationExpired, result.type)
+        org.junit.Assert.assertNull(cache.saved)
     }
 
     private fun remoteProfile() = PatientProfileDto(

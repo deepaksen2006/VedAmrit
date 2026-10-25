@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework.test import APIClient
+from datetime import timedelta
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 
 class PatientAuthenticationApiTests(TestCase):
@@ -101,3 +103,34 @@ class PatientAuthenticationApiTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("access", response.data)
+
+    def test_login_jwt_authenticates_profile_and_refresh_recovers_expired_access(self):
+        login = self.client.post(
+            "/api/auth/login/",
+            {"identifier": "patient@example.com", "password": "correct-password"},
+            format="json",
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {login.data['access']}")
+        self.assertEqual(self.client.get("/api/profile/").status_code, 200)
+
+        expired = AccessToken(login.data["access"])
+        expired.set_exp(lifetime=timedelta(seconds=-1))
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {expired}")
+        self.assertEqual(self.client.get("/api/profile/").status_code, 401)
+
+        self.client.credentials()
+        refreshed = self.client.post(
+            "/api/auth/token/refresh/", {"refresh": login.data["refresh"]}, format="json"
+        )
+        self.assertEqual(refreshed.status_code, 200)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {refreshed.data['access']}")
+        self.assertEqual(self.client.get("/api/profile/").status_code, 200)
+
+    def test_expired_refresh_is_rejected_and_anonymous_profile_requires_login(self):
+        self.assertEqual(self.client.get("/api/profile/").status_code, 401)
+        refresh = RefreshToken.for_user(self.user)
+        refresh.set_exp(lifetime=timedelta(seconds=-1))
+        response = self.client.post(
+            "/api/auth/token/refresh/", {"refresh": str(refresh)}, format="json"
+        )
+        self.assertEqual(response.status_code, 401)

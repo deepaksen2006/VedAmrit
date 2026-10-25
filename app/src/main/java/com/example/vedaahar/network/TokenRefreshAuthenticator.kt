@@ -17,6 +17,11 @@ class TokenRefreshAuthenticator(
         val currentAccess = tokenStore.getAccessToken()?.takeIf { it.isNotBlank() }
         // Never create a session for an anonymous request or revive a logout.
         if (failedAccess.isNullOrBlank() || currentAccess == null) return null
+        val requestSession = response.request.tag(RequestSession::class.java)
+        if (requestSession != null && requestSession.refreshToken != tokenStore.getRefreshToken()) {
+            // Do not replay a previous patient's request under a new login.
+            return null
+        }
         if (response.responseCount() >= 2) {
             if (currentAccess == failedAccess) tokenStore.clear()
             return null

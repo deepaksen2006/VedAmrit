@@ -45,7 +45,10 @@ object ApiClient {
             .connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
-            .addInterceptor(AuthInterceptor { tokenStore.getAccessToken() })
+            .addInterceptor(AuthInterceptor(
+                tokenProvider = { tokenStore.getAccessToken() },
+                refreshTokenProvider = { tokenStore.getRefreshToken() }
+            ))
             .authenticator(TokenRefreshAuthenticator(tokenStore, authApi))
             .build()
 
