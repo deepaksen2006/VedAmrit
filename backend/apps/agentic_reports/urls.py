@@ -4,6 +4,7 @@ from apps.agentic_reports import views
 
 
 urlpatterns = [
+    path("plans/<int:pk>/draft-pdf/", views.AgenticPlanDraftPdfView.as_view(), name="agentic-plan-draft-pdf"),
     path("generations/<uuid:generation_id>/", views.GenerationStatusView.as_view(), name="agentic-generation-status"),
     path("assessments/", views.AssessmentResultListCreateView.as_view(), name="agentic-assessment-list-create"),
     path("assessments/latest/", views.LatestAssessmentResultView.as_view(), name="agentic-assessment-latest"),

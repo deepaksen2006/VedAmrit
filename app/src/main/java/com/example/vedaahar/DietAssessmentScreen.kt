@@ -1302,6 +1302,7 @@ fun DietAssessmentScreen(
                         agni = currentAgni
                     )
 
+                    com.example.vedaahar.agentic.PatientDraftPdfActions(generatedPlan)
                     DietDataSourceBanner(generatedPresentation)
 
                     AssessmentSyncSection(assessmentSync)

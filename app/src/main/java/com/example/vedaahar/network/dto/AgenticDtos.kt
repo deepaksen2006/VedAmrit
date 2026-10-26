@@ -81,6 +81,8 @@ data class WellnessPlanResponse(
     @SerializedName("generation_id") val generationId: String? = null,
     @SerializedName("draft_view_allowed") val draftViewAllowed: Boolean = false,
     @SerializedName("draft_label") val draftLabel: String? = null,
+    @SerializedName("draft_pdf_available") val draftPdfAvailable: Boolean = false,
+    @SerializedName("draft_pdf_block_reasons") val draftPdfBlockReasons: List<String>? = null,
     @SerializedName("inputs_current") val inputsCurrent: Boolean = false
 )
 

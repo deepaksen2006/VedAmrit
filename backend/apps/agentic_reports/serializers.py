@@ -304,6 +304,18 @@ def public_rag_status(raw_status):
 
 
 class WellnessPlanSerializer(serializers.ModelSerializer):
+    draft_pdf_available = serializers.SerializerMethodField()
+    draft_pdf_block_reasons = serializers.SerializerMethodField()
+
+    def get_draft_pdf_available(self, obj):
+        return not self.get_draft_pdf_block_reasons(obj)
+
+    def get_draft_pdf_block_reasons(self, obj):
+        from .draft_pdf import development_preview, pdf_block_reasons
+        if not development_preview(self.context.get("request")):
+            return ["Draft PDF export is available only in development preview."]
+        return pdf_block_reasons(obj)
+
     inputs_current = serializers.SerializerMethodField()
 
     def get_inputs_current(self, obj):
@@ -368,6 +380,8 @@ class WellnessPlanSerializer(serializers.ModelSerializer):
             "generation_id",
             "draft_view_allowed",
             "draft_label",
+            "draft_pdf_available",
+            "draft_pdf_block_reasons",
             "inputs_current",
             "assignment_id",
             "lineage_id",

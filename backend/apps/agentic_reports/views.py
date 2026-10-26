@@ -368,3 +368,33 @@ class AgenticPlanReportView(APIView):
                 },
             )
         return Response(FinalReportSerializer(report, context={"request": request}).data)
+
+
+class AgenticPlanDraftPdfView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk: int):
+        from django.http import HttpResponse
+        from .draft_pdf import development_preview, pdf_block_reasons, render_draft_pdf
+        if not development_preview(request):
+            raise PermissionDenied("Draft PDF export is available only in development preview.")
+        plan = get_object_or_404(_patient_queryset(request.user), pk=pk)
+        reasons = pdf_block_reasons(plan)
+        if reasons:
+            return Response({"detail": "Personalized PDF is blocked until review requirements are resolved.",
+                             "reasons": reasons}, status=status.HTTP_409_CONFLICT)
+        try:
+            data = render_draft_pdf(plan)
+        except ValueError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        # A concurrent profile/assessment update or review must not publish a stale export.
+        refreshed = get_object_or_404(_patient_queryset(request.user), pk=pk)
+        reasons = pdf_block_reasons(refreshed)
+        if reasons:
+            return Response({"detail": "Plan eligibility changed during PDF export.", "reasons": reasons},
+                            status=status.HTTP_409_CONFLICT)
+        response = HttpResponse(data, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="VedAmrit-Draft-Plan-{plan.pk}-v{plan.version}.pdf"'
+        response["Cache-Control"] = "private, no-store"
+        response["X-Content-Type-Options"] = "nosniff"
+        return response
