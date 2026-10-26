@@ -50,6 +50,7 @@ import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -1156,205 +1157,72 @@ fun DietAssessmentScreen(
         savedAgni = AgniResultStore.current(context)
     }
 
-    if (savedPrakriti == null || savedVikriti == null || savedAgni == null) {
-        MissingDoshaTestDietScreen(
-            onBack = onBack,
-            onTakeDoshaTest = onTakeDoshaTest,
-            modifier = modifier,
-            syncStatus = { AssessmentSyncSection(assessmentSync) }
-        )
-        return
-    }
-
+    val complete = savedPrakriti != null && savedVikriti != null && savedAgni != null
     LaunchedEffect(assessmentSync.record?.status, assessmentSync.record?.serverVersion) {
         if (assessmentSync.record?.status == com.example.vedaahar.assessment.AssessmentSyncStatus.SYNCED) {
             agenticViewModel.restoreLatestPlan()
         } else agenticViewModel.reset()
     }
-
-    val assessmentPrakriti = savedPrakriti!!.prakritiType.ifBlank { prakriti }
-    val selectedPrakriti = assessmentPrakriti
-    var activeTabIndex by remember { mutableIntStateOf(0) }
-    val result = remember(selectedPrakriti) { getDietPlanForConstitution(selectedPrakriti) }
     val generatedPlan = (agenticState as? AgenticPlanUiState.Success)?.plan
-    val generatedPresentation = remember(generatedPlan) { generatedPlan?.toPresentation()?.takeIf { it.diet != null && it.lifestyle != null } }
-    val currentVikriti = savedVikriti!!.dominantDosha
-    val currentAgni = savedAgni!!.displayResult
-    val tabs = listOf("Body Analysis", "Foods To Eat", "Foods To Avoid", "7-Day Diet Plan", "Lifestyle Tips", "Ayurvedic Dravya")
-
-    Surface(modifier = modifier.fillMaxSize(), color = Cream) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFFFFFFF))
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .statusBarsPadding()
-            ) {
-                // Top Bar
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 18.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    BackButton(onClick = onBack, text = "Dashboard")
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(50))
-                            .background(DietMint)
-                            .border(BorderStroke(1.dp, ForestGreen.copy(alpha = 0.4f)), RoundedCornerShape(50))
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Pathya Apathya",
-                            color = ForestGreen,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            letterSpacing = 1.1.sp
-                        )
-                    }
-                }
-
-                Column(
-                    modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        .weight(1f)
-                        .padding(horizontal = 18.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Hero Card
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .shadow(6.dp, RoundedCornerShape(24.dp), ambientColor = ForestGreen.copy(alpha = 0.08f)),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = DietWarmCard),
-                        border = BorderStroke(1.dp, BeigeBorder)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(20.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(50))
-                                    .background(LightSage)
-                                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "AYURVEDIC DIET DASHBOARD",
-                                    color = ForestGreen,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 10.sp,
-                                    letterSpacing = 1.3.sp
-                                )
-                            }
-
-                            Text(
-                                text = "Personalised Diet & Nutritional Guide",
-                                fontFamily = FontFamily.Serif,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 26.sp,
-                                lineHeight = 31.sp,
-                                color = DarkForestGreen
-                            )
-
-                            Text(
-                                text = "Food is medicine (Maha Bheshaja) in Ayurveda. Your diet plan is customized for your constitution, digestive fire (Agni), and seasonal vitality.",
-                                fontSize = 12.5.sp,
-                                lineHeight = 19.sp,
-                                color = SoftBlueGray
-                            )
-
-                            Button(
-                                onClick = { downloadDietPlan(context) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(52.dp),
-                                shape = RoundedCornerShape(50),
-                                colors = ButtonDefaults.buttonColors(containerColor = ForestGreen, contentColor = PureWhite)
-                            ) {
-                                Text("Download Example Diet PDF", fontWeight = FontWeight.Bold)
-                            }
-
-                            // Status Badges
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                DietStatusBadge("Prakriti", result.prakriti, Modifier.weight(1f))
-                                DietStatusBadge("Vikriti", currentVikriti, Modifier.weight(1f))
-                                DietStatusBadge("Agni", currentAgni, Modifier.weight(1f))
-                                DietStatusBadge("Season", "Sharad Ritu", Modifier.weight(1f))
-                            }
-                        }
-                    }
-
-                    PersonalizedDietSourceCard(
-                        prakriti = result.prakriti,
-                        vikriti = currentVikriti,
-                        agni = currentAgni
-                    )
-
-                    com.example.vedaahar.agentic.PatientDraftPdfActions(generatedPlan)
-                    DietDataSourceBanner(generatedPresentation)
-
-                    AssessmentSyncSection(assessmentSync)
-
-                    AgenticPlanSyncCard(
-                        state = agenticState,
-                        latestPlanId = latestPlanId,
-                        onGenerate = agenticViewModel::generatePlan,
-                        onRefresh = agenticViewModel::refreshCurrentPlan,
-                        onViewReport = agenticViewModel::loadFinalReport
-                    )
-
-                    // 6 Comprehensive Feature Tabs
-                    ScrollableTabRow(
-                        selectedTabIndex = activeTabIndex,
-                        containerColor = Color.Transparent,
-                        contentColor = ForestGreen,
-                        edgePadding = 0.dp,
-                        divider = {}
-                    ) {
-                        tabs.forEachIndexed { index, title ->
-                            Tab(
-                                selected = activeTabIndex == index,
-                                onClick = { activeTabIndex = index },
-                                text = {
-                                    Text(
-                                        text = title,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            )
-                        }
-                    }
-
-                    // Tab Contents
-                    when (activeTabIndex) {
-                        0 -> BodyAnalysisContent(result, currentVikriti, currentAgni)
-                        1 -> FoodsListContent(result.foodsToEat, positive = true)
-                        2 -> FoodsListContent(result.foodsToAvoid, positive = false)
-                        3 -> if (generatedPresentation?.diet != null) GeneratedMealPlanContent(generatedPresentation.diet) else MealPlanContent(result)
-                        4 -> if (generatedPresentation?.lifestyle != null) GeneratedLifestyleContent(generatedPresentation.lifestyle) else LifestyleContent(result.lifestyleTips)
-                        else -> AyurvedicDravyaContent(result.ayurvedicTips)
-                    }
-
-                    Spacer(modifier = Modifier.height(32.dp).navigationBarsPadding())
-                }
+    com.example.vedaahar.diet.PersonalizedDietContent(
+        state = agenticState,
+        profile = com.example.vedaahar.profile.PatientProfileStore.current(context),
+        syncStatus = assessmentSync.record?.status,
+        assessmentsComplete = complete,
+        onBack = onBack,
+        onGenerate = agenticViewModel::generatePlan,
+        onRefresh = agenticViewModel::refreshCurrentPlan,
+        onTakeAssessment = onTakeDoshaTest,
+        modifier = modifier,
+        pdfActions = {
+            com.example.vedaahar.agentic.PatientDraftPdfActions(
+                plan = generatedPlan?.takeIf { complete && assessmentSync.record?.status == com.example.vedaahar.assessment.AssessmentSyncStatus.SYNCED },
+                downloadLabel = "Download Your Diet Report", compact = true)
+        },
+        details = {
+            Text("Prakriti: ${savedPrakriti?.prakritiType ?: "Not completed"}", color = DarkForestGreen)
+            Text("Vikriti: ${savedVikriti?.dominantDosha ?: "Not completed"}", color = DarkForestGreen)
+            Text("Agni: ${savedAgni?.displayResult ?: "Not completed"}", color = DarkForestGreen)
+            AssessmentSyncSection(assessmentSync)
+            AgenticPlanSyncCard(agenticState, latestPlanId, agenticViewModel::generatePlan,
+                agenticViewModel::refreshCurrentPlan, agenticViewModel::loadFinalReport)
+            generatedPlan?.let {
+                Text("Assessment version: ${it.assessmentVersion ?: "Unavailable"}", color = SoftBlueGray, fontSize = 12.sp)
+                Text("Profile version: ${it.profileVersion ?: "Unavailable"}", color = SoftBlueGray, fontSize = 12.sp)
+                Text("Generated: ${it.createdAt ?: "Unavailable"}", color = SoftBlueGray, fontSize = 12.sp)
+            }
+            OutlinedButton(onClick = agenticViewModel::restoreLatestPlan) { Text("Restore saved plan", color = ForestGreen) }
+            if (complete && !savedPrakriti?.prakritiType.isNullOrBlank()) {
+                StandardDietGuidance(savedPrakriti!!.prakritiType, savedVikriti!!.dominantDosha, savedAgni!!.displayResult,
+                    onEditPrakriti, { downloadDietPlan(context) })
             }
         }
+    )
+}
+
+@Composable
+private fun StandardDietGuidance(prakriti: String, vikriti: String, agni: String,
+                                 onEdit: () -> Unit, onExamplePdf: () -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "Hide general guidance & examples" else "General guidance & examples", color = ForestGreen) }
+    if (!expanded) return
+    Text("General constitution-based guidance and example assets. These are not your saved AI meal plan or an approved report.", color = SoftBlueGray, fontSize = 13.sp)
+    val result = remember(prakriti) { getDietPlanForConstitution(prakriti) }
+    var tab by remember { mutableIntStateOf(0) }
+    val labels = listOf("Body Analysis", "Foods To Eat", "Foods To Avoid", "General Meal Plan", "Lifestyle Tips", "Ayurvedic Dravya")
+    ScrollableTabRow(selectedTabIndex = tab, containerColor = Color.White, contentColor = ForestGreen) {
+        labels.forEachIndexed { index, label -> Tab(selected = tab == index, onClick = { tab = index }, text = { Text(label) }) }
     }
+    when (tab) {
+        0 -> BodyAnalysisContent(result, vikriti, agni)
+        1 -> FoodsListContent(result.foodsToEat, positive = true)
+        2 -> FoodsListContent(result.foodsToAvoid, positive = false)
+        3 -> MealPlanContent(result)
+        4 -> LifestyleContent(result.lifestyleTips)
+        else -> AyurvedicDravyaContent(result.ayurvedicTips)
+    }
+    OutlinedButton(onClick = onEdit) { Text("Review assessment", color = ForestGreen) }
+    OutlinedButton(onClick = onExamplePdf) { Text("Download Example Diet PDF", color = ForestGreen) }
 }
 
 @Composable

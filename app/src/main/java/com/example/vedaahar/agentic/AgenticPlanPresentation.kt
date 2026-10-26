@@ -26,7 +26,10 @@ data class AiDietPlan(
 data class AiDietDay(
     val day: Int?,
     val meals: List<AiMeal>,
-    val dailyTotal: List<NutritionMetric>
+    val dailyTotal: List<NutritionMetric>,
+    val title: String? = null,
+    val description: String? = null,
+    val date: String? = null
 )
 
 data class AiMeal(
@@ -34,14 +37,16 @@ data class AiMeal(
     val targetCalories: String?,
     val actualCalories: String?,
     val foods: List<AiFood>,
-    val mealTotal: List<NutritionMetric>
+    val mealTotal: List<NutritionMetric>,
+    val description: String? = null
 )
 
 data class AiFood(
     val name: String,
     val portion: String?,
     val nutrition: List<NutritionMetric>,
-    val rankingReasons: List<String>
+    val rankingReasons: List<String>,
+    val description: String? = null
 )
 
 data class AiLifestylePlan(
@@ -118,7 +123,10 @@ private fun Map<String, Any?>.toDietDay(): AiDietDay {
     return AiDietDay(
         day = number("day")?.toInt(),
         meals = list("meals").mapNotNull { it.asMapOrNull()?.toMeal() },
-        dailyTotal = metrics(map("daily_total"))
+        dailyTotal = metrics(map("daily_total")),
+        title = this["title"] as? String,
+        description = (this["description"] as? String) ?: (this["notes"] as? String),
+        date = this["date"] as? String
     )
 }
 
@@ -128,7 +136,8 @@ private fun Map<String, Any?>.toMeal(): AiMeal {
         targetCalories = number("target_calories")?.formatNumber(),
         actualCalories = number("actual_calories")?.formatNumber(),
         foods = list("foods").mapNotNull { it.asMapOrNull()?.toFood() },
-        mealTotal = metrics(map("meal_total"))
+        mealTotal = metrics(map("meal_total")),
+        description = (this["description"] as? String) ?: (this["notes"] as? String)
     )
 }
 
@@ -137,7 +146,8 @@ private fun Map<String, Any?>.toFood(): AiFood {
         name = string("food_name") ?: "Food",
         portion = number("portion_g")?.formatNumber()?.let { "$it g" },
         nutrition = metrics(map("nutrition")),
-        rankingReasons = list("ranking_reasons").mapNotNull { it?.toString()?.takeIf(String::isNotBlank) }
+        rankingReasons = list("ranking_reasons").mapNotNull { it?.toString()?.takeIf(String::isNotBlank) },
+        description = this["description"] as? String
     )
 }
 
@@ -167,23 +177,16 @@ private fun Map<String, Any?>.toLifestyleRecommendation(): AiLifestyleRecommenda
 
 private fun metrics(values: Map<String, Any?>?): List<NutritionMetric> {
     if (values == null) return emptyList()
-    val labels = listOf(
-        "calories" to "Calories",
-        "protein_g" to "Protein",
-        "carbs_g" to "Carbs",
-        "carbohydrates_g" to "Carbs",
-        "fat_g" to "Fat",
-        "fiber_g" to "Fiber",
-        "calculation_basis" to "Basis"
-    )
-    return labels.mapNotNull { (key, label) ->
-        val value = values[key] ?: return@mapNotNull null
-        val text = when (value) {
-            is Number -> value.formatNumber()
-            else -> value.toString()
-        }.takeIf(String::isNotBlank) ?: return@mapNotNull null
-        NutritionMetric(label, text)
+    val fields = listOf("calories" to "Calories", "protein_g" to "Protein", "carbs_g" to "Carbs",
+        "fat_g" to "Fat", "fiber_g" to "Fiber")
+    val result = fields.mapNotNull { (key, label) ->
+        val raw = values[key] ?: if (key == "carbs_g") values["carbohydrates_g"] else null
+        val number = (raw as? Number)?.toDouble() ?: (raw as? String)?.toDoubleOrNull()
+        if (number == null || !number.isFinite() || number < 0) null
+        else NutritionMetric(label, number.formatNumber())
     }
+    val basis = (values["calculation_basis"] as? String)?.takeIf(String::isNotBlank)
+    return if (basis != null) result + NutritionMetric("Basis", basis) else result
 }
 
 private fun Map<String, Any?>.string(key: String): String? = this[key]?.toString()?.takeIf(String::isNotBlank)
@@ -193,7 +196,7 @@ private fun Map<String, Any?>.number(key: String): Number? {
         is Number -> value
         is String -> value.toDoubleOrNull()
         else -> null
-    }
+    }?.takeIf { it.toDouble().isFinite() }
 }
 
 private fun Map<String, Any?>.map(key: String): Map<String, Any?>? = this[key].asMapOrNull()

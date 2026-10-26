@@ -6,12 +6,16 @@ import android.provider.DocumentsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.testTag
+import com.example.vedaahar.ui.theme.DarkForestGreen
+import com.example.vedaahar.ui.theme.PureWhite
 import com.example.vedaahar.BuildConfig
 import com.example.vedaahar.network.*
 import com.example.vedaahar.network.dto.WellnessPlanResponse
@@ -22,7 +26,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.ensureActive
 
 @Composable
-fun PatientDraftPdfActions(plan: WellnessPlanResponse?) {
+fun PatientDraftPdfActions(plan: WellnessPlanResponse?, downloadLabel: String = "Download Personalized Diet PDF", compact: Boolean = false) {
     if (!BuildConfig.AGENTIC_DRAFT_PREVIEW) return
     val context = LocalContext.current
     val owner = PatientSession.currentKey(context) ?: return
@@ -80,9 +84,11 @@ fun PatientDraftPdfActions(plan: WellnessPlanResponse?) {
         if (PatientSession.currentKey(context) == owner) { downloaded = saved; exported = public }
     }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Personalized AI Draft PDF", style = MaterialTheme.typography.titleSmall)
-        Text("AI-GENERATED DRAFT — NOT DOCTOR REVIEWED. This document is separate from the example PDFs and the approved final report.",
-            style = MaterialTheme.typography.bodySmall)
+        if (!compact) {
+            Text("Personalized AI Draft PDF", style = MaterialTheme.typography.titleSmall)
+            Text("AI-GENERATED DRAFT — NOT DOCTOR REVIEWED. This document is separate from the example PDFs and the approved final report.",
+                style = MaterialTheme.typography.bodySmall)
+        }
         Text("Exported PDFs in public Downloads are accessible outside VedAmrit and are no longer protected by app-level account isolation.",
             style = MaterialTheme.typography.bodySmall)
         Button(onClick = {
@@ -122,8 +128,11 @@ fun PatientDraftPdfActions(plan: WellnessPlanResponse?) {
                     message = "Public PDF could not be saved. ${error.message.orEmpty()} Any saved private copy remains available."
                 } finally { if (!waitingForPicker) busy = false }
             }
-        }, enabled = !busy && plan?.draftPdfAvailable == true, modifier = Modifier.fillMaxWidth()) {
-            Text(if (busy) "Saving PDF..." else "Download Personalized Diet PDF")
+        }, enabled = !busy && plan?.draftPdfAvailable == true,
+            colors = ButtonDefaults.buttonColors(containerColor = DarkForestGreen, contentColor = PureWhite),
+            shape = RoundedCornerShape(if (compact) 16.dp else 50.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = if (compact) 56.dp else 48.dp).testTag("personalized-diet-download")) {
+            Text(if (busy) "Saving PDF..." else downloadLabel)
         }
         if (plan != null && !plan.draftPdfAvailable) {
             Text(plan.draftPdfBlockReasons?.joinToString("\n")
