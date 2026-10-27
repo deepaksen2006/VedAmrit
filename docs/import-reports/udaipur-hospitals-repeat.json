@@ -1,0 +1,244 @@
+{
+  "status": "imported",
+  "dry_run": false,
+  "source_namespace": "udaipur_hospitals",
+  "file_name": "udaipur_hospitals.csv",
+  "district": "Udaipur",
+  "records": [
+    {
+      "row": 2,
+      "source_record_id": "UDR-001",
+      "name": "Madan Mohan Malviya Government Ayurvedic College And Hospital",
+      "outcome": "skipped",
+      "review_flags": [
+        "User-supplied source requires independent verification.",
+        "Coordinates missing; no map location confirmed.",
+        "Listed hours are unverified and are not doctor availability.",
+        "Review original source notes, including identity/address/postal cautions.",
+        "Possible duplicate/related facility; resolve manually, do not auto-merge."
+      ],
+      "duplicate_candidates": [],
+      "hospital_id": 1,
+      "reason": "Stable source ID already exists; no fields or approval changed.",
+      "source_snapshot_changed": false
+    },
+    {
+      "row": 3,
+      "source_record_id": "UDR-002",
+      "name": "Government Ayurvedic Hospital, Moti Chohatta",
+      "outcome": "skipped",
+      "review_flags": [
+        "User-supplied source requires independent verification.",
+        "Coordinates missing; no map location confirmed.",
+        "Phone missing; confirm before submission/verification.",
+        "Listed hours are unverified and are not doctor availability.",
+        "Review original source notes, including identity/address/postal cautions.",
+        "Possible duplicate/related facility; resolve manually, do not auto-merge."
+      ],
+      "duplicate_candidates": [
+        "UDR-004",
+        "UDR-005",
+        "hospital:4",
+        "hospital:5"
+      ],
+      "hospital_id": 2,
+      "reason": "Stable source ID already exists; no fields or approval changed.",
+      "source_snapshot_changed": false
+    },
+    {
+      "row": 4,
+      "source_record_id": "UDR-003",
+      "name": "Govt A class Ayurved hospital AAYAD",
+      "outcome": "skipped",
+      "review_flags": [
+        "User-supplied source requires independent verification.",
+        "Coordinates missing; no map location confirmed.",
+        "Phone missing; confirm before submission/verification.",
+        "Listed hours are unverified and are not doctor availability.",
+        "Review original source notes, including identity/address/postal cautions.",
+        "Possible duplicate/related facility; resolve manually, do not auto-merge."
+      ],
+      "duplicate_candidates": [],
+      "hospital_id": 3,
+      "reason": "Stable source ID already exists; no fields or approval changed.",
+      "source_snapshot_changed": false
+    },
+    {
+      "row": 5,
+      "source_record_id": "UDR-004",
+      "name": "Government Ayurvedic Hospital and Research Centre, Gulab Bagh Udaipur",
+      "outcome": "skipped",
+      "review_flags": [
+        "User-supplied source requires independent verification.",
+        "Coordinates missing; no map location confirmed.",
+        "Phone missing; confirm before submission/verification.",
+        "Listed hours are unverified and are not doctor availability.",
+        "Review original source notes, including identity/address/postal cautions.",
+        "Possible duplicate/related facility; resolve manually, do not auto-merge."
+      ],
+      "duplicate_candidates": [
+        "UDR-002",
+        "UDR-005",
+        "hospital:2",
+        "hospital:5"
+      ],
+      "hospital_id": 4,
+      "reason": "Stable source ID already exists; no fields or approval changed.",
+      "source_snapshot_changed": false
+    },
+    {
+      "row": 6,
+      "source_record_id": "UDR-005",
+      "name": "Government Ayurved Dispensary Sindhi Bazar Udaipur",
+      "outcome": "skipped",
+      "review_flags": [
+        "User-supplied source requires independent verification.",
+        "Coordinates missing; no map location confirmed.",
+        "Phone missing; confirm before submission/verification.",
+        "Listed hours are unverified and are not doctor availability.",
+        "Review original source notes, including identity/address/postal cautions.",
+        "Possible duplicate/related facility; resolve manually, do not auto-merge."
+      ],
+      "duplicate_candidates": [
+        "UDR-002",
+        "UDR-004",
+        "hospital:2",
+        "hospital:4"
+      ],
+      "hospital_id": 5,
+      "reason": "Stable source ID already exists; no fields or approval changed.",
+      "source_snapshot_changed": false
+    },
+    {
+      "row": 7,
+      "source_record_id": "UDR-006",
+      "name": "Aadinath Vitalising Home Ayurveda & Panchakarma Hospital",
+      "outcome": "skipped",
+      "review_flags": [
+        "User-supplied source requires independent verification.",
+        "Coordinates missing; no map location confirmed.",
+        "Listed hours are unverified and are not doctor availability.",
+        "Review original source notes, including identity/address/postal cautions.",
+        "Possible duplicate/related facility; resolve manually, do not auto-merge."
+      ],
+      "duplicate_candidates": [],
+      "hospital_id": 6,
+      "reason": "Stable source ID already exists; no fields or approval changed.",
+      "source_snapshot_changed": false
+    },
+    {
+      "row": 8,
+      "source_record_id": "UDR-007",
+      "name": "Vedanta Ayurved Multi-Speciality Hospital & Research Centre",
+      "outcome": "skipped",
+      "review_flags": [
+        "User-supplied source requires independent verification.",
+        "Coordinates missing; no map location confirmed.",
+        "Listed hours are unverified and are not doctor availability.",
+        "Review original source notes, including identity/address/postal cautions.",
+        "Possible duplicate/related facility; resolve manually, do not auto-merge."
+      ],
+      "duplicate_candidates": [],
+      "hospital_id": 7,
+      "reason": "Stable source ID already exists; no fields or approval changed.",
+      "source_snapshot_changed": false
+    },
+    {
+      "row": 9,
+      "source_record_id": "UDR-008",
+      "name": "Ayur Bagh Ayurved Multispeciality Hospital",
+      "outcome": "skipped",
+      "review_flags": [
+        "User-supplied source requires independent verification.",
+        "Coordinates missing; no map location confirmed.",
+        "Listed hours are unverified and are not doctor availability.",
+        "Review original source notes, including identity/address/postal cautions.",
+        "Possible duplicate/related facility; resolve manually, do not auto-merge."
+      ],
+      "duplicate_candidates": [],
+      "hospital_id": 8,
+      "reason": "Stable source ID already exists; no fields or approval changed.",
+      "source_snapshot_changed": false
+    },
+    {
+      "row": 10,
+      "source_record_id": "UDR-009",
+      "name": "Ayurnaturo Hospital & Research Centre",
+      "outcome": "skipped",
+      "review_flags": [
+        "User-supplied source requires independent verification.",
+        "Coordinates missing; no map location confirmed.",
+        "Listed hours are unverified and are not doctor availability.",
+        "Review original source notes, including identity/address/postal cautions.",
+        "Possible duplicate/related facility; resolve manually, do not auto-merge."
+      ],
+      "duplicate_candidates": [],
+      "hospital_id": 9,
+      "reason": "Stable source ID already exists; no fields or approval changed.",
+      "source_snapshot_changed": false
+    },
+    {
+      "row": 11,
+      "source_record_id": "UDR-010",
+      "name": "Panchamrut Ayurveda Panchkarma & Fertility Center",
+      "outcome": "skipped",
+      "review_flags": [
+        "User-supplied source requires independent verification.",
+        "Coordinates missing; no map location confirmed.",
+        "Listed hours are unverified and are not doctor availability.",
+        "Review original source notes, including identity/address/postal cautions.",
+        "Possible duplicate/related facility; resolve manually, do not auto-merge."
+      ],
+      "duplicate_candidates": [],
+      "hospital_id": 10,
+      "reason": "Stable source ID already exists; no fields or approval changed.",
+      "source_snapshot_changed": false
+    },
+    {
+      "row": 12,
+      "source_record_id": "UDR-011",
+      "name": "Pranav Yoga Ayurveda Healthcare",
+      "outcome": "skipped",
+      "review_flags": [
+        "User-supplied source requires independent verification.",
+        "Coordinates missing; no map location confirmed.",
+        "Listed hours are unverified and are not doctor availability.",
+        "Review original source notes, including identity/address/postal cautions.",
+        "Possible duplicate/related facility; resolve manually, do not auto-merge."
+      ],
+      "duplicate_candidates": [],
+      "hospital_id": 11,
+      "reason": "Stable source ID already exists; no fields or approval changed.",
+      "source_snapshot_changed": false
+    },
+    {
+      "row": 13,
+      "source_record_id": "UDR-012",
+      "name": "Keraliya Ayurvedic Panchakarma Center",
+      "outcome": "skipped",
+      "review_flags": [
+        "User-supplied source requires independent verification.",
+        "Coordinates missing; no map location confirmed.",
+        "Listed hours are unverified and are not doctor availability.",
+        "Review original source notes, including identity/address/postal cautions.",
+        "Possible duplicate/related facility; resolve manually, do not auto-merge."
+      ],
+      "duplicate_candidates": [],
+      "hospital_id": 12,
+      "reason": "Stable source ID already exists; no fields or approval changed.",
+      "source_snapshot_changed": false
+    }
+  ],
+  "started_at": "2026-10-26T09:13:10.869812+00:00",
+  "file_sha256": "85417a77df8bb50fe7c28d129d86bdd721d07126ba9abb91940bc8251632c261",
+  "summary": {
+    "total": 12,
+    "created": 0,
+    "would_create": 0,
+    "skipped": 12,
+    "duplicate": 0,
+    "possible_duplicate": 3,
+    "invalid": 0,
+    "review_needed": 12
+  }
+}

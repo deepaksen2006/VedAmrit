@@ -1,0 +1,60 @@
+[
+  {
+    "file": "ncism-permissions-2025-26.pdf",
+    "url": "https://www.ncismindia.org/assets/pdf/List%20of%20Permitted%20Ayurveda%20Colleges%20for%20the%20A.Y.%202025-26%20as%20on%2012.09.2025.pdf",
+    "status": 406,
+    "bytes": 226,
+    "content_type": "text/html; charset=iso-8859-1",
+    "additional_attempts": [
+      "Web tool initially parsed a 129-page PDF; target corroboration from indexed regulator entry",
+      "Later direct curl request returned 409"
+    ],
+    "target_entry_current_original_preserved": false
+  },
+  {
+    "file": "aiia-government-hospitals.pdf",
+    "url": "https://aiia.gov.in/wp-content/uploads/2025/08/a.-Government-AYUSH-Hospitals-in-India.pdf",
+    "error": "SSLError",
+    "additional_attempts": [
+      "Web tool retrieval timed out",
+      "Later direct curl request returned 404"
+    ],
+    "indexed_extract_only": true
+  },
+  {
+    "file": "rajasthan-institution-profile.pdf",
+    "url": "https://rajayushcounselling.com/Images/Notifications/125.PDF",
+    "status": 404,
+    "bytes": 1245,
+    "content_type": "text/html",
+    "indexed_extract_only": true
+  },
+  {
+    "file": "rajasthan-health-home.html",
+    "url": "https://health.rajasthan.gov.in/",
+    "status": 200,
+    "bytes": 15309,
+    "content_type": "text/html",
+    "sha256": "cefc486422d9e72378ba7de0895b4d6346659ad182a85b3889c8ec67df4154f2"
+  },
+  {
+    "file": "rajasthan-college-portal.html",
+    "url": "https://department.rajasthan.gov.in/home/dptHome/226",
+    "status": 200,
+    "bytes": 12591,
+    "content_type": "text/html",
+    "sha256": "9bacb07167fbb10ff5b3b2e1fc7cc7565f517e399bbf93fbec6e7462e2698973"
+  },
+  {
+    "url": "https://cdnbbsr.s3waas.gov.in/s3653ac11ca60b3e021a8c609c7198acfc/uploads/2025/09/202509131971354362.pdf",
+    "status": 200,
+    "pdf_pages": 25,
+    "matching_pages": [
+      8,
+      9
+    ],
+    "sha256": "09cf3df3090cddc8771c3ca4ac239fc7a52fe1bba6d46393beaa60640df0f426",
+    "relevant_pages_rendered_and_visually_inspected": true,
+    "current_original_retrieved": true
+  }
+]

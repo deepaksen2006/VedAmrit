@@ -1,0 +1,394 @@
+{
+  "task": "4.2C live device verification",
+  "date": "2026-10-27",
+  "device": {
+    "model": "OnePlus CPH2619",
+    "android_api": 35
+  },
+  "build": {
+    "apk": "app/build/outputs/apk/debug/app-debug.apk",
+    "bytes": 79724829,
+    "sha256": "0f4bc3eae9f486e1d1f2ed0aad6e471ae8da28078b9a7ee2492dd2f95b7c89be",
+    "backend_url": "http://127.0.0.1:8000/",
+    "requires_usb_reverse_tcp_8000": true,
+    "saved_backend_url_modified": false
+  },
+  "key_configuration": {
+    "ignored_local_property_present": true,
+    "matches_backend_key": true,
+    "key_value_in_report": false,
+    "credential_found_in_final_unignored_text_scan": false,
+    "example_credential_value_removed": true
+  },
+  "verification": {
+    "live_ui_tests_passed": 1,
+    "native_map_rendered": true,
+    "udaipur_city_search_succeeded": true,
+    "nearby_coordinate_search_succeeded": true,
+    "nearby_radius_km": 20,
+    "directory_empty_state_displayed": true,
+    "nearby_empty_state_displayed": true,
+    "public_hospitals": 0,
+    "public_hospital_pins": 0,
+    "phone_gps_permission_granted": false,
+    "phone_gps_tested": false,
+    "android_unit_tests": 168,
+    "android_unit_failures": 0,
+    "keyboard_dismissed_after_search": true,
+    "map_ready_waits_for_native_idle": true,
+    "screenshots_visually_inspected": true
+  },
+  "database": {
+    "vendor": "postgresql",
+    "unchanged_models": 23,
+    "changed_models": [],
+    "before_tables": {
+      "admin.LogEntry": {
+        "count": 1,
+        "sha256": "e741d7df93887ac540b458d665e730a17c85bbfa0f6ea9658a1a5ecc3e4220ee"
+      },
+      "auth.Permission": {
+        "count": 98,
+        "sha256": "92762e3331b6bf1973a223d093fb50eaea75a0d11950dcdc32ec027ccffd7262"
+      },
+      "auth.Group": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "auth.User": {
+        "count": 9,
+        "sha256": "efb4b30da6f8b11a7d8445025686564145049a308d3ac1bdb95aec7ba7d501b8"
+      },
+      "contenttypes.ContentType": {
+        "count": 24,
+        "sha256": "7b986f46f211caebee0ee12d4aded5d3fa0b2e95d626b8e35ed0dd0d1600578e"
+      },
+      "sessions.Session": {
+        "count": 1,
+        "sha256": "9c7cc08863417f4dbad7e3d19580948ddb040f3f9857d856776b0748d8b6d3f3"
+      },
+      "doctors.DoctorProfile": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "consultations.Consultation": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "dietplans.DietPlan": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "agentic_reports.PatientProfile": {
+        "count": 2,
+        "sha256": "cff12468f8a9636d41fb8a88a70fd65bc56af7edaa66083bdcbda669cb967aa2"
+      },
+      "agentic_reports.AssessmentResult": {
+        "count": 3,
+        "sha256": "847aef2ed383c6aa97d1281a6e1bf4815d778200c5180a06c473e290615a96ee"
+      },
+      "agentic_reports.AgentRun": {
+        "count": 3,
+        "sha256": "4164a96a474afcb31e6916180c02649d1aa8dc1e4740bc67fe5d0fb5b7c89277"
+      },
+      "agentic_reports.DoctorAssignment": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "agentic_reports.WellnessPlan": {
+        "count": 3,
+        "sha256": "ba4c277ac5e2bf147a6de5f22aadfaab2a1bfc0e42a498c73bebcb3592798fc3"
+      },
+      "agentic_reports.DoctorReview": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "agentic_reports.FinalReport": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "community_care.Hospital": {
+        "count": 12,
+        "sha256": "58557ff21fbd1db2379289f49bdac24bc938b9cc61a57e5dea4549681580df09"
+      },
+      "community_care.HospitalMembership": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "community_care.DoctorHospitalAffiliation": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "community_care.VerificationAudit": {
+        "count": 13,
+        "sha256": "9c468f44bd6720496d27ec0c4ebb44d665f734e291af9959f7165f538fb6e5ed"
+      },
+      "community_care.GeocodingRun": {
+        "count": 16,
+        "sha256": "a256239954d77f3f18a2aff110e3bc341317e0513b1c2e380dcce17530a08b0c"
+      },
+      "community_care.LocationCandidate": {
+        "count": 61,
+        "sha256": "240841de52b9370f82c295ce7d5c9720ac73bc713c039f73eb3c53b666ce3ed3"
+      },
+      "community_care.HospitalDuplicateReview": {
+        "count": 3,
+        "sha256": "5ba7b3d13b12036fa1e49f3c750b8b47f40e04d209b915a0fce4cb31d8f4746d"
+      }
+    },
+    "after_tables": {
+      "admin.LogEntry": {
+        "count": 1,
+        "sha256": "e741d7df93887ac540b458d665e730a17c85bbfa0f6ea9658a1a5ecc3e4220ee"
+      },
+      "auth.Permission": {
+        "count": 98,
+        "sha256": "92762e3331b6bf1973a223d093fb50eaea75a0d11950dcdc32ec027ccffd7262"
+      },
+      "auth.Group": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "auth.User": {
+        "count": 9,
+        "sha256": "efb4b30da6f8b11a7d8445025686564145049a308d3ac1bdb95aec7ba7d501b8"
+      },
+      "contenttypes.ContentType": {
+        "count": 24,
+        "sha256": "7b986f46f211caebee0ee12d4aded5d3fa0b2e95d626b8e35ed0dd0d1600578e"
+      },
+      "sessions.Session": {
+        "count": 1,
+        "sha256": "9c7cc08863417f4dbad7e3d19580948ddb040f3f9857d856776b0748d8b6d3f3"
+      },
+      "doctors.DoctorProfile": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "consultations.Consultation": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "dietplans.DietPlan": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "agentic_reports.PatientProfile": {
+        "count": 2,
+        "sha256": "cff12468f8a9636d41fb8a88a70fd65bc56af7edaa66083bdcbda669cb967aa2"
+      },
+      "agentic_reports.AssessmentResult": {
+        "count": 3,
+        "sha256": "847aef2ed383c6aa97d1281a6e1bf4815d778200c5180a06c473e290615a96ee"
+      },
+      "agentic_reports.AgentRun": {
+        "count": 3,
+        "sha256": "4164a96a474afcb31e6916180c02649d1aa8dc1e4740bc67fe5d0fb5b7c89277"
+      },
+      "agentic_reports.DoctorAssignment": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "agentic_reports.WellnessPlan": {
+        "count": 3,
+        "sha256": "ba4c277ac5e2bf147a6de5f22aadfaab2a1bfc0e42a498c73bebcb3592798fc3"
+      },
+      "agentic_reports.DoctorReview": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "agentic_reports.FinalReport": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "community_care.Hospital": {
+        "count": 12,
+        "sha256": "58557ff21fbd1db2379289f49bdac24bc938b9cc61a57e5dea4549681580df09"
+      },
+      "community_care.HospitalMembership": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "community_care.DoctorHospitalAffiliation": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "community_care.VerificationAudit": {
+        "count": 13,
+        "sha256": "9c468f44bd6720496d27ec0c4ebb44d665f734e291af9959f7165f538fb6e5ed"
+      },
+      "community_care.GeocodingRun": {
+        "count": 16,
+        "sha256": "a256239954d77f3f18a2aff110e3bc341317e0513b1c2e380dcce17530a08b0c"
+      },
+      "community_care.LocationCandidate": {
+        "count": 61,
+        "sha256": "240841de52b9370f82c295ce7d5c9720ac73bc713c039f73eb3c53b666ce3ed3"
+      },
+      "community_care.HospitalDuplicateReview": {
+        "count": 3,
+        "sha256": "5ba7b3d13b12036fa1e49f3c750b8b47f40e04d209b915a0fce4cb31d8f4746d"
+      }
+    },
+    "hospitals": [
+      {
+        "id": 1,
+        "source_record_id": "UDR-001",
+        "verification_status": "DRAFT",
+        "location_status": "APPROVED",
+        "import_review_status": "NEEDS_REVIEW",
+        "booking_enabled": false
+      },
+      {
+        "id": 2,
+        "source_record_id": "UDR-002",
+        "verification_status": "DRAFT",
+        "location_status": "UNVERIFIED",
+        "import_review_status": "NEEDS_REVIEW",
+        "booking_enabled": false
+      },
+      {
+        "id": 3,
+        "source_record_id": "UDR-003",
+        "verification_status": "DRAFT",
+        "location_status": "UNVERIFIED",
+        "import_review_status": "NEEDS_REVIEW",
+        "booking_enabled": false
+      },
+      {
+        "id": 4,
+        "source_record_id": "UDR-004",
+        "verification_status": "DRAFT",
+        "location_status": "UNVERIFIED",
+        "import_review_status": "NEEDS_REVIEW",
+        "booking_enabled": false
+      },
+      {
+        "id": 5,
+        "source_record_id": "UDR-005",
+        "verification_status": "DRAFT",
+        "location_status": "UNVERIFIED",
+        "import_review_status": "NEEDS_REVIEW",
+        "booking_enabled": false
+      },
+      {
+        "id": 6,
+        "source_record_id": "UDR-006",
+        "verification_status": "DRAFT",
+        "location_status": "UNVERIFIED",
+        "import_review_status": "NEEDS_REVIEW",
+        "booking_enabled": false
+      },
+      {
+        "id": 7,
+        "source_record_id": "UDR-007",
+        "verification_status": "DRAFT",
+        "location_status": "UNVERIFIED",
+        "import_review_status": "NEEDS_REVIEW",
+        "booking_enabled": false
+      },
+      {
+        "id": 8,
+        "source_record_id": "UDR-008",
+        "verification_status": "DRAFT",
+        "location_status": "UNVERIFIED",
+        "import_review_status": "NEEDS_REVIEW",
+        "booking_enabled": false
+      },
+      {
+        "id": 9,
+        "source_record_id": "UDR-009",
+        "verification_status": "DRAFT",
+        "location_status": "UNVERIFIED",
+        "import_review_status": "NEEDS_REVIEW",
+        "booking_enabled": false
+      },
+      {
+        "id": 10,
+        "source_record_id": "UDR-010",
+        "verification_status": "DRAFT",
+        "location_status": "UNVERIFIED",
+        "import_review_status": "NEEDS_REVIEW",
+        "booking_enabled": false
+      },
+      {
+        "id": 11,
+        "source_record_id": "UDR-011",
+        "verification_status": "DRAFT",
+        "location_status": "UNVERIFIED",
+        "import_review_status": "NEEDS_REVIEW",
+        "booking_enabled": false
+      },
+      {
+        "id": 12,
+        "source_record_id": "UDR-012",
+        "verification_status": "DRAFT",
+        "location_status": "UNVERIFIED",
+        "import_review_status": "NEEDS_REVIEW",
+        "booking_enabled": false
+      }
+    ],
+    "endpoints": {
+      "/api/care/hospitals/": {
+        "status": 200,
+        "count": 0
+      },
+      "/api/care/hospitals/?search=Udaipur": {
+        "status": 200,
+        "count": 0
+      },
+      "/api/care/hospitals/nearby/?latitude=24.5854&longitude=73.7125&radius_km=20": {
+        "status": 200,
+        "count": 0
+      },
+      "hospital:1": {
+        "status": 404
+      },
+      "hospital:2": {
+        "status": 404
+      },
+      "hospital:3": {
+        "status": 404
+      },
+      "hospital:4": {
+        "status": 404
+      },
+      "hospital:5": {
+        "status": 404
+      },
+      "hospital:6": {
+        "status": 404
+      },
+      "hospital:7": {
+        "status": 404
+      },
+      "hospital:8": {
+        "status": 404
+      },
+      "hospital:9": {
+        "status": 404
+      },
+      "hospital:10": {
+        "status": 404
+      },
+      "hospital:11": {
+        "status": 404
+      },
+      "hospital:12": {
+        "status": 404
+      }
+    }
+  },
+  "screenshots": [
+    "docs/verification/community-care-oneplus/care-live-map.png",
+    "docs/verification/community-care-oneplus/care-live-directory-empty.png",
+    "docs/verification/community-care-oneplus/care-live-nearby-empty.png",
+    "docs/verification/community-care-oneplus/care-live-nearby-map.png"
+  ],
+  "fixes_verified": [
+    "MapLibre initialized before HTTP SDK access",
+    "Cancelled tile calls do not show false network errors",
+    "Search dismisses keyboard and respects IME insets",
+    "Map readiness waits for native idle after camera/tile rendering"
+  ]
+}

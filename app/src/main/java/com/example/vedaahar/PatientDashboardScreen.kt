@@ -50,6 +50,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -86,8 +87,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.vedaahar.doctor.data.DoctorRepository
-import com.example.vedaahar.doctor.ui.PatientVerifiedDoctorsSection
 import com.example.vedaahar.dosha.DoshaResultStore
 import com.example.vedaahar.dosha.SavedDoshaAssessment
 import com.example.vedaahar.ui.CircularArrowCta
@@ -1113,7 +1112,7 @@ private fun ConsultTabContent(onCommunityCareClick: () -> Unit) {
     }
 
     Spacer(modifier = Modifier.height(8.dp))
-    PatientVerifiedDoctorsSection(doctors = DoctorRepository().verifiedDoctors())
+    OutlinedButton(onClick = onCommunityCareClick) { Text("Browse verified Ayurvedic doctors") }
 }
 
 // ==========================================

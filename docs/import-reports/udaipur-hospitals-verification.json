@@ -1,0 +1,297 @@
+{
+  "before": {
+    "vendor": "postgresql",
+    "records": {
+      "auth.User": {
+        "count": 6,
+        "sha256": "1785163c3c2227cc63b588354d4000d5978b963fa9f9c8035e9408bfa7a20075"
+      },
+      "doctors.DoctorProfile": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "consultations.Consultation": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "agentic_reports.AssessmentResult": {
+        "count": 3,
+        "sha256": "ca31f5a4131db98a9094e7b429b818565f65c939a9538b128945d81585c0d00c"
+      },
+      "agentic_reports.PatientProfile": {
+        "count": 2,
+        "sha256": "94af6d0739dc32f8f6c4b8cf5cae8850bb22c55cbe9611326464e43ab21a231b"
+      },
+      "agentic_reports.AgentRun": {
+        "count": 3,
+        "sha256": "fc3f82809b21cdcf33584cfe32e0d30067ddfb2a7fb19d9bcd7fd8409b643856"
+      },
+      "agentic_reports.WellnessPlan": {
+        "count": 3,
+        "sha256": "4b5d0a1f0c26f35b681501094db0900a216ce860d22b71d594a54032fe48c19f"
+      },
+      "agentic_reports.FinalReport": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "dietplans.DietPlan": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "community_care.Hospital": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "community_care.HospitalMembership": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "community_care.DoctorHospitalAffiliation": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  },
+  "after": {
+    "vendor": "postgresql",
+    "records": {
+      "auth.User": {
+        "count": 6,
+        "sha256": "1785163c3c2227cc63b588354d4000d5978b963fa9f9c8035e9408bfa7a20075"
+      },
+      "doctors.DoctorProfile": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "consultations.Consultation": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "agentic_reports.AssessmentResult": {
+        "count": 3,
+        "sha256": "ca31f5a4131db98a9094e7b429b818565f65c939a9538b128945d81585c0d00c"
+      },
+      "agentic_reports.PatientProfile": {
+        "count": 2,
+        "sha256": "94af6d0739dc32f8f6c4b8cf5cae8850bb22c55cbe9611326464e43ab21a231b"
+      },
+      "agentic_reports.AgentRun": {
+        "count": 3,
+        "sha256": "fc3f82809b21cdcf33584cfe32e0d30067ddfb2a7fb19d9bcd7fd8409b643856"
+      },
+      "agentic_reports.WellnessPlan": {
+        "count": 3,
+        "sha256": "4b5d0a1f0c26f35b681501094db0900a216ce860d22b71d594a54032fe48c19f"
+      },
+      "agentic_reports.FinalReport": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "dietplans.DietPlan": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "community_care.Hospital": {
+        "count": 12,
+        "sha256": "4118e415ba54aa55338a5fe506ab25fd3191c8ad944b64a0a196d072cf4daf11"
+      },
+      "community_care.HospitalMembership": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "community_care.DoctorHospitalAffiliation": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    "imported": {
+      "count": 12,
+      "draft": 12,
+      "needs_review": 12,
+      "null_coordinate_pairs": 12,
+      "missing_phones": 4,
+      "blank_source_urls": 12,
+      "booking_enabled": 0,
+      "revision_one": 12,
+      "unchanged_since_repeat": 12,
+      "type_counts": [
+        {
+          "facility_type": "government_dispensary",
+          "count": 1
+        },
+        {
+          "facility_type": "government_hospital",
+          "count": 3
+        },
+        {
+          "facility_type": "government_teaching_hospital",
+          "count": 1
+        },
+        {
+          "facility_type": "private_clinic",
+          "count": 2
+        },
+        {
+          "facility_type": "private_hospital",
+          "count": 4
+        },
+        {
+          "facility_type": "private_treatment_centre",
+          "count": 1
+        }
+      ],
+      "source_ids": [
+        "UDR-001",
+        "UDR-002",
+        "UDR-003",
+        "UDR-004",
+        "UDR-005",
+        "UDR-006",
+        "UDR-007",
+        "UDR-008",
+        "UDR-009",
+        "UDR-010",
+        "UDR-011",
+        "UDR-012"
+      ]
+    },
+    "audit_import_count": 12,
+    "public_hospitals": {
+      "http_status": 200,
+      "count": 0
+    },
+    "public_doctors": {
+      "http_status": 200,
+      "count": 0
+    },
+    "source_booking_constraints_present": true,
+    "applied_care_migrations": [
+      "0001_initial",
+      "0002_hospital_booking_enabled_hospital_district_and_more"
+    ]
+  },
+  "preservation": {
+    "auth.User": {
+      "before": {
+        "count": 6,
+        "sha256": "1785163c3c2227cc63b588354d4000d5978b963fa9f9c8035e9408bfa7a20075"
+      },
+      "after": {
+        "count": 6,
+        "sha256": "1785163c3c2227cc63b588354d4000d5978b963fa9f9c8035e9408bfa7a20075"
+      },
+      "unchanged": true
+    },
+    "doctors.DoctorProfile": {
+      "before": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "after": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "unchanged": true
+    },
+    "consultations.Consultation": {
+      "before": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "after": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "unchanged": true
+    },
+    "agentic_reports.AssessmentResult": {
+      "before": {
+        "count": 3,
+        "sha256": "ca31f5a4131db98a9094e7b429b818565f65c939a9538b128945d81585c0d00c"
+      },
+      "after": {
+        "count": 3,
+        "sha256": "ca31f5a4131db98a9094e7b429b818565f65c939a9538b128945d81585c0d00c"
+      },
+      "unchanged": true
+    },
+    "agentic_reports.PatientProfile": {
+      "before": {
+        "count": 2,
+        "sha256": "94af6d0739dc32f8f6c4b8cf5cae8850bb22c55cbe9611326464e43ab21a231b"
+      },
+      "after": {
+        "count": 2,
+        "sha256": "94af6d0739dc32f8f6c4b8cf5cae8850bb22c55cbe9611326464e43ab21a231b"
+      },
+      "unchanged": true
+    },
+    "agentic_reports.AgentRun": {
+      "before": {
+        "count": 3,
+        "sha256": "fc3f82809b21cdcf33584cfe32e0d30067ddfb2a7fb19d9bcd7fd8409b643856"
+      },
+      "after": {
+        "count": 3,
+        "sha256": "fc3f82809b21cdcf33584cfe32e0d30067ddfb2a7fb19d9bcd7fd8409b643856"
+      },
+      "unchanged": true
+    },
+    "agentic_reports.WellnessPlan": {
+      "before": {
+        "count": 3,
+        "sha256": "4b5d0a1f0c26f35b681501094db0900a216ce860d22b71d594a54032fe48c19f"
+      },
+      "after": {
+        "count": 3,
+        "sha256": "4b5d0a1f0c26f35b681501094db0900a216ce860d22b71d594a54032fe48c19f"
+      },
+      "unchanged": true
+    },
+    "agentic_reports.FinalReport": {
+      "before": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "after": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "unchanged": true
+    },
+    "dietplans.DietPlan": {
+      "before": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "after": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "unchanged": true
+    },
+    "community_care.HospitalMembership": {
+      "before": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "after": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "unchanged": true
+    },
+    "community_care.DoctorHospitalAffiliation": {
+      "before": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "after": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "unchanged": true
+    }
+  },
+  "all_existing_non_hospital_records_unchanged": true
+}

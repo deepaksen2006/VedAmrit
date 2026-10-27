@@ -1,0 +1,119 @@
+{
+  "before": {
+    "auth.User": {
+      "count": 6,
+      "hash": "1785163c3c2227cc63b588354d4000d5978b963fa9f9c8035e9408bfa7a20075"
+    },
+    "doctors.DoctorProfile": {
+      "count": 0,
+      "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "consultations.Consultation": {
+      "count": 0,
+      "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "agentic_reports.AssessmentResult": {
+      "count": 3,
+      "hash": "ca31f5a4131db98a9094e7b429b818565f65c939a9538b128945d81585c0d00c"
+    },
+    "agentic_reports.PatientProfile": {
+      "count": 2,
+      "hash": "94af6d0739dc32f8f6c4b8cf5cae8850bb22c55cbe9611326464e43ab21a231b"
+    },
+    "agentic_reports.AgentRun": {
+      "count": 3,
+      "hash": "fc3f82809b21cdcf33584cfe32e0d30067ddfb2a7fb19d9bcd7fd8409b643856"
+    },
+    "agentic_reports.WellnessPlan": {
+      "count": 3,
+      "hash": "4b5d0a1f0c26f35b681501094db0900a216ce860d22b71d594a54032fe48c19f"
+    },
+    "agentic_reports.FinalReport": {
+      "count": 0,
+      "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "community_care.Hospital": {
+      "count": 12,
+      "hash": "4118e415ba54aa55338a5fe506ab25fd3191c8ad944b64a0a196d072cf4daf11"
+    }
+  },
+  "after": {
+    "records": {
+      "auth.User": {
+        "count": 6,
+        "hash": "1785163c3c2227cc63b588354d4000d5978b963fa9f9c8035e9408bfa7a20075"
+      },
+      "doctors.DoctorProfile": {
+        "count": 0,
+        "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "consultations.Consultation": {
+        "count": 0,
+        "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "agentic_reports.AssessmentResult": {
+        "count": 3,
+        "hash": "ca31f5a4131db98a9094e7b429b818565f65c939a9538b128945d81585c0d00c"
+      },
+      "agentic_reports.PatientProfile": {
+        "count": 2,
+        "hash": "94af6d0739dc32f8f6c4b8cf5cae8850bb22c55cbe9611326464e43ab21a231b"
+      },
+      "agentic_reports.AgentRun": {
+        "count": 3,
+        "hash": "fc3f82809b21cdcf33584cfe32e0d30067ddfb2a7fb19d9bcd7fd8409b643856"
+      },
+      "agentic_reports.WellnessPlan": {
+        "count": 3,
+        "hash": "4b5d0a1f0c26f35b681501094db0900a216ce860d22b71d594a54032fe48c19f"
+      },
+      "agentic_reports.FinalReport": {
+        "count": 0,
+        "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "community_care.Hospital": {
+        "count": 12,
+        "hash": "4118e415ba54aa55338a5fe506ab25fd3191c8ad944b64a0a196d072cf4daf11"
+      }
+    },
+    "location_state": {
+      "hospitals": 12,
+      "draft": 12,
+      "needs_review": 12,
+      "approved": 0,
+      "null_coordinates": 12,
+      "runs": 15,
+      "candidates": 60,
+      "proposed": 60,
+      "booking_enabled": 0
+    }
+  },
+  "existing_rows_unchanged": true,
+  "hospital_comparison_excludes_new_schema_fields": [
+    "location_status",
+    "approved_location"
+  ],
+  "nearby_postgresql_smoke": {
+    "status": 200,
+    "count": 0
+  },
+  "known_postgresql_distance_km": 11.119508,
+  "live_requests": 18,
+  "live_blocker": null,
+  "key_configured": true,
+  "live_run_statuses": [
+    {
+      "status": "FAILED",
+      "error_code": "HTTP_ERROR",
+      "count": 3
+    },
+    {
+      "status": "SUCCESS",
+      "error_code": "",
+      "count": 12
+    }
+  ],
+  "approved_coordinate_count": 0,
+  "remaining_quality_blocker": "All returned proposals are broad/low-relevance; exact facility positions and duplicate/source identities require independent review.",
+  "repeat_http_requests": 0
+}

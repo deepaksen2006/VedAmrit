@@ -1,0 +1,6 @@
+# Copy these values into ignored local.properties. Never commit real credentials.
+# Keep the sdk.dir already configured by Android Studio.
+agenticApiBaseUrl=http://10.0.2.2:8000/
+# Dedicated Android client key; restrict Allowed User-Agent to VedAmrit-Android.
+# Alternatively set MAPTILER_ANDROID_API_KEY in the build environment (takes precedence).
+mapTilerApiKey=

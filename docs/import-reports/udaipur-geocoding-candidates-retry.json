@@ -1,0 +1,98 @@
+{
+  "dry_run": false,
+  "provider": "MapTiler Cloud",
+  "records": [
+    {
+      "hospital_id": 1,
+      "source_record_id": "UDR-001",
+      "query": "Madan Mohan Malviya Government Ayurvedic College And Hospital, Ambamata Scheme - A Rd, Radaji circle, Udaipur, Rajasthan, 313004, India",
+      "outcome": "failed",
+      "error_code": "MISSING_KEY"
+    },
+    {
+      "hospital_id": 2,
+      "source_record_id": "UDR-002",
+      "query": "Government Ayurvedic Hospital, Moti Chohatta, Ghanta Ghar, 107 Main Rd, near Ayurvedic Hospital, Old City, Jatwari, Silawatwari, Udaipur, Rajasthan, 313001, India",
+      "outcome": "not_requested",
+      "error_code": "MISSING_KEY"
+    },
+    {
+      "hospital_id": 3,
+      "source_record_id": "UDR-003",
+      "query": "Govt A class Ayurved hospital AAYAD, HPP9+P5X, opposite Gang Kund, South Ayad, Ayad, Ganapati Nagar, Udaipur, Rajasthan, 313001, India",
+      "outcome": "not_requested",
+      "error_code": "MISSING_KEY"
+    },
+    {
+      "hospital_id": 4,
+      "source_record_id": "UDR-004",
+      "query": "Government Ayurvedic Hospital and Research Centre, Gulab Bagh Udaipur, Palace Road, Old City, Kalaji Goraji, near Gulab Bagh, Udaipur, Rajasthan, 313001, India",
+      "outcome": "not_requested",
+      "error_code": "MISSING_KEY"
+    },
+    {
+      "hospital_id": 5,
+      "source_record_id": "UDR-005",
+      "query": "Government Ayurved Dispensary Sindhi Bazar Udaipur, Futa Darwaja, Sindhi Bazar Rd, Old City, Nada Khada, Udaipur, Rajasthan, 313001, India",
+      "outcome": "not_requested",
+      "error_code": "MISSING_KEY"
+    },
+    {
+      "hospital_id": 6,
+      "source_record_id": "UDR-006",
+      "query": "Aadinath Vitalising Home Ayurveda & Panchakarma Hospital, 60, behind Hanuman Temple, opposite Meera Girls College, Sardarpura, Bhopalpura, Udaipur, Rajasthan, 313004, India",
+      "outcome": "not_requested",
+      "error_code": "MISSING_KEY"
+    },
+    {
+      "hospital_id": 7,
+      "source_record_id": "UDR-007",
+      "query": "Vedanta Ayurved Multi-Speciality Hospital & Research Centre, 15-C, near Star Imaging Centre, Madhuban, Udaipur, Rajasthan, 313004, India",
+      "outcome": "not_requested",
+      "error_code": "MISSING_KEY"
+    },
+    {
+      "hospital_id": 8,
+      "source_record_id": "UDR-008",
+      "query": "Ayur Bagh Ayurved Multispeciality Hospital, Plot No. 460, B-Block, Shyam Nagar, Bhuwana, Roopnagar, Udaipur, Rajasthan, 313001, India",
+      "outcome": "not_requested",
+      "error_code": "MISSING_KEY"
+    },
+    {
+      "hospital_id": 9,
+      "source_record_id": "UDR-009",
+      "query": "Ayurnaturo Hospital & Research Centre, Main Road, Debari, Udaipur, Rajasthan, 313001, India",
+      "outcome": "not_requested",
+      "error_code": "MISSING_KEY"
+    },
+    {
+      "hospital_id": 10,
+      "source_record_id": "UDR-010",
+      "query": "Panchamrut Ayurveda Panchkarma & Fertility Center, 4-A / 33-A, Ashok Nagar Main Rd, near Bhopalpura Police Station, Shastri Circle, Ashok Nagar, Udaipur, Rajasthan, 313001, India",
+      "outcome": "not_requested",
+      "error_code": "MISSING_KEY"
+    },
+    {
+      "hospital_id": 11,
+      "source_record_id": "UDR-011",
+      "query": "Pranav Yoga Ayurveda Healthcare, B Block, 2-D, Tiger Hills, Badgaon, Bargaon, Udaipur, Rajasthan, 313011, India",
+      "outcome": "not_requested",
+      "error_code": "MISSING_KEY"
+    },
+    {
+      "hospital_id": 12,
+      "source_record_id": "UDR-012",
+      "query": "Keraliya Ayurvedic Panchakarma Center, 28, Kardhar Complex, Sector 14, Hiran Magri, Gordhan Vilas Rural, Udaipur, Rajasthan, 313001, India",
+      "outcome": "not_requested",
+      "error_code": "MISSING_KEY"
+    }
+  ],
+  "http_requests": 0,
+  "summary": {
+    "hospitals": 12,
+    "candidate_count": 0,
+    "failed": 1,
+    "not_requested": 11,
+    "skipped": 0
+  }
+}

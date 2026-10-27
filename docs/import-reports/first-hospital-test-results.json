@@ -1,0 +1,35 @@
+{
+  "task": "4.2D",
+  "date": "2026-10-27",
+  "live_identity": "DRAFT",
+  "live_location": "APPROVED",
+  "publicly_visible": false,
+  "targeted_django_tests": 118,
+  "new_workflow_tests": 8,
+  "android_unit_tests": 168,
+  "android_unit_failures": 0,
+  "oneplus_tests_passed": 2,
+  "oneplus_test_scope": [
+    "Isolated synthetic marker/filter/tap/details/loading/empty/error",
+    "Live public directory/map/nearby remains empty"
+  ],
+  "live_database_unchanged_models": 22,
+  "changed_models_during_task": [
+    "agentic_reports.PatientProfile"
+  ],
+  "agent_live_business_writes": 0,
+  "care_records_location_history_audit_unchanged": true,
+  "apk_sha256": "0f4bc3eae9f486e1d1f2ed0aad6e471ae8da28078b9a7ee2492dd2f95b7c89be",
+  "apk_bytes": 79724829,
+  "debug_backend": "http://127.0.0.1:8000/ via adb reverse tcp:8000 tcp:8000",
+  "lint_existing_errors": 3,
+  "lint_warnings": 115,
+  "lint_hints": 1,
+  "django_system_check": "passed",
+  "migration_consistency": "no changes detected",
+  "positive_backend_workflow_database": "isolated in-memory SQLite",
+  "source_pdf_pages_visually_inspected": [
+    8,
+    9
+  ]
+}

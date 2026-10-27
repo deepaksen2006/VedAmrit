@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "apps.consultations",
     "apps.dietplans",
     "apps.agentic_reports",
+    "apps.community_care",
 ]
 
 MIDDLEWARE = [
@@ -109,3 +110,11 @@ SIMPLE_JWT = {
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
+
+# Backend only; never include this value in serializers, URLs in reports or logs.
+MAPTILER_API_KEY = os.getenv("MAPTILER_API_KEY", "").strip()
+MAPTILER_GEOCODING_TIMEOUT = float(os.getenv("MAPTILER_GEOCODING_TIMEOUT", "10"))
+MAPTILER_GEOCODING_RETRIES = int(os.getenv("MAPTILER_GEOCODING_RETRIES", "2"))
+MAPTILER_GEOCODING_REQUEST_BUDGET = int(os.getenv("MAPTILER_GEOCODING_REQUEST_BUDGET", "24"))
+MAPTILER_GEOCODING_MIN_INTERVAL = float(os.getenv("MAPTILER_GEOCODING_MIN_INTERVAL", "1.1"))
+MAPTILER_GEOCODING_DISTANCE_WARNING_KM = float(os.getenv("MAPTILER_GEOCODING_DISTANCE_WARNING_KM", "30"))

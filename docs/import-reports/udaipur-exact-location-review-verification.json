@@ -1,0 +1,178 @@
+{
+  "before": {
+    "auth.User": {
+      "count": 6,
+      "sha256": "1785163c3c2227cc63b588354d4000d5978b963fa9f9c8035e9408bfa7a20075"
+    },
+    "doctors.DoctorProfile": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "consultations.Consultation": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "agentic_reports.AssessmentResult": {
+      "count": 3,
+      "sha256": "ca31f5a4131db98a9094e7b429b818565f65c939a9538b128945d81585c0d00c"
+    },
+    "agentic_reports.PatientProfile": {
+      "count": 2,
+      "sha256": "94af6d0739dc32f8f6c4b8cf5cae8850bb22c55cbe9611326464e43ab21a231b"
+    },
+    "agentic_reports.AgentRun": {
+      "count": 3,
+      "sha256": "fc3f82809b21cdcf33584cfe32e0d30067ddfb2a7fb19d9bcd7fd8409b643856"
+    },
+    "agentic_reports.WellnessPlan": {
+      "count": 3,
+      "sha256": "4b5d0a1f0c26f35b681501094db0900a216ce860d22b71d594a54032fe48c19f"
+    },
+    "agentic_reports.FinalReport": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "community_care.Hospital": {
+      "count": 12,
+      "sha256": "81e0cf34fc35c623daf7e234ff67409e42bcf370e4397b14b895f9ab61010888"
+    },
+    "community_care.LocationCandidate": {
+      "count": 60,
+      "sha256": "2fff2d0064d95b938025743c30bd7db26d966d4f643d4779383533798acaf037"
+    },
+    "community_care.GeocodingRun": {
+      "count": 15,
+      "sha256": "8cd3cd6c3d1147191989cacfb9f4f65ecca4496b2b7e44025607f8cc913965d3"
+    },
+    "community_care.VerificationAudit": {
+      "count": 12,
+      "sha256": "d51eedf15323a716003462ec07244a813b51889137a21f7754e177f8f19ace30"
+    }
+  },
+  "after": {
+    "records": {
+      "auth.User": {
+        "count": 6,
+        "sha256": "1785163c3c2227cc63b588354d4000d5978b963fa9f9c8035e9408bfa7a20075"
+      },
+      "doctors.DoctorProfile": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "consultations.Consultation": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "agentic_reports.AssessmentResult": {
+        "count": 3,
+        "sha256": "ca31f5a4131db98a9094e7b429b818565f65c939a9538b128945d81585c0d00c"
+      },
+      "agentic_reports.PatientProfile": {
+        "count": 2,
+        "sha256": "94af6d0739dc32f8f6c4b8cf5cae8850bb22c55cbe9611326464e43ab21a231b"
+      },
+      "agentic_reports.AgentRun": {
+        "count": 3,
+        "sha256": "fc3f82809b21cdcf33584cfe32e0d30067ddfb2a7fb19d9bcd7fd8409b643856"
+      },
+      "agentic_reports.WellnessPlan": {
+        "count": 3,
+        "sha256": "4b5d0a1f0c26f35b681501094db0900a216ce860d22b71d594a54032fe48c19f"
+      },
+      "agentic_reports.FinalReport": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "community_care.Hospital": {
+        "count": 12,
+        "sha256": "81e0cf34fc35c623daf7e234ff67409e42bcf370e4397b14b895f9ab61010888"
+      },
+      "community_care.LocationCandidate": {
+        "count": 60,
+        "sha256": "2fff2d0064d95b938025743c30bd7db26d966d4f643d4779383533798acaf037"
+      },
+      "community_care.GeocodingRun": {
+        "count": 15,
+        "sha256": "8cd3cd6c3d1147191989cacfb9f4f65ecca4496b2b7e44025607f8cc913965d3"
+      },
+      "community_care.VerificationAudit": {
+        "count": 12,
+        "sha256": "d51eedf15323a716003462ec07244a813b51889137a21f7754e177f8f19ace30"
+      }
+    },
+    "state": {
+      "hospitals": 12,
+      "draft": 12,
+      "needs_review": 12,
+      "approved_coordinates": 0,
+      "null_coordinate_pairs": 12,
+      "manual_approvals": 0,
+      "proposed_candidates": 60,
+      "booking_enabled": 0
+    },
+    "duplicate_reviews": [
+      {
+        "hospital_id": 2,
+        "hospital__source_record_id": "UDR-002",
+        "status": "NEEDS_REVIEW",
+        "revision": 1,
+        "related_hospital_id": null,
+        "reviewed_by_id": null,
+        "reviewed_at": null,
+        "evidence_url": ""
+      },
+      {
+        "hospital_id": 4,
+        "hospital__source_record_id": "UDR-004",
+        "status": "NEEDS_REVIEW",
+        "revision": 1,
+        "related_hospital_id": null,
+        "reviewed_by_id": null,
+        "reviewed_at": null,
+        "evidence_url": ""
+      },
+      {
+        "hospital_id": 5,
+        "hospital__source_record_id": "UDR-005",
+        "status": "NEEDS_REVIEW",
+        "revision": 1,
+        "related_hospital_id": null,
+        "reviewed_by_id": null,
+        "reviewed_at": null,
+        "evidence_url": ""
+      }
+    ],
+    "public_directory": {
+      "status": 200,
+      "count": 0
+    },
+    "nearby": {
+      "status": 200,
+      "count": 0
+    }
+  },
+  "existing_rows_unchanged": true,
+  "candidate_comparison_excludes_added_fields": [
+    "evidence_url",
+    "based_on_candidate"
+  ],
+  "tests": {
+    "exact_review": {
+      "passed": 25,
+      "failed": 0
+    },
+    "django_full": {
+      "discovered": 215,
+      "passed": 212,
+      "failed": 0,
+      "skipped": 3
+    },
+    "agent_engine": {
+      "passed": 54,
+      "failed": 0,
+      "subtests_passed": 3
+    }
+  },
+  "live_human_approvals_performed": false,
+  "external_geocoding_requests": 0
+}

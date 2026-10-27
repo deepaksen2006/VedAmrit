@@ -1,0 +1,129 @@
+{
+  "hospital": {
+    "id": 1,
+    "name": "Madan Mohan Malviya Government Ayurvedic College And Hospital",
+    "facility_type": "government_teaching_hospital",
+    "address": "Ambamata Scheme - A Rd, Radaji circle",
+    "city": "Udaipur",
+    "district": "Udaipur",
+    "state": "Rajasthan",
+    "postal_code": "313004",
+    "phone": "0294-2431900",
+    "email": "",
+    "description": "",
+    "facilities": [],
+    "listed_hours_unverified": "Mon-Sat 08:00-17:00; Sun 08:00-11:00",
+    "services_unverified": "Ayurveda teaching hospital",
+    "source_namespace": "udaipur_hospitals",
+    "source_record_id": "UDR-001",
+    "source_url": "",
+    "import_review_status": "NEEDS_REVIEW",
+    "import_review_notes": "",
+    "verification_status": "DRAFT",
+    "is_active": true,
+    "revision": 3,
+    "latitude": "24.588336",
+    "longitude": "73.679142",
+    "location_status": "APPROVED",
+    "approved_location_id": 61,
+    "booking_enabled": false,
+    "import_flags": []
+  },
+  "approved_location": {
+    "id": 61,
+    "status": "APPROVED",
+    "latitude": "24.588336",
+    "longitude": "73.679142",
+    "provider": "Manual confirmation",
+    "evidence_url": "https://maps.app.goo.gl/PLL1WtT7a6XqXx8s7",
+    "review_reason": "Manually verified the hospital's name, address, and exact building location using Google Maps. The coordinates (24.588336, 73.679142) match the hospital's location at Ambamata Scheme, Radaji Circle, Udaipur, Rajasthan",
+    "reviewed_at": "2026-10-26 18:53:35.434593+00:00",
+    "reviewed_by_id": 9
+  },
+  "duplicate_clear": true,
+  "submission_blockers": {
+    "import_review_status": [
+      "A VedAmrit administrator must resolve source, location and possible-duplicate issues before submission/verification."
+    ]
+  },
+  "authenticated_verifier_session_used": false,
+  "audit_history": [
+    {
+      "id": 1,
+      "action": "IMPORT",
+      "previous_status": "",
+      "new_status": "DRAFT",
+      "actor_id": null,
+      "reason": "Unverified CSV import udaipur_hospitals:UDR-001; source 85417a77df8bb50fe7c28d129d86bdd721d07126ba9abb91940bc8251632c261.",
+      "timestamp": "2026-10-26 09:13:09.457453+00:00",
+      "details": {
+        "revision": 1,
+        "changed_fields": []
+      }
+    },
+    {
+      "id": 13,
+      "action": "LOCATION_APPROVED",
+      "previous_status": "DRAFT",
+      "new_status": "DRAFT",
+      "actor_id": 9,
+      "reason": "Manually verified the hospital's name, address, and exact building location using Google Maps. The coordinates (24.588336, 73.679142) match the hospital's location at Ambamata Scheme, Radaji Circle, Udaipur, Rajasthan",
+      "timestamp": "2026-10-26 18:53:35.436868+00:00",
+      "details": {
+        "latitude": "24.588336",
+        "longitude": "73.679142",
+        "candidate_id": 61,
+        "evidence_url": "https://maps.app.goo.gl/PLL1WtT7a6XqXx8s7",
+        "new_hospital_revision": 2,
+        "exact_location_confirmed": true,
+        "previous_location_status": "UNVERIFIED",
+        "duplicate_review_resolved": true,
+        "reviewed_hospital_revision": 1,
+        "previous_approved_candidate_id": null
+      }
+    }
+  ],
+  "public_api_checks": {
+    "/api/care/hospitals/": {
+      "status": 200,
+      "count": 0,
+      "results": []
+    },
+    "/api/care/hospitals/?search=Madan": {
+      "status": 200,
+      "count": 0,
+      "results": []
+    },
+    "/api/care/hospitals/1/": {
+      "status": 404
+    },
+    "/api/care/hospitals/nearby/?latitude=24.588336&longitude=73.679142&radius_km=0.01": {
+      "status": 200,
+      "count": 0,
+      "results": []
+    },
+    "/api/care/hospitals/nearby/?latitude=24.588336&longitude=73.679142&radius_km=20": {
+      "status": 200,
+      "count": 0,
+      "results": []
+    },
+    "/api/care/manage/hospitals/": {
+      "status": 401
+    },
+    "/api/care/admin/location-candidates/": {
+      "status": 401
+    },
+    "/api/care/hospitals/nearby/?latitude=NaN&longitude=73": {
+      "status": 400
+    }
+  },
+  "authorized_verifier_accounts": 3,
+  "task": "4.2D",
+  "date": "2026-10-27",
+  "live_database_unchanged_models": 22,
+  "changed_models_during_task": [
+    "agentic_reports.PatientProfile"
+  ],
+  "agent_live_business_writes": 0,
+  "critical_care_table_digests_match": true
+}

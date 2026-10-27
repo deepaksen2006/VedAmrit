@@ -1,13 +1,24 @@
 from django.contrib.auth import authenticate, get_user_model
+from django.db import transaction
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import DoctorProfile
+from apps.community_care.validators import validate_registration
 
 User = get_user_model()
 
 
 class DoctorProfileSerializer(serializers.ModelSerializer):
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        # Refetch under lock: a stale self-edit must not restore a revoked verification.
+        current = DoctorProfile.objects.select_for_update().get(pk=instance.pk)
+        for field, value in validated_data.items():
+            setattr(current, field, value)
+        from apps.community_care.services import checked_save
+        return checked_save(current, self.context["request"].user)
+
     class Meta:
         model = DoctorProfile
         fields = [
@@ -16,6 +27,8 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
             "phone",
             "email",
             "bams_registration_number",
+            "registration_council",
+            "qualifications",
             "specialization",
             "experience",
             "clinic_name",
@@ -24,11 +37,13 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
             "profile_image",
             "degree_certificate",
             "is_verified",
+            "verification_status",
+            "revision",
             "is_online",
             "available_timings",
             "created_at",
         ]
-        read_only_fields = ["id", "is_verified", "created_at"]
+        read_only_fields = ["id", "is_verified", "verification_status", "revision", "created_at"]
 
 
 class DoctorRegisterSerializer(serializers.Serializer):
@@ -46,7 +61,8 @@ class DoctorRegisterSerializer(serializers.Serializer):
     degree_certificate = serializers.FileField(required=False, allow_null=True)
 
     def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
+        value = value.strip().lower()
+        if User.objects.filter(email__iexact=value).exists() or DoctorProfile.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError("Email is already registered.")
         return value
 
@@ -56,10 +72,13 @@ class DoctorRegisterSerializer(serializers.Serializer):
         return value
 
     def validate_bams_registration_number(self, value):
-        if DoctorProfile.objects.filter(bams_registration_number=value).exists():
-            raise serializers.ValidationError("BAMS registration number is already registered.")
+        value = value.strip().upper()
+        validate_registration(value)
+        if DoctorProfile.objects.filter(bams_registration_number__iexact=value).exists():
+            raise serializers.ValidationError("Registration already exists. Ask an authorized administrator to link your existing doctor record to your account.")
         return value
 
+    @transaction.atomic
     def create(self, validated_data):
         password = validated_data.pop("password")
         user = User.objects.create_user(
@@ -68,7 +87,9 @@ class DoctorRegisterSerializer(serializers.Serializer):
             password=password,
             first_name=validated_data["full_name"],
         )
-        profile = DoctorProfile.objects.create(user=user, **validated_data)
+        profile = DoctorProfile(user=user, created_by=user, **validated_data)
+        profile._care_actor = user
+        profile.save()
         return profile
 
 

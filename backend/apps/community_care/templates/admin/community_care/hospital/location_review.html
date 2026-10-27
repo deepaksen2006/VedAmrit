@@ -1,0 +1,51 @@
+{% extends "admin/base_site.html" %}
+{% block extrahead %}{{ block.super }}
+<style>
+  .review-grid{display:grid;grid-template-columns:minmax(240px,1fr) minmax(320px,2fr);gap:20px}
+  .review-card{border:1px solid var(--hairline-color,#ccc);padding:18px;border-radius:6px;margin-bottom:18px;background:var(--body-bg,#fff)}
+  .review-table{overflow-x:auto}.review-table table{width:100%}.review-table td{vertical-align:top;min-width:120px}
+  .review-card label{display:block;font-weight:600;margin-bottom:6px}.review-card input:not([type=checkbox]):not([type=hidden]),.review-card textarea,.review-card select{max-width:100%;box-sizing:border-box}
+  .review-warning{border-left:5px solid #b27600;padding:12px;background:var(--darkened-bg,#f8f8f8)}
+  @media(max-width:900px){.review-grid{grid-template-columns:1fr}}
+</style>
+{% endblock %}
+{% block content %}
+<p><a href="{{ back_url }}">Back to hospital record</a></p>
+<p class="review-warning">Proposals are unapproved search results, often city or street centroids. An external map pin does not prove a hospital's identity. Review the exact physical facility independently. Nothing on this page automatically verifies a hospital or enables booking.</p>
+<div class="review-grid">
+  <section class="review-card" aria-label="Supplied hospital details">
+    <h2>Supplied hospital</h2><h3>{{ hospital.name }}</h3>
+    <p>{{ hospital.address }}<br>{{ hospital.city }}, {{ hospital.district }}, {{ hospital.state }} {{ hospital.postal_code }}</p>
+    <p>Source ID: {{ hospital.source_record_id|default:"Not imported" }}<br>Phone: {{ hospital.phone|default:"Missing — not invented" }}</p>
+    <p>Identity: <strong>{{ hospital.verification_status }}</strong><br>Import: {{ hospital.import_review_status }}<br>Location: {{ hospital.location_status }}<br>Current revision: {{ hospital.revision }}<br>Booking enabled: {{ hospital.booking_enabled }}</p>
+    <p>Duplicate review: <strong>{% if duplicate_review %}{{ duplicate_review.status }}{% elif flagged %}NEEDS_REVIEW{% else %}NOT_FLAGGED{% endif %}</strong></p>
+    {% if flagged and not duplicate_clear %}<p class="review-warning">Duplicate review is unresolved or stale. A checkbox alone cannot clear it.</p>{% endif %}
+    {% if duplicate_review.reviewed_by %}<p>Reviewed by {{ duplicate_review.reviewed_by }} at {{ duplicate_review.reviewed_at }}.<br>{{ duplicate_review.reason }}</p>{% endif %}
+    {% if duplicate_review.evidence_url %}<a href="{{ duplicate_review.evidence_url }}" target="_blank" rel="noopener noreferrer">Duplicate review evidence</a>{% endif %}
+    <details><summary>Original source and review cautions</summary><pre style="white-space:pre-wrap">{{ hospital.import_provenance }}</pre></details>
+  </section>
+  <section class="review-card review-table" aria-label="Proposed locations">
+    <h2>Proposals and sources — compare with the supplied address</h2>
+    <table><thead><tr><th>Coordinates and map inspection</th><th>Geocoder label / source</th><th>Review state and warnings</th></tr></thead><tbody>
+    {% for item in candidates %}<tr>
+      <td>{{ item.point.latitude }}, {{ item.point.longitude }}<br><a href="{{ item.maps.google }}" target="_blank" rel="noopener noreferrer">Inspect in Google Maps</a><br><a href="{{ item.maps.osm }}" target="_blank" rel="noopener noreferrer">Inspect in OpenStreetMap</a></td>
+      <td>{{ item.point.label }}<br>Source: {{ item.point.provider }}<br>Reference: {{ item.point.provider_reference|default:"Not supplied" }}<br>Search relevance: {% if item.point.confidence != None %}{{ item.point.confidence }}{% else %}Not supplied / manual{% endif %}<br><small>Relevance is not positional accuracy.</small><p>{{ item.point.attribution }}</p>
+      {% if item.point.evidence_url %}<a href="{{ item.point.evidence_url }}" target="_blank" rel="noopener noreferrer">Recorded location evidence</a>{% endif %}</td>
+      <td>#{{ item.point.id }} · {{ item.point.status }}<br>{{ item.point.flags|join:", " }}{% if item.stale %}<p class="review-warning">Stale snapshot — address/identity changed.</p>{% endif %}<p>Source-snapshot address: {{ item.original_address }}</p>{% if item.point.reviewed_by %}<p>{{ item.point.reviewed_by }} · {{ item.point.reviewed_at }}<br>{{ item.point.review_reason }}</p>{% endif %}</td>
+    </tr>{% empty %}<tr><td colspan="3">No proposals. Manual confirmation still requires independent evidence.</td></tr>{% endfor %}
+    </tbody></table>
+  </section>
+</div>
+{% if can_verify %}
+{% if flagged %}<section class="review-card"><h2>Record duplicate review</h2>
+  <p>Confirm distinct facility identities or record a retained duplicate. This never merges, deletes or verifies a hospital.</p>
+  <form method="post">{% csrf_token %}{{ duplicate_form.as_p }}<button type="submit" name="review_action" value="save_duplicate_review">Save duplicate review decision</button></form>
+</section>{% endif %}
+<section class="review-card"><h2>Enter independently confirmed coordinates</h2>
+  <p>Fields are intentionally blank. Enter an exact facility position you checked, not a copied low-confidence city centroid. Evidence must describe the facility, without patient data or access tokens.</p>
+  {% if preview %}<div class="review-warning"><h3>Confirm the preview before saving</h3><p>{{ hospital.name }} — {{ hospital.address }}</p><p>Latitude: <strong>{{ preview.latitude }}</strong>; longitude: <strong>{{ preview.longitude }}</strong></p><p>Evidence: <a href="{{ preview.evidence_url }}" target="_blank" rel="noopener noreferrer">Inspect evidence</a></p><p>{{ preview.reason }}</p><p><a href="{{ preview.maps.google }}" target="_blank" rel="noopener noreferrer">Inspect entered position</a></p><p>Hospital identity remains {{ hospital.verification_status }}. No booking is enabled.</p></div>{% endif %}
+  <form method="post">{% csrf_token %}{{ manual_form.as_p }}{% if preview %}<input type="hidden" name="preview_token" value="{{ preview_token }}"><button type="submit" name="review_action" value="approve_manual">Confirm and approve these coordinates</button>{% endif %} <button type="submit" name="review_action" value="preview_manual">{% if preview %}Update preview{% else %}Review entered coordinates{% endif %}</button></form>
+</section>
+{% else %}<p class="review-warning">Read-only review. An authorized VedAmrit verifier must make location/duplicate decisions.</p>{% endif %}
+<section class="review-card"><h2>Location and duplicate decision history</h2><ul>{% for event in history %}<li>{{ event.timestamp }} — {{ event.actor|default:"System" }} — {{ event.action }} — {{ event.reason }}<br>{{ event.details }}</li>{% empty %}<li>No human location or duplicate decisions recorded.</li>{% endfor %}</ul></section>
+{% endblock %}

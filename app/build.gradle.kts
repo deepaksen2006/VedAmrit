@@ -14,6 +14,15 @@ val localProperties = Properties().apply {
     }
 }
 
+// Client keys are extractable from an APK. Use a dedicated, restricted Android key,
+// never the backend geocoding key. No credential fallback in versioned source.
+val mapTilerApiKey = providers.environmentVariable("MAPTILER_ANDROID_API_KEY")
+    .orElse(providers.provider { localProperties.getProperty("mapTilerApiKey", "") })
+    .get().trim()
+require(mapTilerApiKey.isEmpty() || mapTilerApiKey.matches(Regex("[A-Za-z0-9_-]+"))) {
+    "MapTiler Android key must contain only letters, digits, underscore or hyphen."
+}
+
 val developmentApiBaseUrl = providers.gradleProperty("agenticApiBaseUrl")
     .orElse(providers.provider { localProperties.getProperty("agenticApiBaseUrl") })
     .orElse("http://10.0.2.2:8000/")
@@ -55,7 +64,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "MAPTILER_API_KEY", "\"HCZeFeM9c5CLiXZG5S8d\"")
+        buildConfigField("String", "MAPTILER_API_KEY", "\"$mapTilerApiKey\"")
     }
 
     buildTypes {
@@ -91,6 +100,7 @@ kotlin {
 }
 
 dependencies {
+    implementation("org.maplibre.gl:android-sdk:13.7.1")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -112,6 +122,7 @@ dependencies {
     testImplementation(libs.json)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)

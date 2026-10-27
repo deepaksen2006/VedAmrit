@@ -13,6 +13,7 @@ urlpatterns = [
     path("api/auth/", include("apps.authentication.urls")),
     path("api/profile/", PatientProfileView.as_view(), name="patient-profile"),
     path("api/agentic/", include("apps.agentic_reports.urls")),
+    path("api/care/", include("apps.community_care.urls")),
 ]
 
 if settings.DEBUG:

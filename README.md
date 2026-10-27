@@ -197,8 +197,8 @@ adb shell am instrument -w -r -e class com.example.vedaahar.network.AuthTokenSto
 ## Configuration Notes
 
 - `local.properties` is ignored and should stay local to each machine.
-- The Android app defines a `MAPTILER_API_KEY` build config value in `app/build.gradle.kts`.
-- For production, move secrets and API keys out of committed source and into secure build-time configuration.
+- For Android maps, set `mapTilerApiKey` in ignored `local.properties` or the `MAPTILER_ANDROID_API_KEY` environment variable. Use a dedicated Android MapTiler key restricted to User-Agent `VedAmrit-Android`, separate from backend geocoding. Client keys remain extractable from APKs; rotate the previously hardcoded key in MapTiler Cloud.
+- A missing Android map key disables only the map. Hospital directory and nearby search still use Django. See [Task 4.2C setup and verification](docs/android-hospital-map.md).
 - The doctor Android repository currently includes mocked sample data, while API request/response contracts and Django backend modules are present for backend integration.
 
 ## Useful Commands

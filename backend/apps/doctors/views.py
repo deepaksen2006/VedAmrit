@@ -41,11 +41,16 @@ class DoctorLoginView(APIView):
 
 
 class VerifiedDoctorListView(generics.ListAPIView):
-    serializer_class = DoctorProfileSerializer
+    # Retain legacy URLs, but never expose private contact/certificate fields.
+    from apps.community_care.serializers import PublicDoctorSerializer
+    from apps.community_care.views import CarePagination
+    serializer_class = PublicDoctorSerializer
+    pagination_class = CarePagination
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        return DoctorProfile.objects.filter(is_verified=True)
+        from apps.community_care.views import public_doctors
+        return public_doctors().order_by("full_name", "id")
 
 
 class DoctorProfileView(generics.RetrieveAPIView):
@@ -74,5 +79,6 @@ class DoctorStatusView(APIView):
         profile = request.user.doctor_profile
         profile.is_online = serializer.validated_data["is_online"]
         profile.available_timings = serializer.validated_data.get("available_timings", profile.available_timings)
+        profile._care_actor = request.user
         profile.save(update_fields=["is_online", "available_timings"])
         return Response(DoctorProfileSerializer(profile, context={"request": request}).data)

@@ -1,0 +1,300 @@
+{
+  "task": "4.2D evidence-only follow-up",
+  "review_date": "2026-10-27",
+  "timezone": "Asia/Kolkata",
+  "target": "udaipur_hospitals:UDR-001",
+  "safety": {
+    "live_db_investigation": "REPEATABLE READ, READ ONLY",
+    "live_writes": false,
+    "profile_api_called": false,
+    "hospital_verification_performed": false,
+    "booking_enabled": false,
+    "calls_or_messages_sent": false,
+    "tls_validation_disabled": false
+  },
+  "sources": [
+    {
+      "id": "college-advertisement-2026-08",
+      "url": "https://jankalyanfile.rajasthan.gov.in/Files//Content/UploadFolder/OrderEntry/Department/2026/Recruitment_Related/O_130826_c4ce97da-8f89-4f33-92d6-409499e58e2a.pdf",
+      "status": 200,
+      "sha256": "1962e588b44a9cc614e252b8e0cc83e1a77fa3852fd3de7be3ec57f407aef3d8",
+      "publication_date": "2026-08-12T00:00:00",
+      "portal_upload_date": "2026-08-13T13:23:17.313",
+      "pdf_pages": 2,
+      "local_path": "build/evidence-gap-review/college-advertisement-2026-08.pdf",
+      "bytes": 313822,
+      "original_retrieved": true,
+      "visually_inspected_pdf_pages": [
+        1,
+        2
+      ],
+      "document_type": "College recruitment notice 01/2026-27, not hospital directory",
+      "findings": {
+        "college_name": "Madan Mohan Malviya Government Ayurved College, Udaipur",
+        "college_correspondence_address": "Radaji Circle, near Fatehsagar, Udaipur 313001",
+        "published_office_telephone": "0294-2431900"
+      },
+      "confidence": "High for published college identity, office address/postcode and office telephone in August 2026",
+      "limits": [
+        "Not hospital-specific entrance/address proof",
+        "Telephone connectivity and patient suitability not checked",
+        "No hospital coordinates established",
+        "Visible signature block only; cryptographic validity not assessed"
+      ]
+    },
+    {
+      "id": "state-annual-report-2021-22",
+      "file": "rajasthan-ayurved-report-2021-22.pdf",
+      "url": "https://rmsc.health.rajasthan.gov.in/content/dam/doitassets/Medical-and-Health-Portal/Directorate-Of-Ayurved/pdf/Year2022/April2022/Prativedan%20Ayurveda%20Book%202021-22.pdf",
+      "status": 200,
+      "bytes": 63225917,
+      "final_url": "https://rmsc.health.rajasthan.gov.in/content/dam/doitassets/Medical-and-Health-Portal/Directorate-Of-Ayurved/pdf/Year2022/April2022/Prativedan%20Ayurveda%20Book%202021-22.pdf",
+      "content_type": "application/pdf",
+      "sha256": "c4a10d598f8c735ad039a5e14647001fbe045f21beb1d0e448e31f7068560dd9",
+      "pdf_header": true,
+      "original_retrieved": true,
+      "report_period": "2021-22",
+      "pdf_pages": 98,
+      "visually_inspected_relevant_pdf_pages": [
+        89,
+        90
+      ],
+      "printed_pages": [
+        85,
+        86
+      ],
+      "findings": [
+        "College correspondence address Ambamata Scheme/Radaji crossroads near Fatehsagar, Udaipur 313001",
+        "Published college telephone 0294-2431900",
+        "Lists three associated hospitals: Rajvaidya Premshankar Sharma Government Ayurved Hospital; Government Ayurved College Hospital Motichohatta; Government Ayurved Research Centre"
+      ],
+      "confidence": "High for historical government publication, not current hospital operation",
+      "limits": [
+        "No mapping of UDR-001 to a specific hospital or entrance",
+        "Not a current patient-service roster or coordinate confirmation"
+      ]
+    },
+    {
+      "id": "college-public-portal",
+      "url": "https://department.rajasthan.gov.in/home/dptHome/226",
+      "read_only_public_api_urls": [
+        "https://departmentfrontwebapi.rajasthan.gov.in/PublicPortal/DepartmentWebsite/GetDepartmentDetailByDptCode?dptCode=226&isOtherDept=false",
+        "https://departmentfrontwebapi.rajasthan.gov.in/PublicPortal/DepartmentWebsite/GetOrderData?dptCode=226&distDptCode=0",
+        "https://departmentfrontwebapi.rajasthan.gov.in/api/OrderPortal/GetById?id=240845"
+      ],
+      "status": 200,
+      "original_public_responses_retrieved": true,
+      "findings": [
+        "Department title identifies the Udaipur government Ayurved college",
+        "Public order 240845 links the inspected recruitment PDF",
+        "Order publication date 2026-08-12 and upload date 2026-08-13"
+      ],
+      "limits": [
+        "Department address fields null",
+        "IsLivePortal false and IsUpdationComplete false",
+        "No independently established hospital coordinates",
+        "Other public contact/account metadata deliberately omitted"
+      ]
+    },
+    {
+      "file": "mpuat-directory-2022.pdf",
+      "url": "https://ctae.ac.in/images/staticContent/Telephone-Directory-MPUAT-(2022).pdf",
+      "status": 406,
+      "bytes": 226,
+      "final_url": "https://ctae.ac.in/images/staticContent/Telephone-Directory-MPUAT-(2022).pdf",
+      "content_type": "text/html; charset=iso-8859-1",
+      "original_target_document_inspected": false,
+      "treatment": "Research lead only; not original target-facility proof"
+    },
+    {
+      "file": "ncism-permissions.pdf",
+      "url": "https://www.ncismindia.org/assets/pdf/List%20of%20Permitted%20Ayurveda%20Colleges%20for%20the%20A.Y.%202025-26%20as%20on%2012.09.2025.pdf",
+      "status": 406,
+      "bytes": 226,
+      "final_url": "https://www.ncismindia.org/assets/pdf/List%20of%20Permitted%20Ayurveda%20Colleges%20for%20the%20A.Y.%202025-26%20as%20on%2012.09.2025.pdf",
+      "content_type": "text/html; charset=iso-8859-1",
+      "original_target_document_inspected": false,
+      "treatment": "Research lead only; not original target-facility proof"
+    },
+    {
+      "file": "state-college-profile.pdf",
+      "url": "https://rajayushcounselling.com/Images/Notifications/125.PDF",
+      "status": 404,
+      "bytes": 1245,
+      "final_url": "https://rajayushcounselling.com/Images/Notifications/125.PDF",
+      "content_type": "text/html",
+      "original_target_document_inspected": false,
+      "treatment": "Research lead only; not original target-facility proof"
+    },
+    {
+      "file": "aiia-hospital-list.pdf",
+      "url": "https://aiia.gov.in/wp-content/uploads/2025/08/a.-Government-AYUSH-Hospitals-in-India.pdf",
+      "error": "SSLError",
+      "original_target_document_inspected": false,
+      "treatment": "Research lead only; not original target-facility proof"
+    },
+    {
+      "file": "aaccc-current.html",
+      "url": "https://aaccc.gov.in/participating-institutes-ug/",
+      "status": 200,
+      "bytes": 84886,
+      "final_url": "https://aaccc.gov.in/participating-institutes-ug/",
+      "content_type": "text/html; charset=UTF-8",
+      "sha256": "f0c89f78b758146734412ef67b2b01d32b9fcc1990db0b6f0f15b721cccaf9f4",
+      "pdf_header": null,
+      "original_target_document_inspected": false,
+      "treatment": "Current main page and linked NIC form accessible, but no target institutional profile obtained",
+      "linked_form_http_status": 200,
+      "limits": [
+        "Retrieved institute/program dropdowns unpopulated",
+        "No target-specific hospital details inspected"
+      ]
+    }
+  ],
+  "location_conclusion": "Approved pair 24.588336,73.679142 preserved but not independently tied by inspected originals to a specific patient hospital/entrance. College postcode 313001 does not automatically correct hospital postcode 313004.",
+  "human_next_action": "Call published college office 0294-2431900 and obtain dated institutional hospital identity/address/postcode/contact and entrance-coordinate confirmation; on-site check if no documented point.",
+  "profile_investigation": {
+    "privacy_scope": "Aggregate comparisons and minimal save-time metadata only; no patient identifiers, health values, per-field hashes, request payloads or credentials exported",
+    "current_count": 2,
+    "snapshot_comparisons": [
+      {
+        "file": "care-db-before.json",
+        "written_at_utc": "2026-10-27T04:08:18.823271+00:00",
+        "count": 2,
+        "matches_current_digest": false
+      },
+      {
+        "file": "care-db-after.json",
+        "written_at_utc": "2026-10-27T04:23:20.175094+00:00",
+        "count": 2,
+        "matches_current_digest": false
+      },
+      {
+        "file": "care-phone-db-before.json",
+        "written_at_utc": "2026-10-27T04:34:38.887793+00:00",
+        "count": 2,
+        "matches_current_digest": false
+      },
+      {
+        "file": "care-live-db-before.json",
+        "written_at_utc": "2026-10-27T04:38:59.667827+00:00",
+        "count": 2,
+        "matches_current_digest": false
+      },
+      {
+        "file": "care-live-db-after.json",
+        "written_at_utc": "2026-10-27T04:53:27.389509+00:00",
+        "count": 2,
+        "matches_current_digest": false
+      },
+      {
+        "file": "first-hospital-db-before.json",
+        "written_at_utc": "2026-10-27T05:00:03.803549+00:00",
+        "count": 2,
+        "matches_current_digest": false
+      },
+      {
+        "file": "first-hospital-db-after.json",
+        "written_at_utc": "2026-10-27T05:08:52.662022+00:00",
+        "count": 2,
+        "matches_current_digest": true
+      }
+    ],
+    "recorded_latest_updated_at_utc": "2026-10-27T05:01:25.212098+00:00",
+    "recorded_latest_updated_at_ist": "2026-10-27T10:31:25.212098+05:30",
+    "previous_task_log_creation_times_utc": {
+      "first-hospital-django-tests.txt": "2026-10-27T05:03:59.877394+00:00",
+      "first-hospital-android-build.txt": "2026-10-27T05:05:09.067800+00:00",
+      "first-hospital-device-tests.txt": "2026-10-27T05:05:57.763599+00:00"
+    },
+    "logging_configuration": {
+      "log_statement": "none",
+      "log_min_duration_statement": "-1",
+      "logging_collector": "on",
+      "log_destination": "stderr",
+      "data_directory": "Not accessible to current role",
+      "log_directory": "Not accessible to current role",
+      "log_filename": "Not accessible to current role",
+      "current_logfile": "Not accessible to current role"
+    },
+    "postgres_log_review": {
+      "file": "postgresql-2026-10-24_000000.log",
+      "readable": true,
+      "lines_scanned": 115,
+      "candidate_time_window_lines": 4,
+      "timezones_seen": [
+        "IST"
+      ],
+      "profile_mentions_in_file": 0,
+      "profile_events_in_candidate_window": [],
+      "raw_sql_or_parameters_exported": false
+    },
+    "django_admin_profile_event_count_0500_to_0509_utc": 0,
+    "custom_non_fk_trigger_count": 0,
+    "code_findings": [
+      "updated_at uses auto_now=True",
+      "PUT/PATCH call serializer.save()",
+      "Existing-profile GET does not save; missing-profile get_or_create can create a row",
+      "Android profile Save has a PUT path; no event attribution from code alone"
+    ],
+    "conclusion": "Current hash matches previous after snapshot. Save timestamp precedes recorded test/build logs. Actor, request and changed business fields cannot be recovered from available evidence.",
+    "limits": [
+      "Filesystem timestamps are not immutable request/audit evidence",
+      "Older care snapshots and first-hospital before snapshot also differ; do not assume only one change in the session",
+      "A timestamp-only save is possible but not proven",
+      "No persistent Django HTTP access log located in workspace"
+    ],
+    "human_next_action": "Ask whether profile Save was used around 10:31 IST; preserve already retained backend/proxy logs around 10:23-10:39 IST without health bodies or authentication material"
+  },
+  "final_read_only_comparison": {
+    "scope": "Read-only final comparison; no patient identifiers or field values exported",
+    "transaction_read_only": "on",
+    "model_comparisons": {
+      "agentic_reports.PatientProfile": {
+        "count": 2,
+        "matches_prior_task_after_snapshot": true
+      },
+      "community_care.Hospital": {
+        "count": 12,
+        "matches_prior_task_after_snapshot": true
+      },
+      "community_care.HospitalMembership": {
+        "count": 0,
+        "matches_prior_task_after_snapshot": true
+      },
+      "community_care.DoctorHospitalAffiliation": {
+        "count": 0,
+        "matches_prior_task_after_snapshot": true
+      },
+      "community_care.VerificationAudit": {
+        "count": 13,
+        "matches_prior_task_after_snapshot": true
+      },
+      "community_care.GeocodingRun": {
+        "count": 16,
+        "matches_prior_task_after_snapshot": true
+      },
+      "community_care.LocationCandidate": {
+        "count": 61,
+        "matches_prior_task_after_snapshot": true
+      },
+      "community_care.HospitalDuplicateReview": {
+        "count": 3,
+        "matches_prior_task_after_snapshot": true
+      }
+    },
+    "hospital": {
+      "verification_status": "DRAFT",
+      "import_review_status": "NEEDS_REVIEW",
+      "postal_code": "313004",
+      "phone": "0294-2431900",
+      "latitude": "24.588336",
+      "longitude": "73.679142",
+      "location_status": "APPROVED",
+      "approved_location_id": 61,
+      "revision": 3,
+      "booking_enabled": false
+    }
+  },
+  "test_scope": "Research/documentation only; prior Django/Android/build results retained, no new runs"
+}

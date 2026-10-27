@@ -1,0 +1,316 @@
+{
+  "review_date": "2026-10-27",
+  "database_vendor": "postgresql",
+  "snapshot_file_last_written_utc": "2026-10-27T05:42:07.022083+00:00",
+  "scope": "Counts/digests, timestamp maxima and public endpoint status/count only; no patient values or identifiers exported",
+  "transaction_read_only": "on",
+  "model_comparisons": {
+    "admin.LogEntry": {
+      "before_count": 1,
+      "after_count": 1,
+      "digest_matches_before": true
+    },
+    "auth.Permission": {
+      "before_count": 98,
+      "after_count": 98,
+      "digest_matches_before": true
+    },
+    "auth.Group": {
+      "before_count": 0,
+      "after_count": 0,
+      "digest_matches_before": true
+    },
+    "auth.User": {
+      "before_count": 9,
+      "after_count": 9,
+      "digest_matches_before": true
+    },
+    "contenttypes.ContentType": {
+      "before_count": 24,
+      "after_count": 24,
+      "digest_matches_before": true
+    },
+    "sessions.Session": {
+      "before_count": 1,
+      "after_count": 1,
+      "digest_matches_before": true
+    },
+    "doctors.DoctorProfile": {
+      "before_count": 0,
+      "after_count": 0,
+      "digest_matches_before": true
+    },
+    "consultations.Consultation": {
+      "before_count": 0,
+      "after_count": 0,
+      "digest_matches_before": true
+    },
+    "dietplans.DietPlan": {
+      "before_count": 0,
+      "after_count": 0,
+      "digest_matches_before": true
+    },
+    "agentic_reports.PatientProfile": {
+      "before_count": 2,
+      "after_count": 2,
+      "digest_matches_before": false,
+      "latest_timestamps": {
+        "created_at": "2026-10-25 20:09:53.353113+00:00",
+        "updated_at": "2026-10-27 05:54:14.364830+00:00"
+      }
+    },
+    "agentic_reports.AssessmentResult": {
+      "before_count": 3,
+      "after_count": 4,
+      "digest_matches_before": false,
+      "latest_timestamps": {
+        "created_at": "2026-10-27 05:45:21.745314+00:00",
+        "updated_at": "2026-10-27 05:45:21.745323+00:00"
+      }
+    },
+    "agentic_reports.AgentRun": {
+      "before_count": 3,
+      "after_count": 5,
+      "digest_matches_before": false,
+      "latest_timestamps": {}
+    },
+    "agentic_reports.DoctorAssignment": {
+      "before_count": 0,
+      "after_count": 0,
+      "digest_matches_before": true
+    },
+    "agentic_reports.WellnessPlan": {
+      "before_count": 3,
+      "after_count": 4,
+      "digest_matches_before": false,
+      "latest_timestamps": {
+        "created_at": "2026-10-27 05:45:44.741609+00:00",
+        "updated_at": "2026-10-27 05:45:44.741617+00:00"
+      }
+    },
+    "agentic_reports.DoctorReview": {
+      "before_count": 0,
+      "after_count": 0,
+      "digest_matches_before": true
+    },
+    "agentic_reports.FinalReport": {
+      "before_count": 0,
+      "after_count": 0,
+      "digest_matches_before": true
+    },
+    "community_care.Hospital": {
+      "before_count": 12,
+      "after_count": 12,
+      "digest_matches_before": true
+    },
+    "community_care.HospitalMembership": {
+      "before_count": 0,
+      "after_count": 0,
+      "digest_matches_before": true
+    },
+    "community_care.DoctorHospitalAffiliation": {
+      "before_count": 0,
+      "after_count": 0,
+      "digest_matches_before": true
+    },
+    "community_care.VerificationAudit": {
+      "before_count": 13,
+      "after_count": 13,
+      "digest_matches_before": true
+    },
+    "community_care.GeocodingRun": {
+      "before_count": 16,
+      "after_count": 16,
+      "digest_matches_before": true
+    },
+    "community_care.LocationCandidate": {
+      "before_count": 61,
+      "after_count": 61,
+      "digest_matches_before": true
+    },
+    "community_care.HospitalDuplicateReview": {
+      "before_count": 3,
+      "after_count": 3,
+      "digest_matches_before": true
+    }
+  },
+  "target": {
+    "verification_status": "DRAFT",
+    "import_review_status": "NEEDS_REVIEW",
+    "location_status": "APPROVED",
+    "latitude": "24.588336",
+    "longitude": "73.679142",
+    "approved_location_id": 61,
+    "revision": 3,
+    "booking_enabled": false
+  },
+  "public_api": {
+    "/api/care/doctors/": {
+      "status": 200,
+      "count": 0,
+      "loaded": 0
+    },
+    "/api/care/doctors/?search=Ayurveda": {
+      "status": 200,
+      "count": 0,
+      "loaded": 0
+    },
+    "/api/care/doctors/?specialization=Ayurveda&hospital_id=1": {
+      "status": 200,
+      "count": 0,
+      "loaded": 0
+    },
+    "/api/care/doctors/1/": {
+      "status": 404
+    },
+    "/api/care/doctors/?hospital_id=invalid": {
+      "status": 400
+    },
+    "/api/care/doctors/?page=999999": {
+      "status": 404
+    },
+    "/doctors/verified": {
+      "status": 200,
+      "count": 0,
+      "loaded": 0
+    },
+    "/api/doctors/verified": {
+      "status": 200,
+      "count": 0,
+      "loaded": 0
+    },
+    "/api/care/manage/doctors/": {
+      "status": 401
+    },
+    "/api/care/admin/audits/?record_type=DOCTOR": {
+      "status": 401
+    },
+    "/api/care/hospitals/": {
+      "status": 200,
+      "count": 0,
+      "loaded": 0
+    }
+  },
+  "read_at_utc": "2026-10-27T05:54:29.792466+00:00",
+  "metadata_followup": {
+    "read_at_utc": "2026-10-27T05:58:39.669552+00:00",
+    "scope": "Aggregate counts/timestamp maxima, non-FK trigger counts and Admin-event counts only; no IDs, actors, health fields, payloads, error messages or raw SQL exported",
+    "cause_known": false,
+    "writer_identified": false,
+    "metadata": {
+      "agentic_reports.PatientProfile": {
+        "database_table": "agentic_reports_patientprofile",
+        "current_count": 2,
+        "timestamp_maxima": {
+          "created_at": "2026-10-25 20:09:53.353113+00:00",
+          "updated_at": "2026-10-27 05:54:14.364830+00:00"
+        },
+        "admin_events_since_baseline": 0,
+        "custom_non_fk_trigger_count": 0
+      },
+      "agentic_reports.AssessmentResult": {
+        "database_table": "agentic_reports_assessmentresult",
+        "current_count": 4,
+        "timestamp_maxima": {
+          "created_at": "2026-10-27 05:45:21.745314+00:00",
+          "updated_at": "2026-10-27 05:45:21.745323+00:00"
+        },
+        "admin_events_since_baseline": 0,
+        "custom_non_fk_trigger_count": 0
+      },
+      "agentic_reports.AgentRun": {
+        "database_table": "agentic_reports_agentrun",
+        "current_count": 5,
+        "timestamp_maxima": {
+          "started_at": "2026-10-27 05:45:30.991003+00:00",
+          "completed_at": "2026-10-27 05:45:44.734367+00:00"
+        },
+        "admin_events_since_baseline": 0,
+        "custom_non_fk_trigger_count": 0
+      },
+      "agentic_reports.WellnessPlan": {
+        "database_table": "agentic_reports_wellnessplan",
+        "current_count": 4,
+        "timestamp_maxima": {
+          "created_at": "2026-10-27 05:45:44.741609+00:00",
+          "updated_at": "2026-10-27 05:45:44.741617+00:00"
+        },
+        "admin_events_since_baseline": 0,
+        "custom_non_fk_trigger_count": 0
+      }
+    },
+    "transaction_read_only": "on",
+    "statement_logging": {
+      "log_statement": "none",
+      "log_min_duration_statement": "-1",
+      "logging_collector": "on",
+      "log_destination": "stderr"
+    },
+    "directory_metadata": {
+      "doctor_count": 0,
+      "hospital_count": 12,
+      "audit_count": 13,
+      "udr_001": {
+        "verification_status": "DRAFT",
+        "location_status": "APPROVED",
+        "revision": 3,
+        "approved_location_id": 61,
+        "latitude": "24.588336",
+        "longitude": "73.679142",
+        "booking_enabled": false
+      }
+    },
+    "conclusion": "Four saved aggregate digests differ from baseline. Counts establish net growth in three tables; timestamps bound recorded activity. Metadata does not establish changed business values, cause, actor or request. No writer attribution is made."
+  },
+  "build_and_tests": {
+    "apk_path": "app/build/outputs/apk/debug/app-debug.apk",
+    "apk_bytes": 79727657,
+    "apk_sha256": "32898526e6ddb6143000c9fc82fe91fa54d562d9163b1a58f2a3c04aec02179f",
+    "installed_apk_sha256_matches": true,
+    "installed_device": "OnePlus CPH2619 / API 35",
+    "application_id": "com.vedamrit",
+    "android_unit": {
+      "tests": 176,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "doctor_ui": {
+      "tests": 5,
+      "failures": 0,
+      "live_public_empty_test_enabled": true
+    },
+    "hospital_regression_ui": {
+      "tests": 4,
+      "failures": 0,
+      "live_map_and_nearby_test_enabled": true
+    },
+    "django_broad_suite": {
+      "tests_run": 237,
+      "failures": 0,
+      "skipped": 3,
+      "isolation": "SQLite in-memory disposable test database"
+    },
+    "django_final_review_suite": {
+      "tests_run": 11,
+      "failures": 0,
+      "skipped": 0,
+      "isolation": "SQLite in-memory disposable test database"
+    },
+    "schema_dry_run": "No changes detected; no migration generated or applied",
+    "lint": {
+      "errors": 3,
+      "warnings": 115,
+      "hints": 1,
+      "new_directory_findings": 0
+    },
+    "logs": [
+      "build/doctor-directory-android-build.txt",
+      "build/doctor-directory-django-tests.txt",
+      "build/doctor-directory-review-tests.txt",
+      "build/doctor-directory-device-tests.txt",
+      "build/doctor-directory-hospital-regression.txt",
+      "build/doctor-directory-lint.txt"
+    ]
+  }
+}

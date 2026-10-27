@@ -1,0 +1,987 @@
+{
+  "dry_run": false,
+  "provider": "MapTiler Cloud",
+  "records": [
+    {
+      "hospital_id": 1,
+      "source_record_id": "UDR-001",
+      "query": "Madan Mohan Malviya Government Ayurvedic College And Hospital, Ambamata Scheme - A Rd, Radaji circle, Udaipur, Rajasthan, 313004, India",
+      "outcome": "generated",
+      "run_id": 1,
+      "status": "SUCCESS",
+      "error_code": "",
+      "candidates": [
+        {
+          "id": 1,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.490741,
+          "provider_reference": "place.5160188",
+          "label": "Udaipur, Girwa Tehsil, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:50.730048+00:00"
+        },
+        {
+          "id": 2,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.490741,
+          "provider_reference": "subregion.689",
+          "label": "Udaipur, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:50.741428+00:00"
+        },
+        {
+          "id": 3,
+          "latitude": "26.810578",
+          "longitude": "73.768455",
+          "confidence": 0.419753,
+          "provider_reference": "region.788",
+          "label": "Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:50.745239+00:00"
+        },
+        {
+          "id": 4,
+          "latitude": "23.527646",
+          "longitude": "91.496487",
+          "confidence": 0.419753,
+          "provider_reference": "county.21180",
+          "label": "Udaipur, Tripura, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:50.749219+00:00"
+        },
+        {
+          "id": 5,
+          "latitude": "32.725866",
+          "longitude": "76.665208",
+          "confidence": 0.419753,
+          "provider_reference": "county.13393",
+          "label": "Udaipur, Himachal Pradesh, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:50.752977+00:00"
+        }
+      ]
+    },
+    {
+      "hospital_id": 2,
+      "source_record_id": "UDR-002",
+      "query": "Government Ayurvedic Hospital, Moti Chohatta, Ghanta Ghar, 107 Main Rd, near Ayurvedic Hospital, Old City, Jatwari, Silawatwari, Udaipur, Rajasthan, 313001, India",
+      "outcome": "failed",
+      "run_id": 2,
+      "status": "FAILED",
+      "error_code": "HTTP_ERROR",
+      "candidates": []
+    },
+    {
+      "hospital_id": 3,
+      "source_record_id": "UDR-003",
+      "query": "Govt A class Ayurved hospital AAYAD, HPP9+P5X, opposite Gang Kund, South Ayad, Ayad, Ganapati Nagar, Udaipur, Rajasthan, 313001, India",
+      "outcome": "generated",
+      "run_id": 3,
+      "status": "SUCCESS",
+      "error_code": "",
+      "candidates": [
+        {
+          "id": 6,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.483333,
+          "provider_reference": "subregion.689",
+          "label": "Udaipur, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:53.712926+00:00"
+        },
+        {
+          "id": 7,
+          "latitude": "25.442220",
+          "longitude": "75.639763",
+          "confidence": 0.418889,
+          "provider_reference": "major_landform.272142",
+          "label": "Nagar Kund, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:53.717524+00:00"
+        },
+        {
+          "id": 8,
+          "latitude": "25.442162",
+          "longitude": "75.640156",
+          "confidence": 0.418889,
+          "provider_reference": "major_landform.272141",
+          "label": "Sagar Kund, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:53.722164+00:00"
+        },
+        {
+          "id": 9,
+          "latitude": "27.421657",
+          "longitude": "77.100411",
+          "confidence": 0.418889,
+          "provider_reference": "county.12430",
+          "label": "Nagar Tehsil, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:53.727225+00:00"
+        },
+        {
+          "id": 10,
+          "latitude": "29.907005",
+          "longitude": "73.918814",
+          "confidence": 0.418889,
+          "provider_reference": "major_landform.3194714",
+          "label": "Gang Canal, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:53.731525+00:00"
+        }
+      ]
+    },
+    {
+      "hospital_id": 4,
+      "source_record_id": "UDR-004",
+      "query": "Government Ayurvedic Hospital and Research Centre, Gulab Bagh Udaipur, Palace Road, Old City, Kalaji Goraji, near Gulab Bagh, Udaipur, Rajasthan, 313001, India",
+      "outcome": "failed",
+      "run_id": 4,
+      "status": "FAILED",
+      "error_code": "HTTP_ERROR",
+      "candidates": []
+    },
+    {
+      "hospital_id": 5,
+      "source_record_id": "UDR-005",
+      "query": "Government Ayurved Dispensary Sindhi Bazar Udaipur, Futa Darwaja, Sindhi Bazar Rd, Old City, Nada Khada, Udaipur, Rajasthan, 313001, India",
+      "outcome": "generated",
+      "run_id": 5,
+      "status": "SUCCESS",
+      "error_code": "",
+      "candidates": [
+        {
+          "id": 11,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.538012,
+          "provider_reference": "place.5160188",
+          "label": "Udaipur, Girwa Tehsil, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DUPLICATE_REVIEW_REQUIRED",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:57.641078+00:00"
+        },
+        {
+          "id": 12,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.486842,
+          "provider_reference": "subregion.689",
+          "label": "Udaipur, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DUPLICATE_REVIEW_REQUIRED",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:57.644151+00:00"
+        },
+        {
+          "id": 13,
+          "latitude": "26.810578",
+          "longitude": "73.768455",
+          "confidence": 0.417154,
+          "provider_reference": "region.788",
+          "label": "Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DUPLICATE_REVIEW_REQUIRED",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:57.647093+00:00"
+        },
+        {
+          "id": 14,
+          "latitude": "23.527646",
+          "longitude": "91.496487",
+          "confidence": 0.417154,
+          "provider_reference": "county.21180",
+          "label": "Udaipur, Tripura, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DUPLICATE_REVIEW_REQUIRED",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:57.651214+00:00"
+        },
+        {
+          "id": 15,
+          "latitude": "32.725866",
+          "longitude": "76.665208",
+          "confidence": 0.417154,
+          "provider_reference": "county.13393",
+          "label": "Udaipur, Himachal Pradesh, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DUPLICATE_REVIEW_REQUIRED",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:57.654142+00:00"
+        }
+      ]
+    },
+    {
+      "hospital_id": 6,
+      "source_record_id": "UDR-006",
+      "query": "Aadinath Vitalising Home Ayurveda & Panchakarma Hospital, 60, behind Hanuman Temple, opposite Meera Girls College, Sardarpura, Bhopalpura, Udaipur, Rajasthan, 313004, India",
+      "outcome": "generated",
+      "run_id": 6,
+      "status": "SUCCESS",
+      "error_code": "",
+      "candidates": [
+        {
+          "id": 16,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.483333,
+          "provider_reference": "place.5160188",
+          "label": "Udaipur, Girwa Tehsil, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:59.797138+00:00"
+        },
+        {
+          "id": 17,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.483333,
+          "provider_reference": "subregion.689",
+          "label": "Udaipur, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:59.803444+00:00"
+        },
+        {
+          "id": 18,
+          "latitude": "26.810578",
+          "longitude": "73.768455",
+          "confidence": 0.414815,
+          "provider_reference": "region.788",
+          "label": "Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:59.807472+00:00"
+        },
+        {
+          "id": 19,
+          "latitude": "23.527646",
+          "longitude": "91.496487",
+          "confidence": 0.414815,
+          "provider_reference": "county.21180",
+          "label": "Udaipur, Tripura, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:59.811624+00:00"
+        },
+        {
+          "id": 20,
+          "latitude": "32.725866",
+          "longitude": "76.665208",
+          "confidence": 0.414815,
+          "provider_reference": "county.13393",
+          "label": "Udaipur, Himachal Pradesh, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:56:59.815612+00:00"
+        }
+      ]
+    },
+    {
+      "hospital_id": 7,
+      "source_record_id": "UDR-007",
+      "query": "Vedanta Ayurved Multi-Speciality Hospital & Research Centre, 15-C, near Star Imaging Centre, Madhuban, Udaipur, Rajasthan, 313004, India",
+      "outcome": "generated",
+      "run_id": 7,
+      "status": "SUCCESS",
+      "error_code": "",
+      "candidates": [
+        {
+          "id": 21,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.490741,
+          "provider_reference": "subregion.689",
+          "label": "Udaipur, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:00.659500+00:00"
+        },
+        {
+          "id": 22,
+          "latitude": "26.810578",
+          "longitude": "73.768455",
+          "confidence": 0.419753,
+          "provider_reference": "region.788",
+          "label": "Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:00.661611+00:00"
+        },
+        {
+          "id": 23,
+          "latitude": "26.168422",
+          "longitude": "83.683618",
+          "confidence": 0.419753,
+          "provider_reference": "county.14723",
+          "label": "Madhuban, Uttar Pradesh, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:00.663701+00:00"
+        },
+        {
+          "id": 24,
+          "latitude": "22.351115",
+          "longitude": "78.667743",
+          "confidence": 0.302469,
+          "provider_reference": "country.206",
+          "label": "India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:00.665375+00:00"
+        },
+        {
+          "id": 25,
+          "latitude": "22.304863",
+          "longitude": "74.012618",
+          "confidence": 0.229012,
+          "provider_reference": "subregion.1362",
+          "label": "Chhota Udaipur, Gujarat, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:00.667311+00:00"
+        }
+      ]
+    },
+    {
+      "hospital_id": 8,
+      "source_record_id": "UDR-008",
+      "query": "Ayur Bagh Ayurved Multispeciality Hospital, Plot No. 460, B-Block, Shyam Nagar, Bhuwana, Roopnagar, Udaipur, Rajasthan, 313001, India",
+      "outcome": "generated",
+      "run_id": 8,
+      "status": "SUCCESS",
+      "error_code": "",
+      "candidates": [
+        {
+          "id": 26,
+          "latitude": "27.421657",
+          "longitude": "77.100411",
+          "confidence": 0.722222,
+          "provider_reference": "place.5159945",
+          "label": "Nagar, Nagar Tehsil, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:02.843384+00:00"
+        },
+        {
+          "id": 27,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.490741,
+          "provider_reference": "place.5160188",
+          "label": "Udaipur, Girwa Tehsil, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:02.848104+00:00"
+        },
+        {
+          "id": 28,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.490741,
+          "provider_reference": "subregion.689",
+          "label": "Udaipur, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:02.853054+00:00"
+        },
+        {
+          "id": 29,
+          "latitude": "24.591764",
+          "longitude": "73.670585",
+          "confidence": 0.488889,
+          "provider_reference": "major_landform.1279185",
+          "label": "Open Plot, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:02.861400+00:00"
+        },
+        {
+          "id": 30,
+          "latitude": "25.442220",
+          "longitude": "75.639763",
+          "confidence": 0.425309,
+          "provider_reference": "major_landform.272142",
+          "label": "Nagar Kund, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:02.866720+00:00"
+        }
+      ]
+    },
+    {
+      "hospital_id": 9,
+      "source_record_id": "UDR-009",
+      "query": "Ayurnaturo Hospital & Research Centre, Main Road, Debari, Udaipur, Rajasthan, 313001, India",
+      "outcome": "generated",
+      "run_id": 9,
+      "status": "SUCCESS",
+      "error_code": "",
+      "candidates": [
+        {
+          "id": 31,
+          "latitude": "24.597791",
+          "longitude": "73.788931",
+          "confidence": 0.680135,
+          "provider_reference": "place.1487766",
+          "label": "Debari, Girwa Tehsil, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:04.000802+00:00"
+        },
+        {
+          "id": 32,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.537879,
+          "provider_reference": "place.5160188",
+          "label": "Udaipur, Girwa Tehsil, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:04.005772+00:00"
+        },
+        {
+          "id": 33,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.537879,
+          "provider_reference": "subregion.689",
+          "label": "Udaipur, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:04.010849+00:00"
+        },
+        {
+          "id": 34,
+          "latitude": "26.810578",
+          "longitude": "73.768455",
+          "confidence": 0.451178,
+          "provider_reference": "region.788",
+          "label": "Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:04.016052+00:00"
+        },
+        {
+          "id": 35,
+          "latitude": "23.527646",
+          "longitude": "91.496487",
+          "confidence": 0.451178,
+          "provider_reference": "county.21180",
+          "label": "Udaipur, Tripura, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:04.022747+00:00"
+        }
+      ]
+    },
+    {
+      "hospital_id": 10,
+      "source_record_id": "UDR-010",
+      "query": "Panchamrut Ayurveda Panchkarma & Fertility Center, 4-A / 33-A, Ashok Nagar Main Rd, near Bhopalpura Police Station, Shastri Circle, Ashok Nagar, Udaipur, Rajasthan, 313001, India",
+      "outcome": "failed",
+      "run_id": 10,
+      "status": "FAILED",
+      "error_code": "HTTP_ERROR",
+      "candidates": []
+    },
+    {
+      "hospital_id": 11,
+      "source_record_id": "UDR-011",
+      "query": "Pranav Yoga Ayurveda Healthcare, B Block, 2-D, Tiger Hills, Badgaon, Bargaon, Udaipur, Rajasthan, 313011, India",
+      "outcome": "generated",
+      "run_id": 11,
+      "status": "SUCCESS",
+      "error_code": "",
+      "candidates": [
+        {
+          "id": 36,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.5,
+          "provider_reference": "place.5160188",
+          "label": "Udaipur, Girwa Tehsil, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:06.911644+00:00"
+        },
+        {
+          "id": 37,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.5,
+          "provider_reference": "subregion.689",
+          "label": "Udaipur, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:06.914661+00:00"
+        },
+        {
+          "id": 38,
+          "latitude": "26.810578",
+          "longitude": "73.768455",
+          "confidence": 0.425926,
+          "provider_reference": "region.788",
+          "label": "Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:06.917218+00:00"
+        },
+        {
+          "id": 39,
+          "latitude": "23.527646",
+          "longitude": "91.496487",
+          "confidence": 0.425926,
+          "provider_reference": "county.21180",
+          "label": "Udaipur, Tripura, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:06.919751+00:00"
+        },
+        {
+          "id": 40,
+          "latitude": "32.725866",
+          "longitude": "76.665208",
+          "confidence": 0.425926,
+          "provider_reference": "county.13393",
+          "label": "Udaipur, Himachal Pradesh, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:06.922063+00:00"
+        }
+      ]
+    },
+    {
+      "hospital_id": 12,
+      "source_record_id": "UDR-012",
+      "query": "Keraliya Ayurvedic Panchakarma Center, 28, Kardhar Complex, Sector 14, Hiran Magri, Gordhan Vilas Rural, Udaipur, Rajasthan, 313001, India",
+      "outcome": "generated",
+      "run_id": 12,
+      "status": "SUCCESS",
+      "error_code": "",
+      "candidates": [
+        {
+          "id": 41,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.490741,
+          "provider_reference": "place.5160188",
+          "label": "Udaipur, Girwa Tehsil, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:10.947778+00:00"
+        },
+        {
+          "id": 42,
+          "latitude": "24.578721",
+          "longitude": "73.686257",
+          "confidence": 0.490741,
+          "provider_reference": "subregion.689",
+          "label": "Udaipur, Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:10.950736+00:00"
+        },
+        {
+          "id": 43,
+          "latitude": "26.810578",
+          "longitude": "73.768455",
+          "confidence": 0.419753,
+          "provider_reference": "region.788",
+          "label": "Rajasthan, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:10.953070+00:00"
+        },
+        {
+          "id": 44,
+          "latitude": "23.527646",
+          "longitude": "91.496487",
+          "confidence": 0.419753,
+          "provider_reference": "county.21180",
+          "label": "Udaipur, Tripura, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:10.955188+00:00"
+        },
+        {
+          "id": 45,
+          "latitude": "32.725866",
+          "longitude": "76.665208",
+          "confidence": 0.419753,
+          "provider_reference": "county.13393",
+          "label": "Udaipur, Himachal Pradesh, India",
+          "flags": [
+            "EXACT_LOCATION_REQUIRES_HUMAN_CONFIRMATION",
+            "AMBIGUOUS_RESULTS",
+            "LOW_OR_MISSING_RELEVANCE",
+            "BROAD_LOCATION_NOT_CONFIRMED_FACILITY",
+            "LOCALITY_MISMATCH",
+            "DISTANCE_REFERENCE_UNAVAILABLE"
+          ],
+          "attribution": "<a href=\"https://www.maptiler.com/copyright/\" target=\"_blank\">&copy; MapTiler</a> <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+          "status": "PROPOSED",
+          "created_at": "2026-10-26T09:57:10.956932+00:00"
+        }
+      ]
+    }
+  ],
+  "http_requests": 13,
+  "summary": {
+    "hospitals": 12,
+    "candidate_count": 45,
+    "failed": 3,
+    "not_requested": 0,
+    "skipped": 0
+  }
+}
